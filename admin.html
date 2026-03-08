@@ -44,14 +44,29 @@
                 <div id="user-tab" class="tab-section hidden">
                     <div class="tab-header">
                         <h2>Account Provisioning</h2>
-                        <button class="btn-primary">+ Add New Hire</button>
+                        <button class="btn-primary" id="open-add-user-modal-btn">+ Add New Hire</button>
                     </div>
                     <div class="table-container">
                         <table class="data-table">
                             <thead>
-                                <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th></tr>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Permissions</th>
+                                    <th>Action</th>
+                                </tr>
                             </thead>
                             <tbody id="user-table-body">
+                                <tr>
+                                    <td>Juan dela Cruz</td>
+                                    <td>juan@cicj.com</td>
+                                    <td>EMPLOYEE</td>
+                                    <td><span class="badge success">Active</span></td>
+                                    <td><button class="btn-small">View Matrix</button></td>
+                                    <td><button class="btn-small">Edit</button></td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -95,23 +110,126 @@
 
                 <!-- System Health Tab -->
                 <div id="health-tab" class="tab-section hidden">
-                    <h2>Audit Trails & Health Logs</h2>
-                    <div class="stats-grid">
+                    <h2>System Health Monitoring</h2>
+                    
+                    <!-- Server Status Cards -->
+                    <div class="stats-grid" style="margin-bottom: 30px;">
                         <div class="stat-card">
-                            <h3>Uptime</h3>
-                            <p class="stat-number">99.9%</p>
+                            <h3>Server Uptime</h3>
+                            <p class="stat-number text-success" id="server-uptime">99.9%</p>
+                            <small style="color: #6b7280;">Last 30 days</small>
                         </div>
                         <div class="stat-card">
-                            <h3>Backup Status</h3>
-                            <p>Success (FTP)</p>
+                            <h3>Database Status</h3>
+                            <p class="stat-number text-success" id="db-status">●</p>
+                            <small style="color: #6b7280;">MySQL Connected</small>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Last Backup</h3>
+                            <p class="stat-number" style="font-size: 1.2rem;" id="last-backup">2 hours ago</p>
+                            <small style="color: #6b7280;">Auto-backup enabled</small>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Active Users</h3>
+                            <p class="stat-number text-orange" id="active-users">8</p>
+                            <small style="color: #6b7280;">Currently online</small>
                         </div>
                     </div>
-                    <div class="table-container">
+
+                    <!-- Database Backup Status -->
+                    <div class="table-container" style="margin-bottom: 30px;">
+                        <div class="tab-header">
+                            <h2>Database Backup History</h2>
+                            <button class="btn-primary" id="trigger-backup-btn">🔄 Trigger Backup</button>
+                        </div>
                         <table class="data-table">
                             <thead>
-                                <tr><th>Timestamp</th><th>Event</th><th>IP Address</th></tr>
+                                <tr>
+                                    <th>Backup ID</th>
+                                    <th>Timestamp</th>
+                                    <th>Type</th>
+                                    <th>Size</th>
+                                    <th>Status</th>
+                                    <th>Storage</th>
+                                </tr>
+                            </thead>
+                            <tbody id="backup-table-body">
+                                <tr>
+                                    <td>#BK-001</td>
+                                    <td>2026-03-08 06:00:00</td>
+                                    <td>Automated</td>
+                                    <td>127.5 MB</td>
+                                    <td><span class="badge success">Success</span></td>
+                                    <td>LOCAL_FTP</td>
+                                </tr>
+                                <tr>
+                                    <td>#BK-002</td>
+                                    <td>2026-03-07 06:00:00</td>
+                                    <td>Automated</td>
+                                    <td>125.2 MB</td>
+                                    <td><span class="badge success">Success</span></td>
+                                    <td>CLOUD</td>
+                                </tr>
+                                <tr>
+                                    <td>#BK-003</td>
+                                    <td>2026-03-06 06:00:00</td>
+                                    <td>Manual</td>
+                                    <td>124.8 MB</td>
+                                    <td><span class="badge success">Success</span></td>
+                                    <td>LOCAL_FTP</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Network IP Logs (SAM Compliance) -->
+                    <div class="table-container">
+                        <div class="tab-header">
+                            <h2>Network IP Logs & Audit Trail</h2>
+                            <button class="btn-primary" id="export-logs-btn">📥 Export Logs (CSV)</button>
+                        </div>
+                        <p style="color: #6b7280; margin-bottom: 15px;">
+                            <strong>SAM Compliance:</strong> All system events logged with IP addresses for government audit requirements
+                        </p>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Event Type</th>
+                                    <th>Description</th>
+                                    <th>IP Address</th>
+                                    <th>User</th>
+                                </tr>
                             </thead>
                             <tbody id="health-table-body">
+                                <tr>
+                                    <td>2026-03-08 09:15:23</td>
+                                    <td><span class="badge">LOGIN</span></td>
+                                    <td>Admin login successful</td>
+                                    <td>192.168.1.105</td>
+                                    <td>admin@cicj.com</td>
+                                </tr>
+                                <tr>
+                                    <td>2026-03-08 08:42:11</td>
+                                    <td><span class="badge warning">PERMISSION_CHANGE</span></td>
+                                    <td>Granted can_delete_files to User #45</td>
+                                    <td>192.168.1.105</td>
+                                    <td>admin@cicj.com</td>
+                                </tr>
+                                <tr>
+                                    <td>2026-03-08 08:30:05</td>
+                                    <td><span class="badge">FILE_UPLOAD</span></td>
+                                    <td>Blueprint uploaded (12.5 MB) to CLOUD</td>
+                                    <td>192.168.1.112</td>
+                                    <td>manager@cicj.com</td>
+                                </tr>
+                                <tr>
+                                    <td>2026-03-08 07:00:01</td>
+                                    <td><span class="badge success">BACKUP_CREATED</span></td>
+                                    <td>Automated database backup completed</td>
+                                    <td>localhost</td>
+                                    <td>System</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -139,6 +257,252 @@
                 <div class="modal-actions">
                     <button type="button" class="btn-outline" id="cancel-modal-btn">Cancel</button>
                     <button type="submit" class="btn-primary">Save Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Adding New Hire with Permissions Matrix -->
+    <div id="add-user-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2>Add New Hire - Account Provisioning</h2>
+                <span class="close-modal" id="close-user-modal-btn">&times;</span>
+            </div>
+            <form id="add-user-form">
+                <!-- Basic Information -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                    <div class="input-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="user-fullname" required placeholder="Juan dela Cruz">
+                    </div>
+                    <div class="input-group">
+                        <label>Email Address *</label>
+                        <input type="email" id="user-email" required placeholder="juan@cicj.com">
+                    </div>
+                    <div class="input-group">
+                        <label>Contact Number</label>
+                        <input type="tel" id="user-contact" placeholder="+63 912 345 6789">
+                    </div>
+                    <div class="input-group">
+                        <label>Role *</label>
+                        <select id="user-role" required>
+                            <option value="">Select Role</option>
+                            <option value="ADMIN">Admin</option>
+                            <option value="EMPLOYEE">Employee</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Password *</label>
+                        <input type="password" id="user-password" required minlength="8" placeholder="Min. 8 characters">
+                    </div>
+                    <div class="input-group">
+                        <label>Confirm Password *</label>
+                        <input type="password" id="user-password-confirm" required placeholder="Re-enter password">
+                    </div>
+                </div>
+
+                <!-- Permissions Matrix Section -->
+                <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px; color: #1e3a8a;">
+                        🔐 Granular Permissions Matrix (Principle of Least Privilege)
+                    </h3>
+                    <p style="color: #6b7280; font-size: 14px; margin-bottom: 20px;">
+                        Toggle exact permissions for this user. Default permissions are pre-selected based on role.
+                    </p>
+
+                    <!-- Permission Categories -->
+                    <div class="permissions-grid">
+                        
+                        <!-- User Management Permissions -->
+                        <div class="permission-category">
+                            <h4 class="category-title">👥 User Management</h4>
+                            <div class="permission-checkboxes">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_view_users">
+                                    <span>View Users</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_add_users">
+                                    <span>Add Users</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_edit_users">
+                                    <span>Edit Users</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_delete_users">
+                                    <span>Delete Users</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_activate_users">
+                                    <span>Activate/Deactivate</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Attendance Permissions -->
+                        <div class="permission-category">
+                            <h4 class="category-title">📅 Attendance</h4>
+                            <div class="permission-checkboxes">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_view_own_attendance" checked>
+                                    <span>View Own Attendance</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_view_all_attendance">
+                                    <span>View All Attendance</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_edit_attendance">
+                                    <span>Edit/Correct Logs</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_delete_attendance">
+                                    <span>Delete Logs</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_export_attendance">
+                                    <span>Export Reports</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Equipment Permissions -->
+                        <div class="permission-category">
+                            <h4 class="category-title">🔧 Equipment</h4>
+                            <div class="permission-checkboxes">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_view_equipment" checked>
+                                    <span>View Inventory</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_add_equipment">
+                                    <span>Add Equipment</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_edit_equipment">
+                                    <span>Edit Equipment</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_delete_equipment">
+                                    <span>Delete Equipment</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_assign_equipment">
+                                    <span>Assign to Workers</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Files Permissions -->
+                        <div class="permission-category">
+                            <h4 class="category-title">📁 Project Files</h4>
+                            <div class="permission-checkboxes">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_view_files" checked>
+                                    <span>View Files</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_upload_files">
+                                    <span>Upload Files</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_edit_files">
+                                    <span>Edit Metadata</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_delete_files">
+                                    <span>Delete Files</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_download_files" checked>
+                                    <span>Download Files</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Inquiries Permissions -->
+                        <div class="permission-category">
+                            <h4 class="category-title">💬 Client Inquiries</h4>
+                            <div class="permission-checkboxes">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_view_inquiries">
+                                    <span>View Inquiries</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_add_inquiries" checked>
+                                    <span>Submit Inquiries</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_update_inquiries">
+                                    <span>Update Status</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_delete_inquiries">
+                                    <span>Delete Inquiries</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_assign_inquiries">
+                                    <span>Assign to Team</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- System Administration Permissions -->
+                        <div class="permission-category">
+                            <h4 class="category-title">⚙️ System Admin</h4>
+                            <div class="permission-checkboxes">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_view_health_logs">
+                                    <span>View Health Logs</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_export_health_logs">
+                                    <span>Export Logs (SAM)</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_manage_permissions">
+                                    <span>Manage Permissions</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_view_audit_trail">
+                                    <span>View Audit Trail</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_backup_database">
+                                    <span>Database Backups</span>
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Quick Permission Presets -->
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                        <p style="font-weight: 600; margin-bottom: 10px; color: #374151;">Quick Presets:</p>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button type="button" class="btn-small" id="preset-field-worker">Field Worker</button>
+                            <button type="button" class="btn-small" id="preset-supervisor">Supervisor</button>
+                            <button type="button" class="btn-small" id="preset-hr-admin">HR Admin</button>
+                            <button type="button" class="btn-small" id="preset-sales-manager">Sales Manager</button>
+                            <button type="button" class="btn-small" id="preset-super-admin">Super Admin</button>
+                            <button type="button" class="btn-small" id="preset-clear-all">Clear All</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Status -->
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <label class="checkbox-label" style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="user-active" checked>
+                        <span style="font-weight: 600;">Account Active (User can login immediately)</span>
+                    </label>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="cancel-user-modal-btn">Cancel</button>
+                    <button type="submit" class="btn-primary">Create User Account</button>
                 </div>
             </form>
         </div>
