@@ -1,13 +1,27 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "CICJ-ICMS Backend API",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prisma:generate": "npx prisma generate",
+    "prisma:migrate": "npx prisma migrate dev",
+    "prisma:deploy": "npx prisma migrate deploy",
+    "prisma:seed": "npx prisma db seed",
+    "prisma:studio": "npx prisma studio",
+    "docker:build": "docker build -t cicj-icms-backend .",
+    "docker:run": "docker run -p 5000:5000 --env-file .env cicj-icms-backend",
+    "docker:dev": "docker-compose -f ../docker-compose.dev.yml up",
+    "docker:prod": "docker-compose -f ../docker-compose.yml up -d"
   },
-  "keywords": [],
-  "author": "",
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "keywords": ["construction", "management", "api", "prisma"],
+  "author": "CICJ Team",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {

@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # MySQL Database Service
+  mysql:
+    image: mysql:8.0
+    container_name: cicj_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: cicj_root_password
+      MYSQL_DATABASE: cicj_icms
+      MYSQL_USER: cicj_user
+      MYSQL_PASSWORD: cicj_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./prisma/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - cicj_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pcicj_root_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Application Service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: cicj_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: "mysql://cicj_user:cicj_password@mysql:3306/cicj_icms"
+      JWT_SECRET: "${JWT_SECRET:-cicj_super_secret_key_2026}"
+      PORT: 5000
+      NODE_ENV: production
+    ports:
+      - "5000:5000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - cicj_network
+    volumes:
+      # Mount uploads directory for persistent file storage
+      - ./uploads:/app/uploads
+    command: sh -c "npx prisma migrate deploy && node server.js"
+
+networks:
+  cicj_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local

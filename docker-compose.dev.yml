@@ -1,0 +1,76 @@
+version: '3.8'
+
+# Development Docker Compose Configuration
+# Use: docker-compose -f docker-compose.dev.yml up
+
+services:
+  # MySQL Database Service (same as production)
+  mysql:
+    image: mysql:8.0
+    container_name: cicj_mysql_dev
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: cicj_icms
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_dev_data:/var/lib/mysql
+    networks:
+      - cicj_dev_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Backend Application (Development Mode)
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: builder  # Use builder stage for development tools
+    container_name: cicj_backend_dev
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: "mysql://root:@mysql:3306/cicj_icms"
+      JWT_SECRET: "cicj_super_secret_key_2026"
+      PORT: 5000
+      NODE_ENV: development
+    ports:
+      - "5000:5000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - cicj_dev_network
+    volumes:
+      # Mount source code for hot-reloading
+      - ./backend:/app
+      - /app/node_modules  # Prevent overwriting node_modules
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed && npm run dev"
+
+  # phpMyAdmin for database management (optional)
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: cicj_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+    networks:
+      - cicj_dev_network
+
+networks:
+  cicj_dev_network:
+    driver: bridge
+
+volumes:
+  mysql_dev_data:
+    driver: local
