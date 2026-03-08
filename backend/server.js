@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -11,6 +13,20 @@ const {
     requireAnyPermission,
     requireOwnershipOrPermission
 } = require('./middleware/auth');
+const {
+    sanitizeInput,
+    validateUserRegistration,
+    validateLogin,
+    validateEquipment,
+    validateAttendance,
+    validateFileUpload,
+    validateInquiry,
+    validateId,
+    handleValidationErrors,
+    generateCsrfToken,
+    validateCsrfToken,
+    getCsrfTokenEndpoint
+} = require('./middleware/security');
 require('dotenv').config();
 
 const app = express();
@@ -18,21 +34,91 @@ const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET;
 
-app.use(cors());
-app.use(express.json());
+// ==========================================
+// SECURITY MIDDLEWARE
+// ==========================================
+
+// 1. Helmet - Security headers (XSS, clickjacking, MIME sniffing protection)
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'"],
+            imgSrc: ["'self'", "data:", "https:"],
+            connectSrc: ["'self'"],
+            fontSrc: ["'self'"],
+            objectSrc: ["'none'"],
+            mediaSrc: ["'self'"],
+            frameSrc: ["'none'"]
+        }
+    },
+    hsts: {
+        maxAge: 31536000, // 1 year
+        includeSubDomains: true,
+        preload: true
+    }
+}));
+
+// 2. CORS - Controlled cross-origin access
+app.use(cors({
+    origin: process.env.FRONTEND_URL || '*', // Restrict in production
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token']
+}));
+
+// 3. Rate Limiting - Prevent DoS attacks
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // 100 requests per window per IP
+    message: {
+        error: 'Too many requests from this IP, please try again later.',
+        retryAfter: '15 minutes'
+    },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+// Stricter rate limit for authentication routes
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // 10 login attempts per window
+    message: {
+        error: 'Too many login attempts, please try again later.',
+        retryAfter: '15 minutes',
+        hint: 'For security, we limit login attempts. Please wait before trying again.'
+    }
+});
+
+app.use('/login', authLimiter);
+app.use('/register', limiter);
+app.use('/api/', limiter);
+
+// 4. Body parser
+app.use(express.json({ limit: '10mb' })); // Limit payload size
+
+// 5. XSS Protection - Sanitize all inputs
+app.use(sanitizeInput);
+
+// 6. HTTPS Redirect (production only)
+if (process.env.NODE_ENV === 'production') {
+    app.use((req, res, next) => {
+        if (req.header('x-forwarded-proto') !== 'https') {
+            res.redirect(`https://${req.header('host')}${req.url}`);
+        } else {
+            next();
+        }
+    });
+}
 
 // ==========================================
 // AUTHENTICATION ROUTES (No permissions required)
 // ==========================================
 
-// 1. Login Route - Public endpoint
-app.post('/login', async (req, res) => {
+// 1. Login Route - Public endpoint (with validation)
+app.post('/login', validateLogin, handleValidationErrors, async (req, res) => {
     const { email, password } = req.body;
-    
-    // Input validation
-    if (!email || !password) {
-        return res.status(400).json({ error: "Email and password are required." });
-    }
 
     try {
         // Find user by email
@@ -83,7 +169,7 @@ app.post('/login', async (req, res) => {
 // ==========================================
 
 // Register New User with Granular Permissions - Requires can_add_users permission
-app.post('/register', authenticateToken, requirePermission('can_add_users'), async (req, res) => {
+app.post('/register', authenticateToken, requirePermission('can_add_users'), validateUserRegistration, handleValidationErrors, async (req, res) => {
     const { 
         // Basic User Info
         full_name, 
@@ -136,16 +222,6 @@ app.post('/register', authenticateToken, requirePermission('can_add_users'), asy
         can_view_audit_trail,
         can_backup_database
     } = req.body;
-
-    // Input validation
-    if (!full_name || !email || !password) {
-        return res.status(400).json({ error: "Full name, email, and password are required." });
-    }
-
-    // Security Check: Password Complexity
-    if (password.length < 8) {
-        return res.status(400).json({ error: "Password must be at least 8 characters long." });
-    }
 
     try {
         // Hash password with bcrypt
@@ -399,6 +475,26 @@ app.delete('/api/equipment/:equipment_id', authenticateToken, requirePermission(
         console.error("Delete Equipment Error:", error);
         res.status(500).json({ error: "Failed to delete equipment." });
     }
+});
+
+// ==========================================
+// SECURITY ENDPOINTS
+// ==========================================
+
+// Get CSRF Token - Authenticated users only
+app.get('/api/csrf-token', authenticateToken, getCsrfTokenEndpoint);
+
+// Security Headers Test Endpoint
+app.get('/api/security/headers', (req, res) => {
+    res.json({
+        message: 'Security headers active',
+        headers: {
+            'X-Frame-Options': res.getHeader('X-Frame-Options'),
+            'X-Content-Type-Options': res.getHeader('X-Content-Type-Options'),
+            'Strict-Transport-Security': res.getHeader('Strict-Transport-Security'),
+            'Content-Security-Policy': res.getHeader('Content-Security-Policy')
+        }
+    });
 });
 
 // ==========================================

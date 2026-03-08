@@ -166,25 +166,56 @@ document.addEventListener('DOMContentLoaded', () => {
     addUserForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // Form Validation
+        // Get form values
+        const fullName = document.getElementById('user-fullname').value;
+        const email = document.getElementById('user-email').value;
+        const contactNumber = document.getElementById('user-contact').value;
         const password = document.getElementById('user-password').value;
         const passwordConfirm = document.getElementById('user-password-confirm').value;
 
-        if (password !== passwordConfirm) {
-            alert('Passwords do not match!');
+        // ===== FRONTEND INPUT VALIDATION (Security Hardening) =====
+        
+        // Validate full name
+        const nameValidation = window.ValidationUtils.validateName(fullName, 'Full name');
+        if (!nameValidation.valid) {
+            alert('❌ ' + nameValidation.message);
             return;
         }
 
-        if (password.length < 8) {
-            alert('Password must be at least 8 characters long.');
+        // Validate email
+        const emailValidation = window.ValidationUtils.validateEmail(email);
+        if (!emailValidation.valid) {
+            alert('❌ ' + emailValidation.message);
             return;
+        }
+
+        // Validate password
+        const passwordValidation = window.ValidationUtils.validatePassword(password);
+        if (!passwordValidation.valid) {
+            alert('❌ ' + passwordValidation.message);
+            return;
+        }
+
+        // Password confirmation
+        if (password !== passwordConfirm) {
+            alert('❌ Passwords do not match!');
+            return;
+        }
+
+        // Validate phone number (optional field)
+        if (contactNumber) {
+            const phoneValidation = window.ValidationUtils.validatePhone(contactNumber);
+            if (!phoneValidation.valid) {
+                alert('❌ ' + phoneValidation.message);
+                return;
+            }
         }
 
         // Capture Basic User Data
         const userData = {
-            full_name: document.getElementById('user-fullname').value,
-            email: document.getElementById('user-email').value,
-            contact_number: document.getElementById('user-contact').value || null,
+            full_name: fullName,
+            email: email,
+            contact_number: contactNumber || null,
             role: document.getElementById('user-role').value,
             password: password,
             is_active: document.getElementById('user-active').checked
