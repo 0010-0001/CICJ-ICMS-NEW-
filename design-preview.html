@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CICJ-ICMS Design Preview</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2rem;
+            margin-bottom: 50px;
+        }
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        .preview-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        .preview-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .preview-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            padding: 30px;
+            color: white;
+            text-align: center;
+        }
+        .preview-card.employee .preview-header {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+        }
+        .preview-card.client .preview-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        }
+        .preview-header h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .preview-header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        .preview-body {
+            padding: 30px;
+        }
+        .feature-list {
+            list-style: none;
+            margin: 20px 0;
+        }
+        .feature-list li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #374151;
+            font-size: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .feature-list li:last-child { border-bottom: none; }
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .btn-preview {
+            display: block;
+            background: #2563eb;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+        .btn-preview:hover {
+            background: #1d4ed8;
+            transform: scale(1.02);
+        }
+        .preview-card.employee .btn-preview {
+            background: #059669;
+        }
+        .preview-card.employee .btn-preview:hover {
+            background: #047857;
+        }
+        .preview-card.client .btn-preview {
+            background: #1e3a8a;
+        }
+        .preview-card.client .btn-preview:hover {
+            background: #1e40af;
+        }
+        .device-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin: 5px;
+        }
+        .info-box {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        .info-box h2 {
+            color: #1e3a8a;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+        .info-box p {
+            color: #374151;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .tech-badge {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+        }
+        .screenshot {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            border: 2px dashed #d1d5db;
+        }
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .preview-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 CICJ-ICMS Design System</h1>
+        <p class="subtitle">Presentable, Production-Ready Designs for Development</p>
+
+        <div class="info-box">
+            <h2>✅ Task 4: UI/UX Design - COMPLETE</h2>
+            <p>
+                <strong>All designs are built and ready!</strong> No Figma mockups needed - you have working HTML/CSS designs 
+                that are fully responsive and production-ready. When you get Figma designs later, simply update the CSS files.
+            </p>
+            <div class="tech-stack">
+                <div class="tech-badge">Vanilla JavaScript</div>
+                <div class="tech-badge">Responsive CSS</div>
+                <div class="tech-badge">Mobile-First Design</div>
+                <div class="tech-badge">Touch-Optimized</div>
+            </div>
+        </div>
+
+        <div class="preview-grid">
+            <!-- Client Portal -->
+            <div class="preview-card client">
+                <div class="preview-header">
+                    <h2>🌐 Client Portal</h2>
+                    <p>Public-Facing Digital Storefront</p>
+                    <div>
+                        <span class="device-badge">📱 Mobile</span>
+                        <span class="device-badge">💻 Desktop</span>
+                    </div>
+                </div>
+                <div class="preview-body">
+                    <div class="screenshot">Preview Screenshot</div>
+                    <ul class="feature-list">
+                        <li>Hero section with CTA button</li>
+                        <li>Project showcase (3 portfolio items)</li>
+                        <li>Services grid with icons</li>
+                        <li>Contact form with validation</li>
+                        <li>Hamburger menu for mobile</li>
+                        <li>Smooth scroll navigation</li>
+                    </ul>
+                    <a href="client.html" class="btn-preview">Open Client Portal →</a>
+                </div>
+            </div>
+
+            <!-- Admin Dashboard -->
+            <div class="preview-card">
+                <div class="preview-header">
+                    <h2>👨‍💼 Admin Dashboard</h2>
+                    <p>Macro-Level Operations</p>
+                    <div>
+                        <span class="device-badge">💻 Desktop</span>
+                        <span class="device-badge">📱 Tablet</span>
+                    </div>
+                </div>
+                <div class="preview-body">
+                    <div class="screenshot">Preview Screenshot</div>
+                    <ul class="feature-list">
+                        <li>5 management tabs (Users, Equipment, Files, Health)</li>
+                        <li>Data tables with sorting</li>
+                        <li>Modal forms for CRUD operations</li>
+                        <li>Stat cards with metrics</li>
+                        <li>Sidebar → Horizontal tabs (mobile)</li>
+                        <li>30 granular permissions enforced</li>
+                    </ul>
+                    <a href="admin.html" class="btn-preview">Open Admin Dashboard →</a>
+                </div>
+            </div>
+
+            <!-- Employee Dashboard -->
+            <div class="preview-card employee">
+                <div class="preview-header">
+                    <h2>👷 Employee Dashboard</h2>
+                    <p>Micro-Level Daily Tasks</p>
+                    <div>
+                        <span class="device-badge">📱 Mobile-First</span>
+                        <span class="device-badge">🏗️ Site-Ready</span>
+                    </div>
+                </div>
+                <div class="preview-body">
+                    <div class="screenshot">Preview Screenshot</div>
+                    <ul class="feature-list">
+                        <li>Clock In/Out buttons (44px touch targets)</li>
+                        <li>GPS auto-capture ready</li>
+                        <li>Attendance history table</li>
+                        <li>Equipment checkout system</li>
+                        <li>Profile information display</li>
+                        <li>One-handed mobile operation</li>
+                    </ul>
+                    <a href="employee.html" class="btn-preview">Open Employee Dashboard →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Testing Guide -->
+        <div class="info-box">
+            <h2>🧪 How to Test Responsive Design</h2>
+            <p><strong>Step 1:</strong> Open any page (client.html, admin.html, employee.html)</p>
+            <p><strong>Step 2:</strong> Press <code style="background: #e5e7eb; padding: 4px 8px; border-radius: 4px;">F12</code> to open Developer Tools</p>
+            <p><strong>Step 3:</strong> Press <code style="background: #e5e7eb; padding: 4px 8px; border-radius: 4px;">Ctrl+Shift+M</code> to toggle Device Toolbar</p>
+            <p><strong>Step 4:</strong> Select devices: iPhone SE (375px), iPad (768px), Desktop (1920px)</p>
+            <p style="margin-top: 20px;"><strong>Testing Focus:</strong> Navigation collapse, button sizes, table scrolling, form usability</p>
+        </div>
+
+        <!-- Design Specs -->
+        <div class="info-box">
+            <h2>📐 Design Specifications</h2>
+            <p><strong>Breakpoints:</strong></p>
+            <ul class="feature-list">
+                <li>Mobile Small: ≤ 320px (compact phones)</li>
+                <li>Mobile: ≤ 480px (standard phones)</li>
+                <li>Tablet: ≤ 768px (tablets, large phones)</li>
+                <li>Desktop Small: ≤ 1024px (small laptops)</li>
+                <li>Desktop: > 1024px (full desktop)</li>
+            </ul>
+            <p style="margin-top: 20px;"><strong>Color Scheme:</strong></p>
+            <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                <div style="background: #1e3a8a; padding: 20px 30px; border-radius: 8px; color: white; font-weight: bold;">Admin Blue</div>
+                <div style="background: #059669; padding: 20px 30px; border-radius: 8px; color: white; font-weight: bold;">Employee Green</div>
+                <div style="background: #f3f4f6; padding: 20px 30px; border-radius: 8px; color: #111827; font-weight: bold; border: 2px solid #d1d5db;">Neutral Gray</div>
+            </div>
+        </div>
+
+        <!-- Documentation -->
+        <div class="info-box">
+            <h2>📚 Documentation Available</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
+                <a href="WIREFRAMES.md" style="background: #dbeafe; color: #1e40af; padding: 20px; border-radius: 8px; text-decoration: none; font-weight: bold; text-align: center;">📄 WIREFRAMES.md</a>
+                <a href="DATABASE_ERD.md" style="background: #fef3c7; color: #92400e; padding: 20px; border-radius: 8px; text-decoration: none; font-weight: bold; text-align: center;">📄 DATABASE_ERD.md</a>
+                <a href="PERMISSIONS_MATRIX.md" style="background: #d1fae5; color: #065f46; padding: 20px; border-radius: 8px; text-decoration: none; font-weight: bold; text-align: center;">📄 PERMISSIONS_MATRIX.md</a>
+                <a href="responsive-demo.html" style="background: #e0e7ff; color: #3730a3; padding: 20px; border-radius: 8px; text-decoration: none; font-weight: bold; text-align: center;">🧪 Testing Demo</a>
+            </div>
+        </div>
+
+        <!-- Final Status -->
+        <div class="info-box" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white;">
+            <h2 style="color: white;">🎯 Development Status</h2>
+            <p style="color: rgba(255,255,255,0.95); font-size: 1.2rem; margin-bottom: 15px;">
+                <strong>✅ Ready for Development!</strong>
+            </p>
+            <ul class="feature-list" style="border-color: rgba(255,255,255,0.2);">
+                <li style="color: white; border-color: rgba(255,255,255,0.2);">✅ Public Client Portal - Complete</li>
+                <li style="color: white; border-color: rgba(255,255,255,0.2);">✅ Admin Dashboard - Complete</li>
+                <li style="color: white; border-color: rgba(255,255,255,0.2);">✅ Employee Dashboard - Complete</li>
+                <li style="color: white; border-color: rgba(255,255,255,0.2);">✅ Responsive Design (320px - 1920px+) - Complete</li>
+                <li style="color: white; border-color: rgba(255,255,255,0.2);">✅ Mobile-First Construction Site UX - Complete</li>
+                <li style="color: white; border-color: rgba(255,255,255,0.2);">✅ Documentation & Wireframes - Complete</li>
+            </ul>
+            <p style="color: rgba(255,255,255,0.9); margin-top: 20px;">
+                All designs are working HTML/CSS (not Figma mockups). When you get professional Figma designs later, 
+                simply update the CSS files without changing the HTML structure.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

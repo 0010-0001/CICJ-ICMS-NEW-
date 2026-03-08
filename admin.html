@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | CICJ-ICMS</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <h2>CICJ-ICMS</h2>
+            </div>
+            <nav class="sidebar-nav" id="sidebar-nav">
+                <a href="#" class="active" data-target="overview-tab">Overview</a>
+                <a href="#" data-target="user-tab">User Management</a>
+                <a href="#" data-target="equipment-tab">Equipment Inventory</a>
+                <a href="#" data-target="portfolio-tab">Project Files</a>
+                <a href="#" data-target="health-tab">System Health</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h1 id="page-title">Dashboard Overview</h1>
+                <div class="user-profile">
+                    <span id="welcome-message">Welcome, Admin</span>
+                    <button id="logout-btn" class="btn-outline">Logout</button>
+                </div>
+            </header>
+
+            <section class="content-area">
+                <!-- Overview Tab -->
+                <div id="overview-tab" class="tab-section">
+                    <div class="stats-grid">
+                        <div class="stat-card"><h3>Active Employees</h3><p class="stat-number">24</p></div>
+                        <div class="stat-card"><h3>Equipment Deployed</h3><p class="stat-number">156</p></div>
+                    </div>
+                </div>
+
+                <!-- User Management Tab -->
+                <div id="user-tab" class="tab-section hidden">
+                    <div class="tab-header">
+                        <h2>Account Provisioning</h2>
+                        <button class="btn-primary">+ Add New Hire</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th></tr>
+                            </thead>
+                            <tbody id="user-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Equipment Tab -->
+                <div id="equipment-tab" class="tab-section hidden">
+                    <div class="tab-header">
+                        <h2>Manage Equipment</h2>
+                        <button id="open-modal-btn" class="btn-primary">+ Add Equipment</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>Name</th><th>Quantity</th><th>Condition</th><th>Status</th></tr>
+                            </thead>
+                            <tbody id="equipment-table-body">
+                                <!-- Sample Item -->
+                                <tr><td>Makita Hammer Drill</td><td>5</td><td>Good</td><td><span class="badge success">Available</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Portfolio Tab -->
+                <div id="portfolio-tab" class="tab-section hidden">
+                    <div class="tab-header">
+                        <h2>Hybrid Storage (FTP & Cloud)</h2>
+                        <button class="btn-primary">+ Upload Blueprint</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>File Name</th><th>Size</th><th>Storage Type</th><th>Action</th></tr>
+                            </thead>
+                            <tbody id="files-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- System Health Tab -->
+                <div id="health-tab" class="tab-section hidden">
+                    <h2>Audit Trails & Health Logs</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Uptime</h3>
+                            <p class="stat-number">99.9%</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Backup Status</h3>
+                            <p>Success (FTP)</p>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>Timestamp</th><th>Event</th><th>IP Address</th></tr>
+                            </thead>
+                            <tbody id="health-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal for Adding Equipment -->
+    <div id="equipment-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Equipment</h2>
+                <span class="close-modal" id="close-modal-btn">&times;</span>
+            </div>
+            <form id="add-equipment-form">
+                <div class="input-group">
+                    <label>Equipment Name</label>
+                    <input type="text" id="equip-name" required>
+                </div>
+                <div class="input-group">
+                    <label>Quantity</label>
+                    <input type="number" id="equip-qty" required min="1">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-outline" id="cancel-modal-btn">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/admin.js"></script>
+</body>
+</html>

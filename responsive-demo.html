@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CICJ-ICMS - Responsive Design Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 40px; font-size: 2.5rem; }
+        .demo-section { 
+            background: white; 
+            border-radius: 12px; 
+            padding: 30px; 
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .demo-section h2 { 
+            color: #1e3a8a; 
+            margin-bottom: 20px;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 10px;
+        }
+        .screen-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .device-frame {
+            border: 3px solid #333;
+            border-radius: 12px;
+            padding: 10px;
+            background: #f9fafb;
+        }
+        .device-screen { 
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 200px;
+        }
+        .device-name {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #1e3a8a;
+        }
+        .feature-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
+        }
+        .page-link {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin: 10px 10px 10px 0;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .page-link:hover {
+            transform: translateY(-2px);
+            background: #1d4ed8;
+        }
+        .page-link.client { background: #1e3a8a; }
+        .page-link.admin { background: #2563eb; }
+        .page-link.employee { background: #059669; }
+        .responsive-demo {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .breakpoint {
+            flex: 1;
+            min-width: 200px;
+            background: #e0e7ff;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+        .breakpoint h4 { color: #1e3a8a; margin-bottom: 10px; }
+        .breakpoint code { 
+            background: white; 
+            padding: 2px 6px; 
+            border-radius: 4px;
+            color: #b91c1c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 CICJ-ICMS Responsive Design System</h1>
+
+        <!-- Navigation -->
+        <div class="demo-section">
+            <h2>🚀 Quick Navigation</h2>
+            <p style="margin-bottom: 20px;">Test the responsive design on each page:</p>
+            <a href="client.html" class="page-link client">Client Portal (Public)</a>
+            <a href="index.html" class="page-link">Login Page</a>
+            <a href="admin.html" class="page-link admin">Admin Dashboard</a>
+            <a href="employee.html" class="page-link employee">Employee Dashboard</a>
+        </div>
+
+        <!-- Responsive Breakpoints -->
+        <div class="demo-section">
+            <h2>📐 Responsive Breakpoints</h2>
+            <div class="responsive-demo">
+                <div class="breakpoint">
+                    <h4>📱 Mobile Small</h4>
+                    <code>≤ 320px</code>
+                    <p style="margin-top: 10px; font-size: 14px;">
+                        Compact padding, minimal spacing for very small phones
+                    </p>
+                </div>
+                <div class="breakpoint">
+                    <h4>📱 Mobile</h4>
+                    <code>≤ 480px</code>
+                    <p style="margin-top: 10px; font-size: 14px;">
+                        Single column, stacked buttons, full-width inputs
+                    </p>
+                </div>
+                <div class="breakpoint">
+                    <h4>📱 Tablet</h4>
+                    <code>≤ 768px</code>
+                    <p style="margin-top: 10px; font-size: 14px;">
+                        Horizontal tabs, 2-column grids, collapsible sidebars
+                    </p>
+                </div>
+                <div class="breakpoint">
+                    <h4>💻 Desktop Small</h4>
+                    <code>≤ 1024px</code>
+                    <p style="margin-top: 10px; font-size: 14px;">
+                        Sidebar becomes horizontal navbar, reduced spacing
+                    </p>
+                </div>
+                <div class="breakpoint">
+                    <h4>🖥️ Desktop</h4>
+                    <code>> 1024px</code>
+                    <p style="margin-top: 10px; font-size: 14px;">
+                        Full sidebar, multi-column grids, optimal spacing
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Features -->
+        <div class="demo-section">
+            <h2>✨ Key Responsive Features</h2>
+            <div class="screen-grid">
+                <div class="device-frame">
+                    <div class="device-name">Mobile Phone (≤768px)</div>
+                    <div class="device-screen">
+                        <ul class="feature-list">
+                            <li>Sidebar → Horizontal tabs</li>
+                            <li>Tables scroll horizontally</li>
+                            <li>Buttons full-width (44px min)</li>
+                            <li>Single column layouts</li>
+                            <li>Hamburger navigation</li>
+                            <li>Touch-optimized targets</li>
+                            <li>16px input font (no zoom)</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="device-frame">
+                    <div class="device-name">Tablet (768px - 1024px)</div>
+                    <div class="device-screen">
+                        <ul class="feature-list">
+                            <li>2-column grids</li>
+                            <li>Horizontal sidebar nav</li>
+                            <li>Compact spacing</li>
+                            <li>Responsive modals</li>
+                            <li>Medium font sizes</li>
+                            <li>Touch & mouse support</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="device-frame">
+                    <div class="device-name">Desktop (>1024px)</div>
+                    <div class="device-screen">
+                        <ul class="feature-list">
+                            <li>Fixed 260px sidebar</li>
+                            <li>3-4 column grids</li>
+                            <li>Full table display</li>
+                            <li>Hover effects</li>
+                            <li>Optimal spacing</li>
+                            <li>Larger typography</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pages Overview -->
+        <div class="demo-section">
+            <h2>📄 Page-Specific Adaptations</h2>
+            
+            <h3 style="color: #1e3a8a; margin: 20px 0 10px;">Client Portal (client.html)</h3>
+            <ul class="feature-list">
+                <li><strong>Desktop:</strong> 3-column project grid, full navigation bar</li>
+                <li><strong>Mobile:</strong> Single column stack, hamburger menu (☰), collapsible sections</li>
+                <li><strong>Purpose:</strong> Public brand showcase with smooth scroll navigation</li>
+            </ul>
+
+            <h3 style="color: #2563eb; margin: 20px 0 10px;">Admin Dashboard (admin.html)</h3>
+            <ul class="feature-list">
+                <li><strong>Desktop:</strong> Fixed sidebar, 4-column stat cards, full data tables</li>
+                <li><strong>Tablet:</strong> Horizontal tabs, 2-column stats, scrollable tables</li>
+                <li><strong>Mobile:</strong> Card-based user list, single column stats, swipe navigation</li>
+                <li><strong>Purpose:</strong> Macro-level operations and system monitoring</li>
+            </ul>
+
+            <h3 style="color: #059669; margin: 20px 0 10px;">Employee Dashboard (employee.html)</h3>
+            <ul class="feature-list">
+                <li><strong>Desktop:</strong> Fixed sidebar with Clock In/Out, full attendance table</li>
+                <li><strong>Mobile (CRITICAL):</strong> Large touch buttons (min 44px), GPS auto-capture ready</li>
+                <li><strong>Construction Site:</strong> One-handed operation, quick attendance logging</li>
+                <li><strong>Purpose:</strong> Field worker daily tasks with mobile-first design</li>
+            </ul>
+        </div>
+
+        <!-- Testing Instructions -->
+        <div class="demo-section">
+            <h2>🧪 How to Test Responsive Design</h2>
+            <ol style="margin-left: 20px; line-height: 1.8;">
+                <li><strong>Open any page</strong> (client.html, admin.html, employee.html)</li>
+                <li><strong>Press F12</strong> to open Developer Tools</li>
+                <li><strong>Press Ctrl+Shift+M</strong> (Windows) or Cmd+Shift+M (Mac) to toggle Device Toolbar</li>
+                <li><strong>Select Device:</strong>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>iPhone SE (375px) - Smallest modern phone</li>
+                        <li>iPhone 12/13/14 (390px) - Standard phone</li>
+                        <li>iPad Mini (768px) - Small tablet</li>
+                        <li>iPad Pro (1024px) - Large tablet</li>
+                        <li>Responsive (resize manually)</li>
+                    </ul>
+                </li>
+                <li><strong>Test Features:</strong> Navigation collapse, button sizes, table scrolling, form inputs</li>
+            </ol>
+        </div>
+
+        <!-- Technical Implementation -->
+        <div class="demo-section">
+            <h2>⚙️ Technical Implementation</h2>
+            <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                <h4 style="color: #1e3a8a; margin-bottom: 10px;">CSS Grid Auto-Responsive Pattern:</h4>
+                <pre style="background: #1e293b; color: #e0e7ff; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+}
+
+@media (max-width: 768px) {
+    .stats-grid { 
+        grid-template-columns: 1fr; /* Force single column */
+        gap: 16px; 
+    }
+}</code></pre>
+            </div>
+
+            <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                <h4 style="color: #1e3a8a; margin-bottom: 10px;">Mobile Touch Target Optimization:</h4>
+                <pre style="background: #1e293b; color: #e0e7ff; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>@media (max-width: 768px) {
+    .btn-primary,
+    .btn-success {
+        min-height: 44px;  /* Apple HIG minimum */
+        font-size: 16px;   /* Prevents iOS zoom */
+        padding: 14px;     /* Comfortable tap area */
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="demo-section" style="text-align: center; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white;">
+            <h2 style="color: white; border-bottom: 3px solid white;">🎯 Task 4 Complete</h2>
+            <p style="font-size: 1.2rem; margin-top: 15px;">
+                Full responsive design implemented across all pages (320px - 1920px+)
+            </p>
+            <p style="margin-top: 10px; opacity: 0.9;">
+                ✅ Mobile-First Design | ✅ Touch Optimization | ✅ Client Portal | ✅ Construction Site Ready
+            </p>
+        </div>
+    </div>
+</body>
+</html>

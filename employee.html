@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Dashboard | CICJ-ICMS</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/employee.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <h2>CICJ-ICMS</h2>
+            </div>
+            <nav class="sidebar-nav" id="sidebar-nav">
+                <a href="#" class="active" data-target="attendance-tab">My Attendance</a>
+                <a href="#" data-target="equipment-tab">Equipment Checkout</a>
+                <a href="#" data-target="profile-tab">My Profile</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h1 id="page-title">My Attendance</h1>
+                <div class="user-profile">
+                    <span id="welcome-message">Welcome, Employee</span>
+                    <button id="logout-btn" class="btn-outline">Logout</button>
+                </div>
+            </header>
+
+            <section class="content-area">
+                <!-- Attendance Tab -->
+                <div id="attendance-tab" class="tab-section">
+                    <div class="action-bar">
+                        <button id="clock-in-btn" class="btn-primary">Clock In</button>
+                        <button id="clock-out-btn" class="btn-outline">Clock Out</button>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Today's Status</h3>
+                            <p class="stat-number" id="today-status">Not Clocked In</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Time In</h3>
+                            <p id="time-in">--:--</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Time Out</h3>
+                            <p id="time-out">--:--</p>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <h2>My Attendance History</h2>
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>Date</th><th>Time In</th><th>Time Out</th><th>Status</th></tr>
+                            </thead>
+                            <tbody id="attendance-table-body">
+                                <!-- Will be populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Equipment Tab -->
+                <div id="equipment-tab" class="tab-section hidden">
+                    <div class="tab-header">
+                        <h2>Available Equipment</h2>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>Item Name</th><th>Category</th><th>Status</th><th>Action</th></tr>
+                            </thead>
+                            <tbody id="equipment-table-body">
+                                <!-- Sample data -->
+                                <tr>
+                                    <td>Makita Hammer Drill</td>
+                                    <td>Power Tools</td>
+                                    <td><span class="badge success">Available</span></td>
+                                    <td><button class="btn-small">Request</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Profile Tab -->
+                <div id="profile-tab" class="tab-section hidden">
+                    <div class="profile-card">
+                        <h2>Personal Information</h2>
+                        <div class="profile-info">
+                            <div class="info-row">
+                                <label>Full Name:</label>
+                                <span id="profile-name">--</span>
+                            </div>
+                            <div class="info-row">
+                                <label>Email:</label>
+                                <span id="profile-email">--</span>
+                            </div>
+                            <div class="info-row">
+                                <label>Role:</label>
+                                <span id="profile-role">EMPLOYEE</span>
+                            </div>
+                            <div class="info-row">
+                                <label>Contact:</label>
+                                <span id="profile-contact">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/employee.js"></script>
+</body>
+</html>
