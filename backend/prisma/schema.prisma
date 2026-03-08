@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  user_id        Int      @id @default(autoincrement())
+  full_name      String
+  email          String   @unique
+  password_hash  String
+  role           String   @default("EMPLOYEE")
+  contact_number String?
+  mfa_secret     String?  // Required for MFA
+  is_active      Boolean  @default(true)
+  created_at     DateTime @default(now())
+  
+  // ===== GRANULAR PERMISSIONS MATRIX (Principle of Least Privilege) =====
+  
+  // User Management Permissions
+  can_view_users      Boolean @default(false)
+  can_add_users       Boolean @default(false)
+  can_edit_users      Boolean @default(false)
+  can_delete_users    Boolean @default(false)
+  can_activate_users  Boolean @default(false)
+  
+  // Attendance Permissions
+  can_view_own_attendance Boolean @default(true)   // All employees can view their own
+  can_view_all_attendance Boolean @default(false)  // Admin/HR only
+  can_edit_attendance     Boolean @default(false)  // Admin/HR only
+  can_delete_attendance   Boolean @default(false)  // Admin only
+  can_export_attendance   Boolean @default(false)  // HR/Admin for payroll
+  
+  // Equipment Permissions
+  can_view_equipment    Boolean @default(true)   // All can view inventory
+  can_add_equipment     Boolean @default(false)  // Admin/Procurement only
+  can_edit_equipment    Boolean @default(false)  // Admin/Warehouse only
+  can_delete_equipment  Boolean @default(false)  // Admin only
+  can_assign_equipment  Boolean @default(false)  // Supervisors/Admin
+  
+  // Project Files Permissions
+  can_view_files       Boolean @default(true)   // All can view project docs
+  can_upload_files     Boolean @default(false)  // Project managers/Admin
+  can_edit_files       Boolean @default(false)  // File owner/Admin
+  can_delete_files     Boolean @default(false)  // Admin only (audit trail)
+  can_download_files   Boolean @default(true)   // All employees
+  
+  // Client Inquiries Permissions
+  can_view_inquiries      Boolean @default(false)  // Sales/Admin only
+  can_add_inquiries       Boolean @default(true)   // Public form submission
+  can_update_inquiries    Boolean @default(false)  // Assigned handler/Admin
+  can_delete_inquiries    Boolean @default(false)  // Admin only
+  can_assign_inquiries    Boolean @default(false)  // Admin/Sales Manager
+  
+  // System Health Permissions
+  can_view_health_logs    Boolean @default(false)  // IT/Admin only
+  can_export_health_logs  Boolean @default(false)  // IT/Admin for SAM compliance
+  
+  // System Administration
+  can_manage_permissions  Boolean @default(false)  // Super Admin only
+  can_view_audit_trail    Boolean @default(false)  // Admin/Compliance
+  can_backup_database     Boolean @default(false)  // IT Admin only
+  
+  // Relations
+  attendance     Attendance_Log[]
+  inquiries      Client_Inquiry[] @relation("ManagedBy")
+  uploaded_files Project_File[]
+}
+
+model Attendance_Log {
+  log_id       Int       @id @default(autoincrement())
+  user_id      Int
+  date         DateTime  @db.Date
+  time_in      DateTime?
+  time_out     DateTime?
+  gps_lat_in   Decimal?  @db.Decimal(9, 6) // For site verification
+  gps_long_in  Decimal?  @db.Decimal(9, 6)
+  gps_lat_out  Decimal?  @db.Decimal(9, 6)
+  gps_long_out Decimal?  @db.Decimal(9, 6)
+  status       String    @default("On Time")
+  
+  user         User      @relation(fields: [user_id], references: [user_id])
+}
+
+model Equipment_Inventory {
+  equipment_id     Int      @id @default(autoincrement())
+  item_name        String
+  category         String?
+  status           String   @default("Available")
+  assigned_to      Int?
+  current_location String?
+  last_updated     DateTime @updatedAt
+}
+
+model Project_File {
+  file_id            Int      @id @default(autoincrement())
+  uploader_id        Int
+  file_name          String
+  file_type          String
+  file_size_mb       Decimal  @db.Decimal(10, 2)
+  storage_location   String   // "LOCAL_FTP" or "CLOUD"
+  cloudinary_url     String?
+  cloudinary_public_id String?
+  local_ftp_path     String?
+  uploaded_at        DateTime @default(now())
+
+  uploader           User     @relation(fields: [uploader_id], references: [user_id])
+}
+
+model Client_Inquiry {
+  inquiry_id     Int      @id @default(autoincrement())
+  client_name    String
+  client_email   String
+  contact_number String?
+  message_body   String   @db.Text
+  status         String   @default("Pending")
+  handled_by     Int?     
+  submitted_at   DateTime @default(now())
+  
+  manager        User?    @relation("ManagedBy", fields: [handled_by], references: [user_id])
+}
+
+model System_Health_Log {
+  sys_log_id  Int      @id @default(autoincrement())
+  event_type  String   
+  description String   @db.Text
+  ip_address  String   // Required for SAM audit logs
+  timestamp   DateTime @default(now())
+}
