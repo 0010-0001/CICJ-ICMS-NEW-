@@ -9,13 +9,210 @@
 .w-full { width: 100%; }
 .error-box { background-color: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 6px; margin-bottom: 20px; text-align: center; font-size: 14px; border: 1px solid #f87171; }
 
+.success-box { 
+    background-color: #d1fae5; 
+    color: #065f46; 
+    padding: 10px; 
+    border-radius: 6px; 
+    margin-bottom: 20px; 
+    text-align: center; 
+    font-size: 14px; 
+    border: 1px solid #34d399; 
+}
+
+/* ==========================================
+   MFA OTP MODAL STYLES
+   ========================================== */
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.otp-modal-content {
+    background-color: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 500px;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.otp-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.otp-header h3 {
+    color: #1e3a8a;
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.otp-header p {
+    color: #64748b;
+    font-size: 14px;
+    margin: 5px 0;
+}
+
+.email-display {
+    background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 10px;
+}
+
+/* OTP Input Group */
+.otp-input-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 30px 0;
+}
+
+.otp-digit {
+    width: 50px;
+    height: 60px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.2s;
+    font-family: 'Courier New', monospace;
+}
+
+.otp-digit:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    transform: scale(1.05);
+}
+
+.otp-digit:valid {
+    border-color: #10b981;
+    background-color: #f0fdf4;
+}
+
+/* OTP Info Section */
+.otp-info {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.otp-info p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 5px 0;
+}
+
+#otp-timer {
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    font-size: 18px;
+}
+
+#otp-attempts-info {
+    font-weight: 500;
+    margin-top: 10px;
+}
+
+/* Buttons */
+.btn-secondary {
+    background-color: #f3f4f6;
+    color: #374151;
+    padding: 12px 24px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    margin-top: 10px;
+}
+
+.btn-secondary:hover {
+    background-color: #e5e7eb;
+    border-color: #9ca3af;
+}
+
+.btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #2563eb;
+    padding: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: underline;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.btn-link:hover {
+    color: #1d4ed8;
+}
+
 /* Mobile Responsive Design */
 @media (max-width: 480px) {
     .login-card { padding: 24px; }
     .brand-header h2 { font-size: 24px; }
     .input-group input { padding: 12px; font-size: 16px; /* Prevents zoom on iOS */ }
+    
+    /* OTP Modal Mobile */
+    .otp-modal-content { padding: 24px; }
+    .otp-header h3 { font-size: 20px; }
+    .otp-input-group { gap: 6px; }
+    .otp-digit { 
+        width: 45px; 
+        height: 55px; 
+        font-size: 20px; 
+    }
+    #otp-timer { font-size: 16px; }
 }
 
 @media (max-width: 320px) {
     .login-card { padding: 16px; }
+    
+    /* OTP Modal Small Screens */
+    .otp-modal-content { padding: 20px; }
+    .otp-input-group { gap: 4px; }
+    .otp-digit { 
+        width: 38px; 
+        height: 48px; 
+        font-size: 18px; 
+    }
 }

@@ -28,6 +28,49 @@
             </form>
         </div>
     </div>
+
+    <!-- MFA OTP Modal -->
+    <div id="otp-modal" class="modal hidden">
+        <div class="modal-content otp-modal-content">
+            <div class="otp-header">
+                <h3>🔐 Verify Your Identity</h3>
+                <p>Enter the 6-digit code sent to your email</p>
+                <p id="otp-email-display" class="email-display"></p>
+            </div>
+            
+            <div id="otp-error-message" class="error-box hidden"></div>
+            <div id="otp-success-message" class="success-box hidden"></div>
+            
+            <form id="otp-form">
+                <div class="otp-input-group">
+                    <input type="text" id="otp-1" class="otp-digit" maxlength="1" pattern="\d" required>
+                    <input type="text" id="otp-2" class="otp-digit" maxlength="1" pattern="\d" required>
+                    <input type="text" id="otp-3" class="otp-digit" maxlength="1" pattern="\d" required>
+                    <input type="text" id="otp-4" class="otp-digit" maxlength="1" pattern="\d" required>
+                    <input type="text" id="otp-5" class="otp-digit" maxlength="1" pattern="\d" required>
+                    <input type="text" id="otp-6" class="otp-digit" maxlength="1" pattern="\d" required>
+                </div>
+                
+                <div class="otp-info">
+                    <p>⏱️ Code expires in: <span id="otp-timer">5:00</span></p>
+                    <p id="otp-attempts-info"></p>
+                </div>
+                
+                <button type="submit" class="btn-primary w-full" id="verify-otp-btn">
+                    Verify Code
+                </button>
+                
+                <button type="button" class="btn-secondary w-full" id="resend-otp-btn">
+                    Resend Code
+                </button>
+                
+                <button type="button" class="btn-link" id="cancel-otp-btn">
+                    Back to Login
+                </button>
+            </form>
+        </div>
+    </div>
+
     <script src="js/login.js"></script>
 </body>
 </html>

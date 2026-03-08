@@ -27,6 +27,16 @@ const {
     validateCsrfToken,
     getCsrfTokenEndpoint
 } = require('./middleware/security');
+const {
+    initializeEmailTransporter,
+    generateAndSendOTP,
+    verifyOTP,
+    resendOTP,
+    clearOTP,
+    getOTPStatus,
+    OTP_EXPIRY_MINUTES,
+    MAX_OTP_ATTEMPTS
+} = require('./middleware/mfa');
 require('dotenv').config();
 
 const app = express();
@@ -113,10 +123,10 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // ==========================================
-// AUTHENTICATION ROUTES (No permissions required)
+// AUTHENTICATION ROUTES (MFA-Enabled)
 // ==========================================
 
-// 1. Login Route - Public endpoint (with validation)
+// 1. Login Route - Step 1: Validate credentials and send OTP
 app.post('/login', validateLogin, handleValidationErrors, async (req, res) => {
     const { email, password } = req.body;
 
@@ -142,27 +152,157 @@ app.post('/login', validateLogin, handleValidationErrors, async (req, res) => {
             return res.status(401).json({ message: "Invalid credentials" });
         }
 
-        // Create JWT with user_id and role
-        const token = jwt.sign(
-            { user_id: user.user_id, role: user.role }, 
-            process.env.JWT_SECRET, 
-            { expiresIn: '1d' }
-        );
-        
-        res.json({ 
-            token, 
-            user: { 
-                user_id: user.user_id, 
-                full_name: user.full_name, 
+        // ===== MFA: Generate and send OTP =====
+        try {
+            const otpResult = await generateAndSendOTP(
+                user.user_id,
+                user.email,
+                user.full_name
+            );
+
+            res.json({
+                message: "Credentials verified. OTP sent to your email.",
+                mfaRequired: true,
                 email: user.email,
-                role: user.role 
-            } 
-        });
+                expiresIn: otpResult.expiresIn,
+                devMode: otpResult.devMode || false,
+                hint: `Check your email (${user.email}) for the 6-digit verification code.`
+            });
+
+        } catch (otpError) {
+            console.error("OTP Generation Error:", otpError);
+            res.status(500).json({ 
+                error: "Failed to send verification code. Please try again.",
+                hint: "Contact administrator if the problem persists."
+            });
+        }
+
     } catch (error) {
         console.error("Login Error:", error);
         res.status(500).json({ error: "Server error" });
     }
 });
+
+// 2. Verify OTP - Step 2: Validate OTP and issue JWT
+app.post('/verify-otp', async (req, res) => {
+    const { email, otp } = req.body;
+
+    // Input validation
+    if (!email || !otp) {
+        return res.status(400).json({ error: "Email and OTP are required." });
+    }
+
+    if (!/^\d{6}$/.test(otp)) {
+        return res.status(400).json({ error: "OTP must be a 6-digit number." });
+    }
+
+    try {
+        // Verify OTP
+        const verificationResult = verifyOTP(email, otp);
+
+        if (!verificationResult.valid) {
+            return res.status(401).json({
+                error: verificationResult.error,
+                code: verificationResult.code,
+                attemptsLeft: verificationResult.attemptsLeft
+            });
+        }
+
+        // OTP valid - fetch user and issue JWT
+        const user = await prisma.user.findUnique({
+            where: { user_id: verificationResult.userId }
+        });
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found." });
+        }
+
+        // Create JWT with user_id and role
+        const token = jwt.sign(
+            { user_id: user.user_id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+        );
+
+        // Log successful login with MFA
+        await prisma.system_Health_Log.create({
+            data: {
+                event_type: 'MFA_LOGIN_SUCCESS',
+                description: `User ${user.full_name} (${user.email}) logged in successfully with MFA verification.`,
+                status: 'Success'
+            }
+        });
+
+        res.json({
+            message: "Login successful",
+            token,
+            user: {
+                user_id: user.user_id,
+                full_name: user.full_name,
+                email: user.email,
+                role: user.role
+            }
+        });
+
+    } catch (error) {
+        console.error("OTP Verification Error:", error);
+        res.status(500).json({ error: "Server error during verification." });
+    }
+});
+
+// 3. Resend OTP
+app.post('/resend-otp', async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json({ error: "Email is required." });
+    }
+
+    try {
+        // Find user
+        const user = await prisma.user.findUnique({
+            where: { email }
+        });
+
+        if (!user) {
+            // Don't reveal if user exists or not for security
+            return res.status(429).json({
+                error: "Please wait before requesting a new code.",
+                hint: "If you have an account, a new code will be sent."
+            });
+        }
+
+        // Resend OTP
+        const resendResult = await resendOTP(user.user_id, user.email, user.full_name);
+
+        if (!resendResult.success) {
+            return res.status(429).json({
+                error: resendResult.error,
+                code: resendResult.code,
+                waitTime: resendResult.waitTime
+            });
+        }
+
+        res.json({
+            message: "New verification code sent to your email.",
+            expiresIn: resendResult.expiresIn,
+            devMode: resendResult.devMode || false
+        });
+
+    } catch (error) {
+        console.error("Resend OTP Error:", error);
+        res.status(500).json({ error: "Failed to resend verification code." });
+    }
+});
+
+// 4. Get OTP Status (Development only)
+if (process.env.NODE_ENV !== 'production') {
+    app.get('/otp-status/:email', (req, res) => {
+        const { email } = req.params;
+        const status = getOTPStatus(email);
+        res.json(status);
+    });
+}
 
 // ==========================================
 // USER MANAGEMENT ROUTES (Granular Permissions)
@@ -927,5 +1067,8 @@ app.get('/health', async (req, res) => {
         });
     }
 });
+
+// Initialize email transporter on startup
+initializeEmailTransporter();
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
