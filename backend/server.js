@@ -82,9 +82,60 @@ app.post('/login', async (req, res) => {
 // USER MANAGEMENT ROUTES (Granular Permissions)
 // ==========================================
 
-// Register New User - Requires can_add_users permission
+// Register New User with Granular Permissions - Requires can_add_users permission
 app.post('/register', authenticateToken, requirePermission('can_add_users'), async (req, res) => {
-    const { full_name, email, password, role, contact_number, is_active } = req.body;
+    const { 
+        // Basic User Info
+        full_name, 
+        email, 
+        password, 
+        role, 
+        contact_number, 
+        is_active,
+        
+        // ===== GRANULAR PERMISSIONS MATRIX (30 flags) =====
+        // User Management Permissions
+        can_view_users,
+        can_add_users,
+        can_edit_users,
+        can_delete_users,
+        can_activate_users,
+        
+        // Attendance Permissions
+        can_view_own_attendance,
+        can_view_all_attendance,
+        can_edit_attendance,
+        can_delete_attendance,
+        can_export_attendance,
+        
+        // Equipment Permissions
+        can_view_equipment,
+        can_add_equipment,
+        can_edit_equipment,
+        can_delete_equipment,
+        can_assign_equipment,
+        
+        // Project Files Permissions
+        can_view_files,
+        can_upload_files,
+        can_edit_files,
+        can_delete_files,
+        can_download_files,
+        
+        // Client Inquiries Permissions
+        can_view_inquiries,
+        can_add_inquiries,
+        can_update_inquiries,
+        can_delete_inquiries,
+        can_assign_inquiries,
+        
+        // System Administration Permissions
+        can_view_health_logs,
+        can_export_health_logs,
+        can_manage_permissions,
+        can_view_audit_trail,
+        can_backup_database
+    } = req.body;
 
     // Input validation
     if (!full_name || !email || !password) {
@@ -101,32 +152,94 @@ app.post('/register', authenticateToken, requirePermission('can_add_users'), asy
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+        // Create user with ALL permission flags captured from Add New Hire modal
         const newUser = await prisma.user.create({
             data: { 
+                // Basic Info
                 full_name, 
                 email, 
                 password_hash: hashedPassword,
                 role: role || 'EMPLOYEE',
                 contact_number: contact_number || null,
-                is_active: is_active !== undefined ? is_active : true
+                is_active: is_active !== undefined ? is_active : true,
+                
+                // ===== GRANULAR PERMISSIONS (from Matrix UI checkboxes) =====
+                // User Management (5 permissions)
+                can_view_users: can_view_users || false,
+                can_add_users: can_add_users || false,
+                can_edit_users: can_edit_users || false,
+                can_delete_users: can_delete_users || false,
+                can_activate_users: can_activate_users || false,
+                
+                // Attendance (5 permissions)
+                can_view_own_attendance: can_view_own_attendance !== undefined ? can_view_own_attendance : true, // Default true
+                can_view_all_attendance: can_view_all_attendance || false,
+                can_edit_attendance: can_edit_attendance || false,
+                can_delete_attendance: can_delete_attendance || false,
+                can_export_attendance: can_export_attendance || false,
+                
+                // Equipment (5 permissions)
+                can_view_equipment: can_view_equipment !== undefined ? can_view_equipment : true, // Default true
+                can_add_equipment: can_add_equipment || false,
+                can_edit_equipment: can_edit_equipment || false,
+                can_delete_equipment: can_delete_equipment || false,
+                can_assign_equipment: can_assign_equipment || false,
+                
+                // Project Files (5 permissions)
+                can_view_files: can_view_files !== undefined ? can_view_files : true, // Default true
+                can_upload_files: can_upload_files || false,
+                can_edit_files: can_edit_files || false,
+                can_delete_files: can_delete_files || false,
+                can_download_files: can_download_files !== undefined ? can_download_files : true, // Default true
+                
+                // Client Inquiries (5 permissions)
+                can_view_inquiries: can_view_inquiries || false,
+                can_add_inquiries: can_add_inquiries !== undefined ? can_add_inquiries : true, // Default true
+                can_update_inquiries: can_update_inquiries || false,
+                can_delete_inquiries: can_delete_inquiries || false,
+                can_assign_inquiries: can_assign_inquiries || false,
+                
+                // System Administration (5 permissions)
+                can_view_health_logs: can_view_health_logs || false,
+                can_export_health_logs: can_export_health_logs || false,
+                can_manage_permissions: can_manage_permissions || false,
+                can_view_audit_trail: can_view_audit_trail || false,
+                can_backup_database: can_backup_database || false
             }
         });
         
+        // Count granted permissions for audit log
+        const grantedPermissions = Object.keys(newUser)
+            .filter(key => key.startsWith('can_') && newUser[key] === true)
+            .length;
+        
         res.status(201).json({ 
-            message: "User registered successfully.",
+            message: "User registered successfully with granular permissions.",
             user: {
                 user_id: newUser.user_id,
                 full_name: newUser.full_name,
                 email: newUser.email,
-                role: newUser.role
+                role: newUser.role,
+                is_active: newUser.is_active,
+                permissions_granted: grantedPermissions
             }
         });
+        
+        // Log to System Health (optional - for audit trail)
+        await prisma.system_Health_Log.create({
+            data: {
+                event_type: 'USER_CREATED',
+                description: `New user created: ${newUser.full_name} (${newUser.email}) with ${grantedPermissions} permissions by ${req.userPermissions.full_name}`,
+                ip_address: req.ip || req.connection.remoteAddress
+            }
+        }).catch(err => console.error('Audit log error:', err));
+        
     } catch (error) {
         console.error("Registration Error:", error);
         if (error.code === 'P2002') {
             return res.status(400).json({ error: "Email already exists." });
         }
-        res.status(500).json({ error: "Registration failed." });
+        res.status(500).json({ error: "Registration failed.", details: error.message });
     }
 });
 

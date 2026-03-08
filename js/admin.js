@@ -207,44 +207,101 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Complete User Data with Permissions:', completeUserData);
         console.log('Total Permissions Set:', Object.keys(selectedPermissions).filter(k => selectedPermissions[k]).length);
 
-        alert(`User account data captured!\n\nName: ${userData.full_name}\nEmail: ${userData.email}\nRole: ${userData.role}\nPermissions Granted: ${Object.keys(selectedPermissions).filter(k => selectedPermissions[k]).length} / ${Object.keys(selectedPermissions).length}\n\nCheck console for full JSON object.`);
-
-        /* 
-        ===========================================================
-        WEEK 6: BACKEND CONNECTION READY
-        ===========================================================
+        // ===== BACKEND INTEGRATION ACTIVE =====
         try {
+            // Get JWT token from localStorage (set during login)
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                alert('Authentication required. Please login as admin first.');
+                window.location.href = 'index.html';
+                return;
+            }
+
             const response = await fetch('http://localhost:5000/register', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` // Admin only can register users
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(completeUserData)
             });
             
             if (response.ok) {
                 const result = await response.json();
-                alert('User account created successfully!');
+                alert(`✅ User Created Successfully!\n\nName: ${userData.full_name}\nEmail: ${userData.email}\nPermissions Granted: ${result.user.permissions_granted} / 30\n\nThe new user can now login with their credentials.`);
                 userModal.classList.add('hidden');
                 addUserForm.reset();
-                // Reload user table here
+                
+                // Reload user table if on User Management tab
+                loadUsers(); // Will implement this function
             } else {
                 const error = await response.json();
-                alert('Failed to create user: ' + error.error);
+                alert(`❌ Failed to create user:\n\n${error.error}\n\n${error.hint || ''}`);
             }
         } catch (error) {
             console.error('Network error:', error);
-            alert('Network error. Please check server connection.');
+            alert('❌ Network error. Please ensure:\n\n1. Backend server is running (http://localhost:5000)\n2. You are logged in as admin\n3. Database is connected');
         }
-        */
-
-        // Cleanup
-        userModal.classList.add('hidden');
-        addUserForm.reset();
     });
 
-    // --- 5. SYSTEM HEALTH MONITORING BUTTONS ---
+    // --- 5. LOAD USERS FUNCTION (Fetch and Display) ---
+    async function loadUsers() {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            const response = await fetch('http://localhost:5000/api/users', {
+                method: 'GET',
+                headers: { 
+                    'Authorization': `Bearer ${token}` 
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                const userTableBody = document.querySelector('#user-table tbody');
+                
+                if (!userTableBody) return;
+                
+                userTableBody.innerHTML = ''; // Clear existing rows
+                
+                data.users.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-4 py-3">${user.user_id}</td>
+                        <td class="px-4 py-3">${user.full_name}</td>
+                        <td class="px-4 py-3">${user.email}</td>
+                        <td class="px-4 py-3">${user.contact_number || 'N/A'}</td>
+                        <td class="px-4 py-3">
+                            <span class="badge ${user.role === 'ADMIN' ? 'badge-admin' : 'badge-employee'}">${user.role}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="badge ${user.is_active ? 'success' : 'warning'}">
+                                ${user.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">View/Edit</td>
+                        <td class="px-4 py-3">
+                            <button class="btn-sm btn-danger" onclick="deleteUser(${user.user_id})">Delete</button>
+                        </td>
+                    `;
+                    userTableBody.appendChild(row);
+                });
+                
+                console.log(`✅ Loaded ${data.users.length} users`);
+            } else {
+                console.error('Failed to load users');
+            }
+        } catch (error) {
+            console.error('Error loading users:', error);
+        }
+    }
+
+    // Load users on page load
+    loadUsers();
+
+    // --- 6. SYSTEM HEALTH MONITORING BUTTONS ---
     const triggerBackupBtn = document.getElementById('trigger-backup-btn');
     const exportLogsBtn = document.getElementById('export-logs-btn');
 
