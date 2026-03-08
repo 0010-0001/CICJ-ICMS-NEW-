@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | CICJ-ICMS</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="brand-header">
+                <h2>CICJ-ICMS</h2>
+                <p>Construction Management System</p>
+            </div>
+            <div id="error-message" class="error-box hidden"></div>
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" required placeholder="name@cicj.com">
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-primary w-full">Sign In</button>
+            </form>
+        </div>
+    </div>
+    <script src="js/login.js"></script>
+</body>
+</html>

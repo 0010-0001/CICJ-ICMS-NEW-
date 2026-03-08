@@ -1,0 +1,10 @@
+.login-wrapper { height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+.login-card { background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); width: 100%; max-width: 400px; }
+.brand-header { text-align: center; margin-bottom: 30px; }
+.brand-header h2 { color: #1e3a8a; font-size: 28px; }
+.input-group { margin-bottom: 20px; }
+.input-group label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; }
+.input-group input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; }
+.input-group input:focus { border-color: #2563eb; }
+.w-full { width: 100%; }
+.error-box { background-color: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 6px; margin-bottom: 20px; text-align: center; font-size: 14px; border: 1px solid #f87171; }
