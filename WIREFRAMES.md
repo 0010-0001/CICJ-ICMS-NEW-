@@ -1,4 +1,4 @@
-# CICJ-ICMS UI/UX Wireframes & Design System
+﻿# CICJ-SH-COMS UI/UX Wireframes & Design System
 
 ## Task 4: Responsive Design Implementation ✅
 
@@ -276,7 +276,7 @@ Desktop (1024px+):
 ┌──────────────────────────────────────┐
 │                                      │
 │         ┌──────────────┐             │  Centered Card
-│         │ CICJ-ICMS   │             │  max-width: 400px
+│         │ CICJ-SH-COMS   │             │  max-width: 400px
 │         │  LOGIN      │             │
 │         │             │             │
 │         │ Email:      │             │
@@ -293,7 +293,7 @@ Desktop (1024px+):
 Mobile (≤480px):
 ┌──────────────────┐
 │ ┌──────────────┐ │  Card adapts
-│ │  CICJ-ICMS  │ │  padding reduces
+│ │  CICJ-SH-COMS  │ │  padding reduces
 │ │             │ │  24px → 16px
 │ │ Email:      │ │
 │ │ [________]  │ │  Input font 16px

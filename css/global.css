@@ -1,12 +1,210 @@
+/* Shared base styles and reusable utility classes used across all pages. */
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 body { background-color: #f3f4f6; color: #374151; }
-.btn-primary { background-color: #2563eb; color: white; border: none; border-radius: 6px; padding: 10px 16px; font-weight: bold; cursor: pointer; transition: background-color 0.2s; }
-.btn-primary:hover { background-color: #1d4ed8; }
+
+/* Global scrollbar theming (neutral default + light/dark modes) */
+body {
+    --scrollbar-track: #e5e7eb;
+    --scrollbar-thumb: #9ca3af;
+    --scrollbar-thumb-hover: #6b7280;
+}
+
+body.theme-light {
+    --scrollbar-track: #e5e7eb;
+    --scrollbar-thumb: #9ca3af;
+    --scrollbar-thumb-hover: #6b7280;
+}
+
+body.theme-dark {
+    --scrollbar-track: #1f1f1f;
+    --scrollbar-thumb: #4b5563;
+    --scrollbar-thumb-hover: #6b7280;
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 999px;
+    border: 2px solid var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+}
+
+.btn-primary { background-color: #2dad50; color: white; border: none; border-radius: 6px; padding: 10px 16px; font-weight: bold; cursor: pointer; transition: background-color 0.2s; }
+.btn-primary:hover { background-color: #258a3f; }
 .hidden { display: none !important; }
 .w-full { width: 100%; }
+
+/* Custom Modal Styles */
+.custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+    backdrop-filter: blur(6px);
+}
+
+.custom-modal {
+    --modal-accent: #2dad50;
+    background: white;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.32);
+    min-width: min(92vw, 520px);
+    max-width: 90%;
+    max-height: 90vh;
+    overflow: hidden;
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.custom-modal-header {
+    padding: 18px 22px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    border-bottom: 2px solid var(--modal-accent);
+}
+
+.custom-modal-header h3 {
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.custom-modal-body {
+    padding: 20px 22px;
+    max-height: 60vh;
+    overflow-y: auto;
+    font-size: 15px;
+    color: #374151;
+    line-height: 1.6;
+    background: #ffffff;
+}
+
+.custom-modal-footer {
+    padding: 14px 22px 18px 22px;
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    gap: 12px;
+}
+
+.custom-modal .btn-primary {
+    background: var(--modal-accent);
+    border-color: var(--modal-accent);
+    box-shadow: 0 8px 18px rgba(45, 173, 80, 0.25);
+    color: #ffffff;
+}
+
+.custom-modal .btn-primary:hover {
+    filter: brightness(0.93);
+}
+
+/* Dark mode support for utility modals (modal-utils.js) */
+body.theme-dark .custom-modal-overlay {
+    background: rgba(0, 0, 0, 0.68);
+}
+
+body.theme-dark .custom-modal {
+    background: #141414;
+    border-color: #2a2a2a;
+    color: #ffffff;
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.7);
+}
+
+body.theme-dark .custom-modal-header {
+    background: #101010;
+    border-bottom: 1px solid #2a2a2a;
+    color: #ffffff;
+}
+
+body.theme-dark .custom-modal-header h3 {
+    color: #ffffff;
+}
+
+body.theme-dark .custom-modal-body {
+    background: #171717;
+    color: #ffffff;
+}
+
+body.theme-dark .custom-modal-footer {
+    background: #171717;
+    border-top: 1px solid #2a2a2a;
+}
+
+.btn-outline {
+    background: #ef4444;
+    color: #ffffff;
+    border: 2px solid #ef4444;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-outline:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #ffffff;
+}
+
+.btn-outline:focus {
+    outline: none;
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.btn-outline:active {
+    background: #b91c1c;
+    transform: scale(0.98);
+}
 
 /* Responsive Utilities */
 @media (max-width: 768px) {
     body { font-size: 14px; }
     .btn-primary { padding: 12px 16px; font-size: 14px; }
+    .custom-modal {
+        max-width: 95%;
+        margin: 20px;
+    }
+    .custom-modal-header,
+    .custom-modal-body,
+    .custom-modal-footer {
+        padding: 16px;
+    }
 }

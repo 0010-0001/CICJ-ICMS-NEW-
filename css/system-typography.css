@@ -1,0 +1,56 @@
+/*
+   Shared typography scale across the app.
+   Keeps page-specific layout sizes while normalizing common UI text.
+*/
+
+/* Use this file to keep font sizes consistent between modules. */
+
+:root {
+    --ui-font-base: 14px;
+    --ui-font-meta: 12px;
+    --ui-font-table: 13px;
+    --ui-font-table-head: 12px;
+    --ui-font-title-sm: 13px;
+}
+
+html {
+    font-size: var(--ui-font-base);
+}
+
+body,
+input,
+select,
+textarea,
+button {
+    font-size: var(--ui-font-base);
+}
+
+:is(.btn-primary, .btn-secondary, .btn-small, .btn-outline, .btn-danger, .btn-warning, .btn-success) {
+    font-size: var(--ui-font-base);
+}
+
+:is(label, small, .muted-note, .muted-text, .tab-description, .report-card-copy, .files-help-text) {
+    font-size: var(--ui-font-meta) !important;
+}
+
+.data-table th {
+    font-size: var(--ui-font-table-head) !important;
+}
+
+.data-table td {
+    font-size: var(--ui-font-table) !important;
+}
+
+:is(.stat-card h3, .overview-kpi-top h3, .report-card h3) {
+    font-size: var(--ui-font-title-sm) !important;
+}
+
+@media (max-width: 768px) {
+    body,
+    input,
+    select,
+    textarea,
+    button {
+        font-size: var(--ui-font-base);
+    }
+}

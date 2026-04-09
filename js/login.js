@@ -10,6 +10,7 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Login page bootstrap for password + OTP flow.
     // DOM Elements
     const loginForm = document.getElementById('login-form');
     const errorBox = document.getElementById('error-message');
@@ -57,10 +58,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Show OTP modal
                     showOTPModal(data);
                 } else {
-                    // No MFA - direct login (legacy)
+                    // Fallback path if MFA is disabled for this account.
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
-                    window.location.href = data.user.role === 'ADMIN' ? 'admin.html' : 'employee.html';
+                    window.location.href = hasAdminAccess(data.user) ? 'admin.html' : 'employee.html';
                 }
             } else {
                 errorBox.textContent = data.error || data.message || 'Login failed';
@@ -78,11 +79,11 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function showOTPModal(data) {
         // Display email
-        otpEmailDisplay.textContent = `📧 ${maskEmail(data.email)}`;
+        otpEmailDisplay.innerHTML = `<i class="bi bi-envelope-fill"></i> ${maskEmail(data.email)}`;
         
         // Show hint if in dev mode
         if (data.devMode) {
-            otpSuccessBox.textContent = '🔧 DEV MODE: Check your terminal console for the OTP code';
+            otpSuccessBox.innerHTML = '<i class="bi bi-code-slash"></i> <strong>DEV MODE:</strong> Check your terminal console for the OTP code';
             otpSuccessBox.classList.remove('hidden');
         }
         
@@ -128,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 // OTP verified successfully
-                otpSuccessBox.textContent = '✅ ' + data.message;
+                otpSuccessBox.textContent = data.message;
                 otpSuccessBox.classList.remove('hidden');
                 
                 // Stop timer
@@ -140,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Redirect after brief delay
                 setTimeout(() => {
-                    window.location.href = data.user.role === 'ADMIN' ? 'admin.html' : 'employee.html';
+                    window.location.href = hasAdminAccess(data.user) ? 'admin.html' : 'employee.html';
                 }, 1000);
                 
             } else {
@@ -149,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Show attempts left if available
                 if (data.attemptsLeft !== undefined) {
-                    otpAttemptsInfo.textContent = `⚠️ ${data.attemptsLeft} attempt(s) remaining`;
+                    otpAttemptsInfo.textContent = `WARNING: ${data.attemptsLeft} attempt(s) remaining`;
                     otpAttemptsInfo.style.color = data.attemptsLeft <= 1 ? '#f44336' : '#ff9800';
                 }
                 
@@ -180,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (response.ok) {
-                otpSuccessBox.textContent = '✅ ' + data.message;
+                otpSuccessBox.textContent = data.message;
                 otpSuccessBox.classList.remove('hidden');
                 otpErrorBox.classList.add('hidden');
                 
@@ -336,5 +337,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 resendBtn.focus();
             }
         }, 1000);
+    }
+
+    /**
+     * ==========================================
+     * SSO LOGIN HANDLERS
+     * ==========================================
+     */
+
+    // Google Workspace SSO
+    const googleSSOBtn = document.getElementById('google-sso-btn');
+    if (googleSSOBtn) {
+        googleSSOBtn.addEventListener('click', () => {
+            // Redirect to backend OAuth route (passport.js handles the Google redirect)
+            window.location.href = '/oauth/google';
+        });
     }
 });

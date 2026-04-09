@@ -12,6 +12,7 @@ model User {
   full_name      String
   email          String   @unique
   password_hash  String
+  profile_photo  String?  @db.LongText
   role           String   @default("EMPLOYEE")
   contact_number String?
   mfa_secret     String?  // Required for MFA
@@ -58,6 +59,7 @@ model User {
   // System Health Permissions
   can_view_health_logs    Boolean @default(false)  // IT/Admin only
   can_export_health_logs  Boolean @default(false)  // IT/Admin for SAM compliance
+  can_acknowledge_security_alerts Boolean @default(false) // Security triage ownership
   
   // System Administration
   can_manage_permissions  Boolean @default(false)  // Super Admin only
@@ -65,34 +67,55 @@ model User {
   can_backup_database     Boolean @default(false)  // IT Admin only
   
   // Relations
-  attendance     Attendance_Log[]
-  inquiries      Client_Inquiry[] @relation("ManagedBy")
-  uploaded_files Project_File[]
+  attendance          Attendance_Log[]
+  inquiries           Client_Inquiry[] @relation("ManagedBy")
+  uploaded_files      Project_File[]
+  equipment_checkouts Equipment_Checkout[]
 }
 
 model Attendance_Log {
   log_id       Int       @id @default(autoincrement())
   user_id      Int
-  date         DateTime  @db.Date
-  time_in      DateTime?
-  time_out     DateTime?
-  gps_lat_in   Decimal?  @db.Decimal(9, 6) // For site verification
-  gps_long_in  Decimal?  @db.Decimal(9, 6)
-  gps_lat_out  Decimal?  @db.Decimal(9, 6)
-  gps_long_out Decimal?  @db.Decimal(9, 6)
-  status       String    @default("On Time")
+  action       String    // "clock_in" or "clock_out"
+  timestamp    DateTime  @default(now())
+  location_lat Decimal?  @db.Decimal(9, 6)
+  location_lng Decimal?  @db.Decimal(9, 6)
+  photo        String?   @db.Text  // Base64 encoded photo
   
   user         User      @relation(fields: [user_id], references: [user_id])
 }
 
 model Equipment_Inventory {
   equipment_id     Int      @id @default(autoincrement())
-  item_name        String
-  category         String?
+  name             String
+  quantity         Int      @default(0)
+  condition        String   @default("Good")
   status           String   @default("Available")
   assigned_to      Int?
   current_location String?
+  qr_code          String?  @db.Text  // Base64 QR code image
+  qr_number        String?  @unique   // Unique QR identifier (e.g., "EQ-00001")
+  photo_url        String?  @db.Text  // Cloudinary URL for equipment photo
+  photo_public_id  String?            // Cloudinary public_id for deletion
+  created_at       DateTime @default(now())
   last_updated     DateTime @updatedAt
+  
+  checkouts        Equipment_Checkout[]
+}
+
+model Equipment_Checkout {
+  checkout_id      Int      @id @default(autoincrement())
+  equipment_id     Int
+  user_id          Int
+  checkout_date    DateTime @default(now())
+  return_date      DateTime?
+  location_lat     Decimal? @db.Decimal(9, 6)
+  location_lng     Decimal? @db.Decimal(9, 6)
+  status           String   @default("Checked Out") // "Checked Out", "Returned"
+  notes            String?  @db.Text
+  
+  equipment        Equipment_Inventory @relation(fields: [equipment_id], references: [equipment_id], onDelete: Cascade)
+  user             User     @relation(fields: [user_id], references: [user_id])
 }
 
 model Project_File {
@@ -129,4 +152,18 @@ model System_Health_Log {
   description String   @db.Text
   ip_address  String   // Required for SAM audit logs
   timestamp   DateTime @default(now())
+}
+
+model Construction_Site {
+  site_id         Int      @id @default(autoincrement())
+  site_name       String
+  site_address    String?
+  center_lat      Decimal  @db.Decimal(9, 6)  // Site center latitude
+  center_lng      Decimal  @db.Decimal(9, 6)  // Site center longitude
+  geo_fence_radius_meters Int @default(100)     // Radius in meters for geo-fencing
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@index([is_active])
 }

@@ -1,8 +1,8 @@
-# 🐳 Docker Deployment Guide - CICJ-ICMS
+﻿# 🐳 Docker Deployment Guide - CICJ-SH-COMS
 
 ## Overview
 
-This guide covers containerization and deployment of the CICJ-ICMS application using Docker and various Platform-as-a-Service (PaaS) providers.
+This guide covers containerization and deployment of the CICJ-SH-COMS application using Docker and various Platform-as-a-Service (PaaS) providers.
 
 ---
 
@@ -98,7 +98,7 @@ docker-compose down
    # render.yaml (create in root directory)
    services:
      - type: web
-       name: cicj-icms-backend
+       name: cicj-shcoms-backend
        env: docker
        dockerfilePath: ./backend/Dockerfile
        envVars:
@@ -193,7 +193,7 @@ fly deploy
 
 **fly.toml** (auto-generated):
 ```toml
-app = "cicj-icms-backend"
+app = "cicj-shcoms-backend"
 
 [build]
   dockerfile = "Dockerfile"
@@ -238,7 +238,7 @@ app = "cicj-icms-backend"
 heroku login
 
 # Create app
-heroku create cicj-icms-backend
+heroku create cicj-shcoms-backend
 
 # Add MySQL (ClearDB add-on)
 heroku addons:create cleardb:ignite
@@ -298,29 +298,29 @@ git push heroku main
 
 ```bash
 # Build production image
-docker build -t cicj-icms-backend ./backend
+docker build -t cicj-shcoms-backend ./backend
 
 # Build with specific tag
-docker build -t cicj-icms-backend:v1.0.0 ./backend
+docker build -t cicj-shcoms-backend:v1.0.0 ./backend
 
 # Build without cache (force rebuild)
-docker build --no-cache -t cicj-icms-backend ./backend
+docker build --no-cache -t cicj-shcoms-backend ./backend
 ```
 
 ### Running Containers:
 
 ```bash
 # Run with environment file
-docker run -p 5000:5000 --env-file ./backend/.env cicj-icms-backend
+docker run -p 5000:5000 --env-file ./backend/.env cicj-shcoms-backend
 
 # Run in detached mode
-docker run -d -p 5000:5000 --name cicj-backend cicj-icms-backend
+docker run -d -p 5000:5000 --name cicj-backend cicj-shcoms-backend
 
 # Run with custom environment variables
 docker run -p 5000:5000 \
   -e DATABASE_URL="mysql://user:pass@host:3306/db" \
   -e JWT_SECRET="secret" \
-  cicj-icms-backend
+  cicj-shcoms-backend
 ```
 
 ### Container Management:
@@ -345,7 +345,7 @@ docker stop cicj-backend
 docker rm cicj-backend
 
 # Remove image
-docker rmi cicj-icms-backend
+docker rmi cicj-shcoms-backend
 ```
 
 ### Docker Compose:
@@ -402,7 +402,7 @@ docker build -t cicj-test .
 ```bash
 # Start container
 docker run -d -p 5000:5000 --name cicj-test \
-  -e DATABASE_URL="mysql://root:@localhost:3306/cicj_icms" \
+  -e DATABASE_URL="mysql://root:@localhost:3306/cicj_shcoms" \
   -e JWT_SECRET="test_secret" \
   cicj-test
 
@@ -507,7 +507,7 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 # Wrong: mysql://user:pass@localhost:3306/database (use container name)
 
 # For docker-compose, use service name:
-DATABASE_URL="mysql://user:pass@mysql:3306/cicj_icms"
+DATABASE_URL="mysql://user:pass@mysql:3306/cicj_shcoms"
 ```
 
 ### Issue: "EACCES: permission denied"
@@ -532,7 +532,7 @@ docker logs cicj-backend
 docker inspect cicj-backend | grep -A 5 Health
 
 # Disable health check temporarily for debugging
-docker run --no-healthcheck cicj-icms-backend
+docker run --no-healthcheck cicj-shcoms-backend
 ```
 
 ---
@@ -556,10 +556,10 @@ jobs:
       - uses: actions/checkout@v3
       
       - name: Build Docker Image
-        run: docker build -t cicj-icms ./backend
+        run: docker build -t CICJ-SH-COMS ./backend
       
-      - name: Run Tests
-        run: docker run cicj-icms npm test
+      - name: Run tests
+        run: docker run CICJ-SH-COMS npm test
       
       - name: Deploy to Render
         run: |

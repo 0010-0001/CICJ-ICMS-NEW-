@@ -1,4 +1,4 @@
-# Task 3 Containerization - What Changed
+﻿# Task 3 Containerization - What Changed
 
 ## ❌ Original Dockerfile (Insufficient for Production)
 
@@ -211,7 +211,7 @@ cp backend/.env.example backend/.env
   "dev": "node --watch server.js",
   "prisma:generate": "npx prisma generate",
   "prisma:deploy": "npx prisma migrate deploy",
-  "docker:build": "docker build -t cicj-icms-backend .",
+  "docker:build": "docker build -t cicj-shcoms-backend .",
   "docker:dev": "docker-compose -f ../docker-compose.dev.yml up",
   "docker:prod": "docker-compose -f ../docker-compose.yml up -d"
 }

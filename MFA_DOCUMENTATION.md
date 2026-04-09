@@ -1,7 +1,7 @@
-# 🔐 Multi-Factor Authentication (MFA) Documentation
+﻿# 🔐 Multi-Factor Authentication (MFA) Documentation
 
 ## Overview
-The CICJ-ICMS implements email-based Multi-Factor Authentication (MFA) using One-Time Passwords (OTP) to satisfy Identity and Access Management (IAM) requirements. This adds an additional security layer beyond username/password authentication.
+The CICJ-SH-COMS implements email-based Multi-Factor Authentication (MFA) using One-Time Passwords (OTP) to satisfy Identity and Access Management (IAM) requirements. This adds an additional security layer beyond username/password authentication.
 
 ---
 
@@ -320,7 +320,7 @@ Copy the OTP and paste into the login modal.
 
 The OTP email includes:
 
-- **Professional header**: CICJ-ICMS branding
+- **Professional header**: CICJ-SH-COMS branding
 - **Large OTP display**: 48px, monospace, white text on blue gradient
 - **Clear expiration**: 5-minute timer displayed
 - **Security warnings**: Don't share code, contact admin if suspicious
@@ -331,7 +331,7 @@ The OTP email includes:
 ```
 ╔══════════════════════════════════════════╗
 ║        🔐 Login Verification             ║
-║      CICJ-ICMS Security System           ║
+║      CICJ-SH-COMS Security System           ║
 ╠══════════════════════════════════════════╣
 ║                                          ║
 ║  Hello John Doe,                         ║

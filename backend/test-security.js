@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ==========================================
  * SECURITY HARDENING TEST SUITE
  * ==========================================
@@ -423,7 +423,7 @@ async function testPasswordStrength() {
 async function runAllTests() {
     console.log(`\n${GREEN}╔════════════════════════════════════════╗`);
     console.log(`║  SECURITY HARDENING TEST SUITE         ║`);
-    console.log(`║  CICJ-ICMS Security Validation         ║`);
+    console.log(`║  CICJ-SH-COMS Security Validation         ║`);
     console.log(`╚════════════════════════════════════════╝${RESET}\n`);
 
     console.log(`${YELLOW}⚠️  Ensure the server is running on ${BASE_URL}${RESET}\n`);

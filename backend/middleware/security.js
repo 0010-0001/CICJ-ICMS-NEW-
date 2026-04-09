@@ -13,6 +13,8 @@
 const { body, validationResult, param, query } = require('express-validator');
 const xss = require('xss');
 
+// Security checks are centralized here so route handlers stay focused on business logic.
+
 /**
  * ==========================================
  * INPUT SANITIZATION (XSS Prevention)
@@ -20,6 +22,7 @@ const xss = require('xss');
  * Sanitizes all string inputs to prevent XSS attacks
  */
 const sanitizeInput = (req, res, next) => {
+    // Clean request strings early to reduce XSS risk across the app.
     // Sanitize body
     if (req.body) {
         Object.keys(req.body).forEach(key => {
@@ -110,7 +113,7 @@ const validateLogin = [
     body('password')
         .notEmpty()
         .withMessage('Password is required')
-        .isLength({ min: 8, max: 128 })
+        .isLength({ min: 6, max: 128 })
         .withMessage('Invalid password format')
 ];
 
@@ -227,6 +230,7 @@ const validateId = (paramName = 'id') => [
  * Returns 400 with detailed validation errors
  */
 const handleValidationErrors = (req, res, next) => {
+    // Convert validator output into one consistent API error shape.
     const errors = validationResult(req);
     
     if (!errors.isEmpty()) {

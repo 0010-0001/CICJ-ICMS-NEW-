@@ -1,0 +1,284 @@
+/* Logout Confirmation Modal Styles */
+/* Shared logout prompt visuals for both admin and employee portals. */
+.logout-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.logout-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.logout-modal-content {
+    background: white;
+    border-radius: 10px;
+    max-width: 560px;
+    width: 90%;
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.2);
+    border: 1px solid #d8dee8;
+    transform: scale(0.9);
+    transition: transform 0.2s ease;
+}
+
+.logout-modal-overlay.active .logout-modal-content {
+    transform: scale(1);
+}
+
+.logout-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border-bottom: 1px solid #d8dee8;
+    background: #f8fafc;
+    border-radius: 10px 10px 0 0;
+}
+
+.logout-header-icon {
+    width: 48px;
+    height: 48px;
+    background: #fef2f2;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ef4444;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.logout-header-text {
+    flex: 1;
+}
+
+.logout-header-text h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 4px 0;
+}
+
+.logout-header-text p {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 0;
+}
+
+.logout-modal-body {
+    padding: 24px;
+}
+
+.logout-message {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.logout-message p {
+    font-size: 14px;
+    color: #4b5563;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.logout-user-info {
+    background: #f8fafc;
+    border: 1px solid #d8dee8;
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logout-user-icon {
+    width: 36px;
+    height: 36px;
+    background: white;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2dad50;
+    font-size: 18px;
+}
+
+.logout-user-details {
+    flex: 1;
+}
+
+.logout-user-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 2px 0;
+}
+
+.logout-user-role {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 0;
+}
+
+.logout-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.btn-logout-cancel,
+.btn-logout-confirm {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-logout-cancel {
+    background: #000000;
+    color: #ffffff;
+    border: 1px solid #000000;
+}
+
+.btn-logout-cancel:hover {
+    background: #111827;
+    border-color: #111827;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.32);
+}
+
+.btn-logout-confirm {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-logout-confirm:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+/* Theme support for global mode switch */
+body.theme-light .logout-modal-overlay {
+    background: rgba(15, 23, 42, 0.45);
+}
+
+body.theme-light .logout-modal-content {
+    background: #ffffff;
+    border-color: #d8dee8;
+}
+
+body.theme-light .logout-modal-header {
+    background: #f8fafc;
+    border-color: #d8dee8;
+}
+
+body.theme-light .logout-header-text h2,
+body.theme-light .logout-header-text p,
+body.theme-light .logout-message p,
+body.theme-light .logout-user-name,
+body.theme-light .logout-user-role {
+    color: #1f2937;
+}
+
+body.theme-dark .logout-modal-overlay {
+    background: rgba(0, 0, 0, 0.62);
+}
+
+body.theme-dark .logout-modal-content {
+    background: #141414;
+    border-color: #2a2a2a;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.65);
+}
+
+body.theme-dark .logout-modal-header {
+    background: #101010;
+    border-color: #2a2a2a;
+}
+
+body.theme-dark .logout-header-icon {
+    background: #2a1313;
+    color: #f87171;
+}
+
+body.theme-dark .logout-header-text h2,
+body.theme-dark .logout-header-text p,
+body.theme-dark .logout-message p,
+body.theme-dark .logout-user-name,
+body.theme-dark .logout-user-role {
+    color: #ffffff;
+}
+
+body.theme-dark .logout-user-info {
+    background: #171717;
+    border-color: #2a2a2a;
+}
+
+body.theme-dark .logout-user-icon {
+    background: #0f0f0f;
+    color: #86efac;
+}
+
+body.theme-dark .btn-logout-cancel {
+    background: #0f0f0f;
+    border-color: #2a2a2a;
+    color: #ffffff;
+}
+
+body.theme-dark .btn-logout-cancel:hover {
+    background: #1d1d1d;
+    border-color: #2f2f2f;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .logout-modal-content {
+        max-width: 95%;
+    }
+
+    .logout-modal-header {
+        padding: 16px;
+    }
+
+    .logout-modal-body {
+        padding: 20px;
+    }
+
+    .logout-header-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+
+    .logout-header-text h2 {
+        font-size: 16px;
+    }
+
+    .logout-modal-actions {
+        flex-direction: column;
+    }
+
+    .btn-logout-cancel,
+    .btn-logout-confirm {
+        width: 100%;
+        justify-content: center;
+    }
+}

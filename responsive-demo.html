@@ -1,15 +1,16 @@
 <!DOCTYPE html>
+<!-- Responsive demo page used to explain device behavior and breakpoints. -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CICJ-ICMS - Responsive Design Demo</title>
+    <title>CICJ-SHCOMS - Responsive Design Demo</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             font-family: Arial, sans-serif; 
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2dad50 0%, #166534 100%);
             color: white;
         }
         .container { max-width: 1200px; margin: 0 auto; }
@@ -22,9 +23,9 @@
             color: #333;
         }
         .demo-section h2 { 
-            color: #1e3a8a; 
+            color: #14532d; 
             margin-bottom: 20px;
-            border-bottom: 3px solid #3b82f6;
+            border-bottom: 3px solid #2dad50;
             padding-bottom: 10px;
         }
         .screen-grid {
@@ -50,7 +51,7 @@
             text-align: center;
             font-weight: bold;
             margin-bottom: 10px;
-            color: #1e3a8a;
+            color: #14532d;
         }
         .feature-list {
             list-style: none;
@@ -62,7 +63,7 @@
             position: relative;
         }
         .feature-list li:before {
-            content: "✓";
+            content: "?";
             position: absolute;
             left: 0;
             color: #10b981;
@@ -70,7 +71,7 @@
         }
         .page-link {
             display: inline-block;
-            background: #2563eb;
+            background: #258a3f;
             color: white;
             padding: 12px 24px;
             border-radius: 8px;
@@ -81,10 +82,10 @@
         }
         .page-link:hover {
             transform: translateY(-2px);
-            background: #1d4ed8;
+            background: #166534;
         }
-        .page-link.client { background: #1e3a8a; }
-        .page-link.admin { background: #2563eb; }
+        .page-link.client { background: #14532d; }
+        .page-link.admin { background: #258a3f; }
         .page-link.employee { background: #059669; }
         .responsive-demo {
             display: flex;
@@ -95,12 +96,12 @@
         .breakpoint {
             flex: 1;
             min-width: 200px;
-            background: #e0e7ff;
+            background: #dcfce7;
             padding: 15px;
             border-radius: 8px;
-            border-left: 4px solid #3b82f6;
+            border-left: 4px solid #2dad50;
         }
-        .breakpoint h4 { color: #1e3a8a; margin-bottom: 10px; }
+        .breakpoint h4 { color: #14532d; margin-bottom: 10px; }
         .breakpoint code { 
             background: white; 
             padding: 2px 6px; 
@@ -111,11 +112,11 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎨 CICJ-ICMS Responsive Design System</h1>
+        <h1>?? CICJ-SHCOMS Responsive Design System</h1>
 
         <!-- Navigation -->
         <div class="demo-section">
-            <h2>🚀 Quick Navigation</h2>
+            <h2>?? Quick Navigation</h2>
             <p style="margin-bottom: 20px;">Test the responsive design on each page:</p>
             <a href="client.html" class="page-link client">Client Portal (Public)</a>
             <a href="index.html" class="page-link">Login Page</a>
@@ -125,38 +126,38 @@
 
         <!-- Responsive Breakpoints -->
         <div class="demo-section">
-            <h2>📐 Responsive Breakpoints</h2>
+            <h2>?? Responsive Breakpoints</h2>
             <div class="responsive-demo">
                 <div class="breakpoint">
-                    <h4>📱 Mobile Small</h4>
-                    <code>≤ 320px</code>
+                    <h4>?? Mobile Small</h4>
+                    <code>= 320px</code>
                     <p style="margin-top: 10px; font-size: 14px;">
                         Compact padding, minimal spacing for very small phones
                     </p>
                 </div>
                 <div class="breakpoint">
-                    <h4>📱 Mobile</h4>
-                    <code>≤ 480px</code>
+                    <h4>?? Mobile</h4>
+                    <code>= 480px</code>
                     <p style="margin-top: 10px; font-size: 14px;">
                         Single column, stacked buttons, full-width inputs
                     </p>
                 </div>
                 <div class="breakpoint">
-                    <h4>📱 Tablet</h4>
-                    <code>≤ 768px</code>
+                    <h4>?? Tablet</h4>
+                    <code>= 768px</code>
                     <p style="margin-top: 10px; font-size: 14px;">
                         Horizontal tabs, 2-column grids, collapsible sidebars
                     </p>
                 </div>
                 <div class="breakpoint">
-                    <h4>💻 Desktop Small</h4>
-                    <code>≤ 1024px</code>
+                    <h4>?? Desktop Small</h4>
+                    <code>= 1024px</code>
                     <p style="margin-top: 10px; font-size: 14px;">
                         Sidebar becomes horizontal navbar, reduced spacing
                     </p>
                 </div>
                 <div class="breakpoint">
-                    <h4>🖥️ Desktop</h4>
+                    <h4>??? Desktop</h4>
                     <code>> 1024px</code>
                     <p style="margin-top: 10px; font-size: 14px;">
                         Full sidebar, multi-column grids, optimal spacing
@@ -167,13 +168,13 @@
 
         <!-- Key Features -->
         <div class="demo-section">
-            <h2>✨ Key Responsive Features</h2>
+            <h2>? Key Responsive Features</h2>
             <div class="screen-grid">
                 <div class="device-frame">
-                    <div class="device-name">Mobile Phone (≤768px)</div>
+                    <div class="device-name">Mobile Phone (=768px)</div>
                     <div class="device-screen">
                         <ul class="feature-list">
-                            <li>Sidebar → Horizontal tabs</li>
+                            <li>Sidebar ? Horizontal tabs</li>
                             <li>Tables scroll horizontally</li>
                             <li>Buttons full-width (44px min)</li>
                             <li>Single column layouts</li>
@@ -214,16 +215,16 @@
 
         <!-- Pages Overview -->
         <div class="demo-section">
-            <h2>📄 Page-Specific Adaptations</h2>
+            <h2>?? Page-Specific Adaptations</h2>
             
-            <h3 style="color: #1e3a8a; margin: 20px 0 10px;">Client Portal (client.html)</h3>
+            <h3 style="color: #14532d; margin: 20px 0 10px;">Client Portal (client.html)</h3>
             <ul class="feature-list">
                 <li><strong>Desktop:</strong> 3-column project grid, full navigation bar</li>
-                <li><strong>Mobile:</strong> Single column stack, hamburger menu (☰), collapsible sections</li>
+                <li><strong>Mobile:</strong> Single column stack, hamburger menu (?), collapsible sections</li>
                 <li><strong>Purpose:</strong> Public brand showcase with smooth scroll navigation</li>
             </ul>
 
-            <h3 style="color: #2563eb; margin: 20px 0 10px;">Admin Dashboard (admin.html)</h3>
+            <h3 style="color: #258a3f; margin: 20px 0 10px;">Admin Dashboard (admin.html)</h3>
             <ul class="feature-list">
                 <li><strong>Desktop:</strong> Fixed sidebar, 4-column stat cards, full data tables</li>
                 <li><strong>Tablet:</strong> Horizontal tabs, 2-column stats, scrollable tables</li>
@@ -242,7 +243,7 @@
 
         <!-- Testing Instructions -->
         <div class="demo-section">
-            <h2>🧪 How to Test Responsive Design</h2>
+            <h2>?? How to Test Responsive Design</h2>
             <ol style="margin-left: 20px; line-height: 1.8;">
                 <li><strong>Open any page</strong> (client.html, admin.html, employee.html)</li>
                 <li><strong>Press F12</strong> to open Developer Tools</li>
@@ -262,10 +263,10 @@
 
         <!-- Technical Implementation -->
         <div class="demo-section">
-            <h2>⚙️ Technical Implementation</h2>
+            <h2>?? Technical Implementation</h2>
             <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-top: 15px;">
-                <h4 style="color: #1e3a8a; margin-bottom: 10px;">CSS Grid Auto-Responsive Pattern:</h4>
-                <pre style="background: #1e293b; color: #e0e7ff; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>.stats-grid {
+                <h4 style="color: #14532d; margin-bottom: 10px;">CSS Grid Auto-Responsive Pattern:</h4>
+                <pre style="background: #1e293b; color: #dcfce7; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>.stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 24px;
@@ -280,8 +281,8 @@
             </div>
 
             <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-top: 15px;">
-                <h4 style="color: #1e3a8a; margin-bottom: 10px;">Mobile Touch Target Optimization:</h4>
-                <pre style="background: #1e293b; color: #e0e7ff; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>@media (max-width: 768px) {
+                <h4 style="color: #14532d; margin-bottom: 10px;">Mobile Touch Target Optimization:</h4>
+                <pre style="background: #1e293b; color: #dcfce7; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>@media (max-width: 768px) {
     .btn-primary,
     .btn-success {
         min-height: 44px;  /* Apple HIG minimum */
@@ -293,13 +294,13 @@
         </div>
 
         <!-- Footer -->
-        <div class="demo-section" style="text-align: center; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white;">
-            <h2 style="color: white; border-bottom: 3px solid white;">🎯 Task 4 Complete</h2>
+        <div class="demo-section" style="text-align: center; background: linear-gradient(135deg, #14532d 0%, #2dad50 100%); color: white;">
+            <h2 style="color: white; border-bottom: 3px solid white;">?? Task 4 Complete</h2>
             <p style="font-size: 1.2rem; margin-top: 15px;">
                 Full responsive design implemented across all pages (320px - 1920px+)
             </p>
             <p style="margin-top: 10px; opacity: 0.9;">
-                ✅ Mobile-First Design | ✅ Touch Optimization | ✅ Client Portal | ✅ Construction Site Ready
+                ? Mobile-First Design | ? Touch Optimization | ? Client Portal | ? Construction Site Ready
             </p>
         </div>
     </div>

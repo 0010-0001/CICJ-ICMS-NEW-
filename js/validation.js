@@ -101,6 +101,11 @@ const validatePassword = (password) => {
     if (!/\d/.test(password)) {
         return { valid: false, message: 'Password must contain at least one number' };
     }
+
+    // Check for special character
+    if (!/[^A-Za-z0-9]/.test(password)) {
+        return { valid: false, message: 'Password must contain at least one special character' };
+    }
     
     return { valid: true, message: 'Password is strong' };
 };

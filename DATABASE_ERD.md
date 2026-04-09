@@ -1,4 +1,4 @@
-# CICJ-ICMS Entity-Relationship Diagram (ERD)
+﻿# CICJ-SH-COMS Entity-Relationship Diagram (ERD)
 
 ## Complete Database Schema Visualization
 

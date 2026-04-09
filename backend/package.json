@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "CICJ-ICMS Backend API",
+  "description": "CICJ-SH-COMS Backend API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -12,21 +12,28 @@
     "prisma:deploy": "npx prisma migrate deploy",
     "prisma:seed": "npx prisma db seed",
     "prisma:studio": "npx prisma studio",
-    "docker:build": "docker build -t cicj-icms-backend .",
-    "docker:run": "docker run -p 5000:5000 --env-file .env cicj-icms-backend",
+    "docker:build": "docker build -t cicj-shcoms-backend .",
+    "docker:run": "docker run -p 5000:5000 --env-file .env cicj-shcoms-backend",
     "docker:dev": "docker-compose -f ../docker-compose.dev.yml up",
     "docker:prod": "docker-compose -f ../docker-compose.yml up -d"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
   },
-  "keywords": ["construction", "management", "api", "prisma"],
+  "keywords": [
+    "construction",
+    "management",
+    "api",
+    "prisma"
+  ],
   "author": "CICJ Team",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
     "@prisma/client": "^6.19.2",
+    "axios": "^1.13.6",
     "bcrypt": "^6.0.0",
+    "cloudinary": "^2.9.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
@@ -34,7 +41,12 @@
     "express-validator": "^7.0.1",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.3",
-    "nodemailer": "^6.9.8",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.2",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "pdfkit": "^0.17.2",
+    "qrcode": "^1.5.4",
     "xss": "^1.0.15"
   },
   "devDependencies": {

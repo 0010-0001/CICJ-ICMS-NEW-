@@ -1,7 +1,7 @@
-# 🔒 Security Hardening Documentation
+﻿# 🔒 Security Hardening Documentation
 
 ## Overview
-This document describes the comprehensive security measures implemented in the CICJ-ICMS (Construction Information & Client Journey - Integrated Construction Management System).
+This document describes the comprehensive security measures implemented in the CICJ-SH-COMS (CICJ Secure Hybrid Construction Management System).
 
 ---
 

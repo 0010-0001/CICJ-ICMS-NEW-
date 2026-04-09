@@ -1,116 +1,140 @@
 <!DOCTYPE html>
+<!-- Public client page: marketing sections, services, and contact entry points. -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CICJ Construction - Build Your Future</title>
-    <link rel="stylesheet" href="css/global.css">
-    <link rel="stylesheet" href="css/client.css">
+    <title>CICJ Construction</title>
+    <link rel="stylesheet" href="css/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/global.css?v=20260402a">
+    <link rel="stylesheet" href="css/client.css?v=20260403a">
+    <link rel="stylesheet" href="css/system-typography.css?v=20260329a">
+    <link rel="stylesheet" href="css/button-hover-glow.css?v=20260328c">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="logo">CICJ Construction</div>
-            <ul class="nav-menu">
-                <li><a href="#home">Home</a></li>
-                <li><a href="#projects">Projects</a></li>
-                <li><a href="#services">Services</a></li>
-                <li><a href="#contact">Contact</a></li>
-                <li><a href="index.html" class="btn-nav">Client Login</a></li>
-            </ul>
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
+    <!-- Public header: top brand strip + main navigation row. -->
+    <header class="client-header">
+        <div class="client-top-strip">
+            <div class="nav-container top-strip-grid">
+                <a class="client-corp-brand" href="#home" aria-label="CICJ Home">
+                    <img src="Images/CICJ.png" alt="CICJ Construction Corporation logo" class="client-top-logo">
+                    <span class="client-brand-text">
+                        <span class="client-brand-title">CICJ</span>
+                        <span class="client-brand-subtitle">Construction Corporation</span>
+                    </span>
+                </a>
             </div>
         </div>
-    </nav>
 
-    <!-- Hero Section -->
-    <section id="home" class="hero">
-        <div class="hero-content">
-            <h1>Building Excellence Since 2010</h1>
-            <p>Your trusted partner in construction and infrastructure development</p>
-            <a href="#contact" class="btn-hero">Get a Free Quote</a>
+        <div class="client-nav-bar">
+            <div class="nav-container nav-layout">
+                <nav>
+                    <ul class="nav-menu">
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#services">Services</a></li>
+                        <li><a href="#portfolio">Projects</a></li>
+                        <li><a href="#contact">Careers</a></li>
+                        <li><a href="#contact" class="btn-request"><span>Contact Us</span> <i class="bi bi-calendar3"></i></a></li>
+                    </ul>
+                </nav>
+
+                <button class="hamburger" aria-label="Toggle navigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero: short value statement and quick call-to-action buttons. -->
+    <section id="home" class="hero-section">
+        <div class="container hero-grid">
+            <div class="hero-copy">
+                <h1>Building Excellence,<br><span>Restoring Trust.</span></h1>
+                <p>
+                    CICJ General Construction provides premier general construction and
+                    building maintenance services. We deliver high-end, reliable solutions
+                    tailored to your specific project needs.
+                </p>
+                <div class="hero-actions">
+                    <a href="#contact" class="btn-primary">Request a Quote <i class="bi bi-arrow-right-short"></i></a>
+                    <a href="#portfolio" class="btn-ghost">View Our Portfolio</a>
+                </div>
+            </div>
+            <div class="hero-media">
+                <img src="https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=1200&q=80" alt="Modern construction site">
+            </div>
         </div>
     </section>
 
-    <!-- Projects Section -->
-    <section id="projects" class="section-projects">
+    <!-- Portfolio: sample projects that show build quality and scope. -->
+    <section id="portfolio" class="portfolio-section">
         <div class="container">
-            <h2 class="section-title">Our Recent Projects</h2>
+            <h2 class="section-title">Successful Projects</h2>
+            <p class="section-subtitle">Explore our portfolio of recent high-end construction and comprehensive building maintenance projects across the region.</p>
             <div class="projects-grid">
                 <div class="project-card">
-                    <img src="https://via.placeholder.com/400x300/1e3a8a/ffffff?text=Commercial+Building" alt="Commercial Project">
+                    <img src="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1200&q=80" alt="Commercial build">
                     <div class="project-info">
-                        <h3>Makati Corporate Center</h3>
-                        <p>15-story commercial building completed in 2025</p>
-                        <span class="project-tag">Commercial</span>
+                        <span class="project-type">Commercial Build</span>
+                        <h3>Apex Business Center</h3>
                     </div>
                 </div>
                 <div class="project-card">
-                    <img src="https://via.placeholder.com/400x300/059669/ffffff?text=Residential+Complex" alt="Residential Project">
+                    <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80" alt="Residential complex">
                     <div class="project-info">
-                        <h3>Greenhills Residences</h3>
-                        <p>300-unit residential complex with amenities</p>
-                        <span class="project-tag">Residential</span>
+                        <span class="project-type">Residential Complex</span>
+                        <h3>Verde Residences</h3>
                     </div>
                 </div>
                 <div class="project-card">
-                    <img src="https://via.placeholder.com/400x300/ea580c/ffffff?text=Infrastructure" alt="Infrastructure Project">
+                    <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80" alt="Building maintenance project">
                     <div class="project-info">
-                        <h3>NLEX Extension Phase 3</h3>
-                        <p>Highway infrastructure development</p>
-                        <span class="project-tag">Infrastructure</span>
+                        <span class="project-type">Building Maintenance</span>
+                        <h3>Metro Logistics Hub</h3>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Services Section -->
-    <section id="services" class="section-services">
-        <div class="container">
-            <h2 class="section-title">Our Services</h2>
-            <div class="services-grid">
-                <div class="service-item">
-                    <div class="service-icon">🏗️</div>
-                    <h3>General Construction</h3>
-                    <p>Full-service construction management for commercial and residential projects</p>
-                </div>
-                <div class="service-item">
-                    <div class="service-icon">🏢</div>
-                    <h3>Commercial Build-Outs</h3>
-                    <p>Office spaces, retail stores, and corporate facilities</p>
-                </div>
-                <div class="service-item">
-                    <div class="service-icon">🛣️</div>
-                    <h3>Infrastructure Development</h3>
-                    <p>Roads, bridges, and public works projects</p>
-                </div>
-                <div class="service-item">
-                    <div class="service-icon">📋</div>
-                    <h3>Project Management</h3>
-                    <p>End-to-end planning, scheduling, and execution</p>
-                </div>
-            </div>
-        </div>
-    </section>
+    <section id="services" class="services-strip" aria-label="Services"></section>
 
-    <!-- Contact Section -->
-    <section id="contact" class="section-contact">
+    <section id="contact" class="contact-section">
         <div class="container">
-            <h2 class="section-title">Get In Touch</h2>
-            <div class="contact-wrapper">
-                <div class="contact-info">
-                    <h3>Contact Information</h3>
-                    <p><strong>Address:</strong> 123 Construction Ave, Makati City, Philippines</p>
-                    <p><strong>Phone:</strong> +63 2 8123 4567</p>
-                    <p><strong>Email:</strong> inquiries@cicj.com</p>
-                    <p><strong>Hours:</strong> Mon-Sat: 8:00 AM - 6:00 PM</p>
+            <div class="contact-card" id="about">
+                <div class="contact-left">
+                    <h2>Get in Touch</h2>
+                    <p>Ready to start your next project or need professional building maintenance? Contact our team today for a comprehensive consultation.</p>
+
+                    <div class="contact-meta-list">
+                        <div class="contact-meta-item">
+                            <span class="meta-icon"><i class="bi bi-geo-alt"></i></span>
+                            <div>
+                                <h4>Office Address</h4>
+                                <p>29M Lozada, Sto. Rosario<br>Silangan, Pateros, Metro Manila</p>
+                            </div>
+                        </div>
+                        <div class="contact-meta-item">
+                            <span class="meta-icon"><i class="bi bi-telephone"></i></span>
+                            <div>
+                                <h4>Phone</h4>
+                                <p>+63 (2) 8123 4567<br>Mon-Fri 7:00 AM - 5:00 PM</p>
+                            </div>
+                        </div>
+                        <div class="contact-meta-item">
+                            <span class="meta-icon"><i class="bi bi-envelope"></i></span>
+                            <div>
+                                <h4>Email</h4>
+                                <p>cicjconstruction@gmail.com</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="contact-form">
+
+                <div class="contact-right">
                     <form id="inquiry-form">
                         <div class="form-group">
                             <label for="client_name">Full Name</label>
@@ -121,14 +145,14 @@
                             <input type="email" id="client_email" required>
                         </div>
                         <div class="form-group">
-                            <label for="contact_number">Contact Number</label>
-                            <input type="tel" id="contact_number">
+                            <label for="contact_number">Subject</label>
+                            <input type="tel" id="contact_number" placeholder="General Inquiry">
                         </div>
                         <div class="form-group">
-                            <label for="message_body">Your Message</label>
-                            <textarea id="message_body" rows="5" required></textarea>
+                            <label for="message_body">Message</label>
+                            <textarea id="message_body" rows="5" required placeholder="Tell us about your project requirements..."></textarea>
                         </div>
-                        <button type="submit" class="btn-primary w-full">Send Inquiry</button>
+                        <button type="submit" class="btn-submit">Send Message</button>
                     </form>
                     <div id="form-message" class="hidden"></div>
                 </div>
@@ -136,11 +160,24 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer">
+    <footer class="client-footer">
         <div class="container">
-            <p>&copy; 2026 CICJ Construction. All rights reserved.</p>
-            <p>Building the future, one project at a time.</p>
+            <div class="footer-top">
+                <h3>CICJ Construction</h3>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#portfolio">Portfolio</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 CICJ General Construction. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                </div>
+            </div>
         </div>
     </footer>
 

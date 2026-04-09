@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ==========================================
  * MULTI-FACTOR AUTHENTICATION (MFA) MIDDLEWARE
  * ==========================================
@@ -9,6 +9,8 @@
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 require('dotenv').config();
+
+// This module handles OTP generation, delivery, and verification state.
 
 // In-memory OTP storage (use Redis in production)
 // Structure: { email: { otp: '123456', expires: timestamp, userId: 1 } }
@@ -25,6 +27,7 @@ const MAX_OTP_ATTEMPTS = 3;
 let transporter;
 
 const initializeEmailTransporter = () => {
+    // Create reusable SMTP connection settings for OTP emails.
     try {
         transporter = nodemailer.createTransport({
             host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -39,10 +42,10 @@ const initializeEmailTransporter = () => {
             }
         });
 
-        console.log('✅ Email transporter initialized successfully');
+        console.log('[MFA] Email transporter initialized successfully');
         return true;
     } catch (error) {
-        console.error('❌ Email transporter initialization failed:', error.message);
+        console.error('[MFA] Email transporter initialization failed:', error.message);
         return false;
     }
 };
@@ -60,15 +63,16 @@ const generateOTP = () => {
  * Send OTP Email
  */
 const sendOTPEmail = async (email, otp, userName = 'User') => {
+    // In dev mode, OTP can be printed in terminal when SMTP is not configured.
     try {
         // Check if email is configured
         if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
-            console.warn('⚠️  Email not configured. OTP would be:', otp);
+            console.warn('[MFA] Email not configured. OTP would be:', otp);
             // In development, just log the OTP
             if (process.env.NODE_ENV !== 'production') {
                 console.log(`\n${'='.repeat(50)}`);
-                console.log(`📧 OTP for ${email}: ${otp}`);
-                console.log(`   Valid for ${OTP_EXPIRY_MINUTES} minutes`);
+                console.log(`[MFA] OTP for ${email}: ${otp}`);
+                console.log(`[MFA] Valid for ${OTP_EXPIRY_MINUTES} minutes`);
                 console.log(`${'='.repeat(50)}\n`);
                 return { success: true, devMode: true };
             }
@@ -81,9 +85,9 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
         }
 
         const mailOptions = {
-            from: `"CICJ-ICMS Security" <${process.env.SMTP_USER}>`,
+            from: `"CICJ-SH-COMS Security" <${process.env.SMTP_USER}>`,
             to: email,
-            subject: '🔐 Your Login Verification Code - CICJ-ICMS',
+            subject: 'Login Verification Code - CICJ-SH-COMS',
             html: `
 <!DOCTYPE html>
 <html>
@@ -92,165 +96,261 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            color: #333;
+            color: #374151;
             max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f4f4;
+            padding: 0;
+            background-color: #f3f4f6;
         }
         .container {
             background-color: #ffffff;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            margin: 40px 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
         }
         .header {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            padding: 40px 30px;
             text-align: center;
-            border-bottom: 3px solid #1976D2;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+        }
+        .logo-box {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #2dad50 0%, #258a3f 100%);
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 24px rgba(45, 173, 80, 0.3);
+        }
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background-color: white;
+            -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 18c-3.86 0-7-3.14-7-7V8.3l7-3.11 7 3.11V13c0 3.86-3.14 7-7 7z"/></svg>') no-repeat center;
+            mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 18c-3.86 0-7-3.14-7-7V8.3l7-3.11 7 3.11V13c0 3.86-3.14 7-7 7z"/></svg>') no-repeat center;
         }
         .header h1 {
-            color: #1976D2;
+            color: #ffffff;
             margin: 0;
-            font-size: 28px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .header p {
+            color: #9ca3af;
+            margin: 8px 0 0 0;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            color: #111827;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .message {
+            color: #6b7280;
+            font-size: 15px;
+            margin-bottom: 30px;
+            line-height: 1.7;
         }
         .otp-box {
-            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+            background: linear-gradient(135deg, #2dad50 0%, #258a3f 100%);
             color: white;
             text-align: center;
-            padding: 30px;
-            border-radius: 8px;
+            padding: 32px;
+            border-radius: 12px;
             margin: 30px 0;
-            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
-        }
-        .otp-code {
-            font-size: 48px;
-            font-weight: bold;
-            letter-spacing: 8px;
-            font-family: 'Courier New', monospace;
-            margin: 10px 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 24px rgba(45, 173, 80, 0.25);
         }
         .otp-label {
-            font-size: 14px;
+            font-size: 12px;
             opacity: 0.9;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+            font-weight: 600;
         }
-        .info {
-            background-color: #FFF3E0;
-            border-left: 4px solid #FF9800;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
+        .otp-code {
+            font-size: 42px;
+            font-weight: bold;
+            letter-spacing: 12px;
+            font-family: 'Courier New', monospace;
+            margin: 16px 0;
         }
-        .warning {
-            background-color: #FFEBEE;
-            border-left: 4px solid #F44336;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
+        .otp-expiry {
+            font-size: 13px;
+            opacity: 0.85;
+            margin-top: 12px;
+        }
+        .notice-box {
+            background-color: #f9fafb;
+            border-left: 4px solid #2dad50;
+            padding: 20px;
+            margin: 24px 0;
+            border-radius: 8px;
+        }
+        .notice-title {
+            color: #111827;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        .notice-list {
+            margin: 0;
+            padding-left: 20px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .notice-list li {
+            margin: 8px 0;
+        }
+        .security-notice {
+            background-color: #fef2f2;
+            border-left-color: #ef4444;
         }
         .footer {
+            background-color: #f9fafb;
+            padding: 30px;
             text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer-title {
+            color: #111827;
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+        .footer-subtitle {
+            color: #6b7280;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+        .footer-legal {
+            color: #9ca3af;
             font-size: 12px;
-            color: #666;
-        }
-        ul {
-            padding-left: 20px;
-        }
-        li {
-            margin: 8px 0;
+            margin-top: 16px;
+            line-height: 1.6;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔐 Login Verification</h1>
-            <p style="margin: 10px 0 0 0; color: #666;">CICJ-ICMS Security System</p>
+            <div class="logo-box">
+                <div class="logo-icon"></div>
+            </div>
+            <h1>CICJ-SH-COMS</h1>
+            <p>Secure Hybrid Construction Management System</p>
         </div>
 
-        <p>Hello <strong>${userName}</strong>,</p>
-        
-        <p>We received a login attempt for your CICJ-ICMS account. To complete the login process, please use the One-Time Password (OTP) below:</p>
+        <div class="content">
+            <div class="greeting">
+                Hello <strong>${userName}</strong>,
+            </div>
+            
+            <div class="message">
+                We received a login attempt for your CICJ-SH-COMS account. To complete the authentication process, please use the verification code below.
+            </div>
 
-        <div class="otp-box">
-            <div class="otp-label">Your Verification Code</div>
-            <div class="otp-code">${otp}</div>
-            <div class="otp-label">Valid for ${OTP_EXPIRY_MINUTES} minutes</div>
+            <div class="otp-box">
+                <div class="otp-label">Verification Code</div>
+                <div class="otp-code">${otp}</div>
+                <div class="otp-expiry">Valid for ${OTP_EXPIRY_MINUTES} minutes</div>
+            </div>
+
+            <div class="notice-box">
+                <div class="notice-title">Instructions</div>
+                <ul class="notice-list">
+                    <li>Enter this code on the login verification page to continue</li>
+                    <li>This code will expire in ${OTP_EXPIRY_MINUTES} minutes</li>
+                    <li>Do not share this code with anyone</li>
+                </ul>
+            </div>
+
+            <div class="notice-box security-notice">
+                <div class="notice-title">Security Notice</div>
+                <ul class="notice-list">
+                    <li>If you did not attempt to log in, please disregard this email</li>
+                    <li>Contact your system administrator if you suspect unauthorized access</li>
+                    <li>Never share your credentials or verification codes with anyone</li>
+                </ul>
+            </div>
+
+            <div class="message">
+                If you have any questions or concerns, please contact your system administrator.
+            </div>
         </div>
-
-        <div class="info">
-            <strong>⏱️ Important:</strong>
-            <ul>
-                <li>This code will expire in <strong>${OTP_EXPIRY_MINUTES} minutes</strong></li>
-                <li>Do not share this code with anyone</li>
-                <li>Enter this code on the login page to continue</li>
-            </ul>
-        </div>
-
-        <div class="warning">
-            <strong>⚠️ Security Notice:</strong>
-            <ul>
-                <li>If you did not attempt to log in, please ignore this email</li>
-                <li>Contact your system administrator if you suspect unauthorized access</li>
-                <li>Never share your password or OTP with anyone, including CICJ staff</li>
-            </ul>
-        </div>
-
-        <p>If you have any questions or concerns, please contact your system administrator.</p>
 
         <div class="footer">
-            <p><strong>CICJ-ICMS</strong> - Construction Information & Client Journey</p>
-            <p>Integrated Construction Management System</p>
-            <p style="margin-top: 10px; font-size: 11px;">
+            <div class="footer-title">CICJ-SH-COMS</div>
+            <div class="footer-subtitle">Construction Information & Client Journey</div>
+            <div class="footer-legal">
                 This is an automated message. Please do not reply to this email.<br>
-                © ${new Date().getFullYear()} CICJ-ICMS. All rights reserved.
-            </p>
+                &copy; ${new Date().getFullYear()} CICJ-SH-COMS. All rights reserved.
+            </div>
         </div>
     </div>
 </body>
 </html>
             `,
             text: `
-CICJ-ICMS Login Verification
+CICJ-SH-COMS Login Verification
+========================================
 
 Hello ${userName},
 
-Your One-Time Password (OTP) is: ${otp}
+We received a login attempt for your CICJ-SH-COMS account.
+
+Your verification code is: ${otp}
 
 This code will expire in ${OTP_EXPIRY_MINUTES} minutes.
 
-If you did not attempt to log in, please ignore this email and contact your system administrator.
+INSTRUCTIONS:
+- Enter this code on the login verification page
+- Do not share this code with anyone
 
-Never share your password or OTP with anyone.
+SECURITY NOTICE:
+If you did not attempt to log in, please disregard this email
+and contact your system administrator immediately.
 
----
-CICJ-ICMS - Construction Information & Client Journey
-© ${new Date().getFullYear()} CICJ-ICMS. All rights reserved.
+Never share your credentials or verification codes with anyone.
+
+========================================
+CICJ-SH-COMS - Secure Hybrid Construction Management System
+Construction Information & Client Journey
+(c) ${new Date().getFullYear()} CICJ-SH-COMS. All rights reserved.
+
+This is an automated message. Please do not reply.
             `
         };
 
         const info = await transporter.sendMail(mailOptions);
         
-        console.log(`✅ OTP email sent to ${email}: ${info.messageId}`);
+        console.log(`[MFA] OTP email sent to ${email}: ${info.messageId}`);
+        
+        // Also print OTP to terminal for convenience
+        console.log(`\n${'='.repeat(50)}`);
+        console.log(`📧 OTP sent to ${email}: ${otp}`);
+        console.log(`   Valid for ${OTP_EXPIRY_MINUTES} minutes`);
+        console.log(`${'='.repeat(50)}\n`);
+        
         return { success: true, messageId: info.messageId };
 
     } catch (error) {
-        console.error('❌ Failed to send OTP email:', error.message);
+        console.error('[MFA] Failed to send OTP email:', error.message);
         
         // In development, still show OTP in console
         if (process.env.NODE_ENV !== 'production') {
             console.log(`\n${'='.repeat(50)}`);
-            console.log(`📧 OTP for ${email}: ${otp} (Email failed, dev mode)`);
-            console.log(`   Valid for ${OTP_EXPIRY_MINUTES} minutes`);
+            console.log(`[MFA] OTP for ${email}: ${otp} (Email failed, dev mode)`);
+            console.log(`[MFA] Valid for ${OTP_EXPIRY_MINUTES} minutes`);
             console.log(`${'='.repeat(50)}\n`);
             return { success: true, devMode: true, error: error.message };
         }
@@ -279,7 +379,7 @@ const generateAndSendOTP = async (userId, email, userName) => {
         // Send email
         const emailResult = await sendOTPEmail(email, otp, userName);
 
-        console.log(`✅ OTP generated for ${email} (User ID: ${userId})`);
+        console.log(`[MFA] OTP generated for ${email} (User ID: ${userId})`);
         
         return {
             success: true,

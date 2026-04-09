@@ -2,6 +2,31 @@ const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+// Shared auth/authorization helpers for all protected routes.
+
+function getClientIp(req) {
+    // Try common IP sources so security logs still capture caller address behind proxies.
+    return req.ip || req.headers['x-forwarded-for'] || req.connection?.remoteAddress || '127.0.0.1';
+}
+
+function logSecurityUnauthorized(req, eventType, detail) {
+    // Fire-and-forget SIEM log for denied requests.
+    const method = req.method || 'UNKNOWN';
+    const route = req.originalUrl || req.url || 'unknown-route';
+    const userId = req.user?.user_id ? `user_id=${req.user.user_id}` : 'user_id=anonymous';
+    const description = `[SIEM][MEDIUM] ${detail} | method=${method} route=${route} ${userId}`;
+
+    prisma.system_Health_Log.create({
+        data: {
+            event_type: eventType,
+            description,
+            ip_address: getClientIp(req)
+        }
+    }).catch((error) => {
+        console.error('SIEM auth log error:', error.message);
+    });
+}
+
 /**
  * ==========================================
  * JWT AUTHENTICATION MIDDLEWARE
@@ -13,6 +38,7 @@ const authenticateToken = (req, res, next) => {
     const token = authHeader && authHeader.split(' ')[1]; // Expected format: "Bearer <token>"
 
     if (!token) {
+        logSecurityUnauthorized(req, 'SECURITY_UNAUTHORIZED_NO_TOKEN', 'Access denied due to missing bearer token');
         return res.status(401).json({ 
             error: "Access denied. No token provided.",
             hint: "Include 'Authorization: Bearer <token>' header" 
@@ -21,6 +47,7 @@ const authenticateToken = (req, res, next) => {
 
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         if (err) {
+            logSecurityUnauthorized(req, 'SECURITY_UNAUTHORIZED_INVALID_TOKEN', `Access denied due to invalid/expired token: ${err.message}`);
             return res.status(403).json({ 
                 error: "Invalid or expired token.",
                 details: err.message 
@@ -43,10 +70,16 @@ const authenticateToken = (req, res, next) => {
 const authorizeRole = (role) => {
     return (req, res, next) => {
         if (!req.user) {
+            logSecurityUnauthorized(req, 'SECURITY_UNAUTHORIZED_NO_AUTH_CONTEXT', 'Role authorization attempted without authenticated user context');
             return res.status(401).json({ error: "Authentication required." });
         }
 
         if (req.user.role !== role) {
+            logSecurityUnauthorized(
+                req,
+                'SECURITY_UNAUTHORIZED_ROLE_MISMATCH',
+                `Role authorization denied (required=${role}, current=${req.user.role})`
+            );
             return res.status(403).json({ 
                 error: "Forbidden: Insufficient role privileges.",
                 required: role,
@@ -80,6 +113,7 @@ const requirePermission = (permissionFlag) => {
         try {
             // Ensure user is authenticated first
             if (!req.user || !req.user.user_id) {
+                logSecurityUnauthorized(req, 'SECURITY_UNAUTHORIZED_NO_AUTH_CONTEXT', `Permission check failed before auth for ${permissionFlag}`);
                 return res.status(401).json({ 
                     error: "Authentication required. Use authenticateToken middleware first." 
                 });
@@ -141,6 +175,7 @@ const requirePermission = (permissionFlag) => {
 
             // Check if user exists and is active
             if (!user) {
+                logSecurityUnauthorized(req, 'SECURITY_UNAUTHORIZED_UNKNOWN_USER', `Permission check failed because user was not found (permission=${permissionFlag})`);
                 return res.status(404).json({ 
                     error: "User not found.",
                     user_id: req.user.user_id 
@@ -148,6 +183,7 @@ const requirePermission = (permissionFlag) => {
             }
 
             if (!user.is_active) {
+                logSecurityUnauthorized(req, 'SECURITY_UNAUTHORIZED_INACTIVE_USER', `Inactive account attempted access (user=${user.email}, permission=${permissionFlag})`);
                 return res.status(403).json({ 
                     error: "Account is deactivated. Contact administrator." 
                 });
@@ -155,6 +191,11 @@ const requirePermission = (permissionFlag) => {
 
             // Check if the specific permission flag is TRUE
             if (!user[permissionFlag]) {
+                logSecurityUnauthorized(
+                    req,
+                    'SECURITY_UNAUTHORIZED_PERMISSION_DENIED',
+                    `Permission denied for ${user.email} (required_permission=${permissionFlag})`
+                );
                 return res.status(403).json({ 
                     error: "Forbidden: Insufficient permissions.",
                     required_permission: permissionFlag,
@@ -192,6 +233,7 @@ const requireAllPermissions = (permissionFlags) => {
     return async (req, res, next) => {
         try {
             if (!req.user || !req.user.user_id) {
+                logSecurityUnauthorized(req, 'SECURITY_UNAUTHORIZED_NO_AUTH_CONTEXT', 'requireAllPermissions invoked without auth context');
                 return res.status(401).json({ error: "Authentication required." });
             }
 
@@ -200,6 +242,7 @@ const requireAllPermissions = (permissionFlags) => {
             });
 
             if (!user || !user.is_active) {
+                logSecurityUnauthorized(req, 'SECURITY_UNAUTHORIZED_INACTIVE_USER', 'requireAllPermissions denied due to invalid or inactive user');
                 return res.status(403).json({ error: "User account invalid or inactive." });
             }
 
@@ -207,6 +250,7 @@ const requireAllPermissions = (permissionFlags) => {
             const missingPermissions = permissionFlags.filter(flag => !user[flag]);
             
             if (missingPermissions.length > 0) {
+                logSecurityUnauthorized(req, 'SECURITY_UNAUTHORIZED_PERMISSION_DENIED', `Missing required permissions: ${missingPermissions.join(', ')}`);
                 return res.status(403).json({ 
                     error: "Insufficient permissions.",
                     missing: missingPermissions
@@ -236,6 +280,7 @@ const requireAnyPermission = (permissionFlags) => {
     return async (req, res, next) => {
         try {
             if (!req.user || !req.user.user_id) {
+                logSecurityUnauthorized(req, 'SECURITY_UNAUTHORIZED_NO_AUTH_CONTEXT', 'requireAnyPermission invoked without auth context');
                 return res.status(401).json({ error: "Authentication required." });
             }
 
@@ -244,6 +289,7 @@ const requireAnyPermission = (permissionFlags) => {
             });
 
             if (!user || !user.is_active) {
+                logSecurityUnauthorized(req, 'SECURITY_UNAUTHORIZED_INACTIVE_USER', 'requireAnyPermission denied due to invalid or inactive user');
                 return res.status(403).json({ error: "User account invalid or inactive." });
             }
 
@@ -251,6 +297,7 @@ const requireAnyPermission = (permissionFlags) => {
             const hasAnyPermission = permissionFlags.some(flag => user[flag] === true);
             
             if (!hasAnyPermission) {
+                logSecurityUnauthorized(req, 'SECURITY_UNAUTHORIZED_PERMISSION_DENIED', `None of required permissions granted: ${permissionFlags.join(', ')}`);
                 return res.status(403).json({ 
                     error: "Insufficient permissions. Require at least one of:",
                     required_any: permissionFlags
@@ -282,6 +329,7 @@ const requireOwnershipOrPermission = (ownerField, bypassPermission) => {
     return async (req, res, next) => {
         try {
             if (!req.user || !req.user.user_id) {
+                logSecurityUnauthorized(req, 'SECURITY_UNAUTHORIZED_NO_AUTH_CONTEXT', 'Ownership check invoked without auth context');
                 return res.status(401).json({ error: "Authentication required." });
             }
 
@@ -299,6 +347,7 @@ const requireOwnershipOrPermission = (ownerField, bypassPermission) => {
             });
 
             if (!user || !user.is_active) {
+                logSecurityUnauthorized(req, 'SECURITY_UNAUTHORIZED_INACTIVE_USER', 'Ownership check denied due to invalid user account');
                 return res.status(403).json({ error: "User account invalid." });
             }
 
@@ -307,6 +356,11 @@ const requireOwnershipOrPermission = (ownerField, bypassPermission) => {
                 return next(); // User has admin bypass permission
             }
 
+            logSecurityUnauthorized(
+                req,
+                'SECURITY_UNAUTHORIZED_OWNERSHIP_DENIED',
+                `Ownership check denied (owner_id=${resourceOwnerId}, requester_id=${currentUserId}, bypass_permission=${bypassPermission})`
+            );
             return res.status(403).json({ 
                 error: "Forbidden: You can only modify your own resources.",
                 hint: `Require ${bypassPermission} permission to modify others' resources.`

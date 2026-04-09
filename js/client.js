@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Client portal setup: menu behavior, smooth navigation, and inquiry form UX.
     // --- MOBILE NAVIGATION TOGGLE ---
     const hamburger = document.querySelector('.hamburger');
     const navMenu = document.querySelector('.nav-menu');
@@ -37,6 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inquiryForm) {
         inquiryForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // Collect form values in one object so backend integration is easier later.
 
             const formData = {
                 client_name: document.getElementById('client_name').value,

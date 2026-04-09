@@ -1,23 +1,126 @@
-.login-wrapper { height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-.login-card { background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); width: 100%; max-width: 400px; }
-.brand-header { text-align: center; margin-bottom: 30px; }
-.brand-header h2 { color: #1e3a8a; font-size: 28px; }
-.input-group { margin-bottom: 20px; }
-.input-group label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; }
-.input-group input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; }
-.input-group input:focus { border-color: #2563eb; }
-.w-full { width: 100%; }
-.error-box { background-color: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 6px; margin-bottom: 20px; text-align: center; font-size: 14px; border: 1px solid #f87171; }
+/* ==========================================
+   LOGIN PAGE STYLES
+   ========================================== */
 
-.success-box { 
-    background-color: #d1fae5; 
-    color: #065f46; 
-    padding: 10px; 
-    border-radius: 6px; 
-    margin-bottom: 20px; 
+/* Styles for the sign-in card, OTP modal, and login feedback states. */
+
+.login-wrapper { 
+    /* Full-screen auth backdrop and centering wrapper. */
+   height: 100vh; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    padding: 20px;
+    background:
+        linear-gradient(135deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.58) 100%),
+        url('../Images/loginbg.png') center center / cover no-repeat;
+}
+
+.login-card { 
+    /* Primary auth card with email/password and SSO actions. */
+    background-color: white; 
+    padding: 48px; 
+    border-radius: 16px; 
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); 
+    width: 100%; 
+    max-width: 450px;
+    border: 1px solid rgba(45, 173, 80, 0.1);
+}
+
+.brand-header { 
+    text-align: center; 
+    margin-bottom: 40px; 
+}
+
+.brand-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.brand-title-row .brand-logo {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.brand-header h2 { 
+    color: #000000; 
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.brand-header p {
+    color: #6b7280;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.input-group { 
+    margin-bottom: 24px; 
+}
+
+.input-group label { 
+    display: block; 
+    margin-bottom: 10px; 
+    font-size: 14px; 
+    font-weight: 600;
+    color: #374151;
+}
+
+.input-group input { 
+    width: 100%; 
+    padding: 14px 16px; 
+    border: 2px solid #e5e7eb; 
+    border-radius: 10px; 
+    outline: none;
+    font-size: 15px;
+    transition: all 0.3s;
+}
+
+.input-group input:focus { 
+    border-color: #2dad50;
+    box-shadow: 0 0 0 4px rgba(45, 173, 80, 0.1);
+}
+
+.w-full { 
+    width: 100%; 
+}
+
+.error-box { 
+    background-color: #fee2e2; 
+    color: #b91c1c; 
+    padding: 14px 16px; 
+    border-radius: 10px; 
+    margin-bottom: 24px; 
     text-align: center; 
     font-size: 14px; 
-    border: 1px solid #34d399; 
+    border: 2px solid #fca5a5;
+    font-weight: 500;
+}
+
+.success-box { 
+    background-color: #d4f4dd; 
+    color: #1a5d2e; 
+    padding: 14px 16px; 
+    border-radius: 10px; 
+    margin-bottom: 24px; 
+    text-align: center; 
+    font-size: 14px; 
+    border: 2px solid #2dad50;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.success-box i {
+    font-size: 18px;
 }
 
 /* ==========================================
@@ -30,12 +133,14 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.75);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(8px);
+    padding: 20px;
+    overflow-y: auto;
 }
 
 .modal.hidden {
@@ -44,12 +149,15 @@
 
 .otp-modal-content {
     background-color: white;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-    width: 90%;
+    padding: 28px;
+    border-radius: 20px;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+    width: 100%;
     max-width: 500px;
     animation: modalSlideIn 0.3s ease-out;
+    border: 2px solid rgba(45, 173, 80, 0.2);
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 @keyframes modalSlideIn {
@@ -65,154 +173,408 @@
 
 .otp-header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
+}
+
+.otp-icon {
+    width: 60px;
+    height: 60px;
+    background: #2dad50;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px auto;
+    box-shadow: 0 8px 24px rgba(45, 173, 80, 0.3);
+}
+
+.otp-icon i {
+    font-size: 30px;
+    color: white;
 }
 
 .otp-header h3 {
-    color: #1e3a8a;
+    color: #000000;
     font-size: 24px;
-    margin-bottom: 10px;
+    font-weight: 700;
+    margin-bottom: 8px;
 }
 
 .otp-header p {
     color: #64748b;
     font-size: 14px;
-    margin: 5px 0;
+    margin: 6px 0;
+    font-weight: 500;
 }
 
 .email-display {
-    background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    display: inline-block;
-    font-size: 13px;
-    font-weight: 500;
-    margin-top: 10px;
+    background: #f3f4f6;
+    color: #000000;
+    padding: 10px 20px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 8px;
+    border: 2px solid #e5e7eb;
+}
+
+.email-display i {
+    font-size: 16px;
+    color: #000000;
 }
 
 /* OTP Input Group */
 .otp-input-group {
     display: flex;
     justify-content: center;
-    gap: 10px;
-    margin: 30px 0;
+    gap: 8px;
+    margin: 20px 0;
 }
 
 .otp-digit {
-    width: 50px;
-    height: 60px;
+    width: 48px;
+    height: 56px;
     text-align: center;
     font-size: 24px;
     font-weight: bold;
-    border: 2px solid #d1d5db;
-    border-radius: 8px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
     outline: none;
-    transition: all 0.2s;
+    transition: all 0.3s;
     font-family: 'Courier New', monospace;
+    background: #f9fafb;
 }
 
 .otp-digit:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    transform: scale(1.05);
+    border-color: #2dad50;
+    box-shadow: 0 0 0 4px rgba(45, 173, 80, 0.15);
+    transform: scale(1.08);
+    background: white;
 }
 
 .otp-digit:valid {
-    border-color: #10b981;
+    border-color: #2dad50;
     background-color: #f0fdf4;
+    color: #2dad50;
 }
 
 /* OTP Info Section */
 .otp-info {
     text-align: center;
-    margin: 20px 0;
+    margin: 16px 0;
 }
 
-.otp-info p {
+.timer-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 2px solid #2dad50;
+    margin-bottom: 8px;
+}
+
+.timer-container i {
+    font-size: 18px;
+    color: #2dad50;
+}
+
+.timer-container span {
     font-size: 14px;
-    color: #64748b;
-    margin: 5px 0;
+    color: #166534;
+    font-weight: 600;
 }
 
 #otp-timer {
     font-weight: bold;
     font-family: 'Courier New', monospace;
     font-size: 18px;
+    color: #2dad50;
+}
+
+.otp-info p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 8px 0;
 }
 
 #otp-attempts-info {
-    font-weight: 500;
+    font-weight: 600;
     margin-top: 10px;
+    color: #374151;
 }
 
 /* Buttons */
 .btn-secondary {
-    background-color: #f3f4f6;
-    color: #374151;
-    padding: 12px 24px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #495057;
+    padding: 10px 16px;
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s;
-    margin-top: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.3s;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 .btn-secondary:hover {
-    background-color: #e5e7eb;
-    border-color: #9ca3af;
+    background: #2dad50;
+    border-color: #2dad50;
+    color: white;
+    box-shadow: 0 6px 20px rgba(45, 173, 80, 0.3);
 }
 
 .btn-secondary:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    transform: none;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #6c757d;
+}
+
+.btn-secondary:disabled:hover {
+    border-color: #dee2e6;
+    box-shadow: none;
+}
+
+.btn-secondary i {
+    font-size: 16px;
+    transition: transform 0.3s;
+}
+
+.btn-secondary:hover:not(:disabled) i {
+    transform: rotate(180deg);
 }
 
 .btn-link {
     background: none;
     border: none;
-    color: #2563eb;
+    color: #6b7280;
     padding: 12px;
     cursor: pointer;
     font-size: 14px;
-    text-decoration: underline;
-    margin-top: 10px;
+    margin-top: 8px;
     width: 100%;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
 }
 
 .btn-link:hover {
-    color: #1d4ed8;
+    color: #2dad50;
+}
+
+/* ==========================================
+   SSO LOGIN STYLES
+   ========================================== */
+
+.sso-divider {
+    text-align: center;
+    margin: 32px 0 24px 0;
+    position: relative;
+}
+
+.sso-divider::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e5e7eb 20%, #e5e7eb 80%, transparent);
+}
+
+.sso-divider span {
+    background: white;
+    padding: 0 16px;
+    color: #9ca3af;
+    font-size: 13px;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+    letter-spacing: 0.5px;
+}
+
+.sso-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn-sso {
+    width: 100%;
+    padding: 13px 20px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-sso:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+
+.btn-sso:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.sso-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.btn-google {
+    color: #1f2937;
+}
+
+.btn-google:hover {
+    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    border-color: #2dad50;
+}
+
+.btn-sso:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.btn-sso:disabled:hover {
+    border-color: #e5e7eb;
+    box-shadow: none;
 }
 
 /* Mobile Responsive Design */
 @media (max-width: 480px) {
-    .login-card { padding: 24px; }
-    .brand-header h2 { font-size: 24px; }
-    .input-group input { padding: 12px; font-size: 16px; /* Prevents zoom on iOS */ }
+    .login-card { 
+        padding: 32px 24px;
+    }
+    
+    .brand-icon {
+        width: 64px;
+        height: 64px;
+    }
+    
+    .brand-icon i {
+        font-size: 32px;
+    }
+    
+    .brand-header h2 { 
+        font-size: 26px; 
+    }
+    
+    .brand-header p {
+        font-size: 14px;
+    }
+    
+    .input-group input { 
+        padding: 12px 14px; 
+        font-size: 16px; /* Prevents zoom on iOS */ 
+    }
     
     /* OTP Modal Mobile */
-    .otp-modal-content { padding: 24px; }
-    .otp-header h3 { font-size: 20px; }
-    .otp-input-group { gap: 6px; }
-    .otp-digit { 
-        width: 45px; 
-        height: 55px; 
-        font-size: 20px; 
+    .otp-modal-content { 
+        padding: 24px 16px;
+        max-height: 95vh;
     }
-    #otp-timer { font-size: 16px; }
-}
-
-@media (max-width: 320px) {
-    .login-card { padding: 16px; }
     
-    /* OTP Modal Small Screens */
-    .otp-modal-content { padding: 20px; }
-    .otp-input-group { gap: 4px; }
+    .otp-icon {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .otp-icon i {
+        font-size: 24px;
+    }
+    
+    .otp-header {
+        margin-bottom: 16px;
+    }
+    
+    .otp-header h3 { 
+        font-size: 22px; 
+    }
+    
+    .otp-header p {
+        font-size: 14px;
+    }
+    
+    .otp-input-group { 
+        gap: 6px;
+        margin: 20px 0;
+    }
+    
     .otp-digit { 
-        width: 38px; 
-        height: 48px; 
-        font-size: 18px; 
+        width: 44px;
+        height: 56px;
+        font-size: 22px;
+    }
+    
+    .otp-info {
+        margin: 20px 0;
+    }
+    
+    .timer-container {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+    
+    .timer-container i {
+        font-size: 16px;
+    }
+    
+    #otp-timer {
+        font-size: 16px;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+    
+    /* SSO Buttons Mobile */
+    .sso-divider {
+        margin: 28px 0 20px 0;
+    }
+    
+    .sso-divider span {
+        font-size: 12px;
+    }
+    
+    .btn-sso {
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+    
+    .sso-icon {
+        width: 18px;
+        height: 18px;
     }
 }

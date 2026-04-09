@@ -1,14 +1,15 @@
 <!DOCTYPE html>
+<!-- Visual preview page for presenting UI concepts and feature highlights. -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CICJ-ICMS Design Preview</title>
+    <title>CICJ-SHCOMS Design Preview</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2dad50 0%, #166534 100%);
             padding: 40px 20px;
             min-height: 100vh;
         }
@@ -44,7 +45,7 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.3);
         }
         .preview-header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            background: linear-gradient(135deg, #14532d 0%, #2dad50 100%);
             padding: 30px;
             color: white;
             text-align: center;
@@ -53,7 +54,7 @@
             background: linear-gradient(135deg, #059669 0%, #10b981 100%);
         }
         .preview-card.client .preview-header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            background: linear-gradient(135deg, #14532d 0%, #166534 100%);
         }
         .preview-header h2 {
             font-size: 2rem;
@@ -80,7 +81,7 @@
         }
         .feature-list li:last-child { border-bottom: none; }
         .feature-list li:before {
-            content: "✓";
+            content: "?";
             position: absolute;
             left: 0;
             color: #10b981;
@@ -89,7 +90,7 @@
         }
         .btn-preview {
             display: block;
-            background: #2563eb;
+            background: #258a3f;
             color: white;
             text-align: center;
             padding: 15px;
@@ -101,7 +102,7 @@
             transition: all 0.3s ease;
         }
         .btn-preview:hover {
-            background: #1d4ed8;
+            background: #166534;
             transform: scale(1.02);
         }
         .preview-card.employee .btn-preview {
@@ -111,10 +112,10 @@
             background: #047857;
         }
         .preview-card.client .btn-preview {
-            background: #1e3a8a;
+            background: #14532d;
         }
         .preview-card.client .btn-preview:hover {
-            background: #1e40af;
+            background: #166534;
         }
         .device-badge {
             display: inline-block;
@@ -132,7 +133,7 @@
             margin-bottom: 30px;
         }
         .info-box h2 {
-            color: #1e3a8a;
+            color: #14532d;
             margin-bottom: 20px;
             font-size: 2rem;
         }
@@ -148,12 +149,12 @@
             margin-top: 20px;
         }
         .tech-badge {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            background: linear-gradient(135deg, #2dad50 0%, #258a3f 100%);
             color: white;
             padding: 10px 20px;
             border-radius: 25px;
             font-weight: 600;
-            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 2px 8px rgba(37, 138, 63, 0.3);
         }
         .screenshot {
             width: 100%;
@@ -176,11 +177,11 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎨 CICJ-ICMS Design System</h1>
+        <h1>?? CICJ-SHCOMS Design System</h1>
         <p class="subtitle">Presentable, Production-Ready Designs for Development</p>
 
         <div class="info-box">
-            <h2>✅ Task 4: UI/UX Design - COMPLETE</h2>
+            <h2>? Task 4: UI/UX Design - COMPLETE</h2>
             <p>
                 <strong>All designs are built and ready!</strong> No Figma mockups needed - you have working HTML/CSS designs 
                 that are fully responsive and production-ready. When you get Figma designs later, simply update the CSS files.
@@ -197,11 +198,11 @@
             <!-- Client Portal -->
             <div class="preview-card client">
                 <div class="preview-header">
-                    <h2>🌐 Client Portal</h2>
+                    <h2>?? Client Portal</h2>
                     <p>Public-Facing Digital Storefront</p>
                     <div>
-                        <span class="device-badge">📱 Mobile</span>
-                        <span class="device-badge">💻 Desktop</span>
+                        <span class="device-badge">?? Mobile</span>
+                        <span class="device-badge">?? Desktop</span>
                     </div>
                 </div>
                 <div class="preview-body">
@@ -214,18 +215,18 @@
                         <li>Hamburger menu for mobile</li>
                         <li>Smooth scroll navigation</li>
                     </ul>
-                    <a href="client.html" class="btn-preview">Open Client Portal →</a>
+                    <a href="client.html" class="btn-preview">Open Client Portal ?</a>
                 </div>
             </div>
 
             <!-- Admin Dashboard -->
             <div class="preview-card">
                 <div class="preview-header">
-                    <h2>👨‍💼 Admin Dashboard</h2>
+                    <h2>????? Admin Dashboard</h2>
                     <p>Macro-Level Operations</p>
                     <div>
-                        <span class="device-badge">💻 Desktop</span>
-                        <span class="device-badge">📱 Tablet</span>
+                        <span class="device-badge">?? Desktop</span>
+                        <span class="device-badge">?? Tablet</span>
                     </div>
                 </div>
                 <div class="preview-body">
@@ -235,21 +236,21 @@
                         <li>Data tables with sorting</li>
                         <li>Modal forms for CRUD operations</li>
                         <li>Stat cards with metrics</li>
-                        <li>Sidebar → Horizontal tabs (mobile)</li>
+                        <li>Sidebar ? Horizontal tabs (mobile)</li>
                         <li>30 granular permissions enforced</li>
                     </ul>
-                    <a href="admin.html" class="btn-preview">Open Admin Dashboard →</a>
+                    <a href="admin.html" class="btn-preview">Open Admin Dashboard ?</a>
                 </div>
             </div>
 
             <!-- Employee Dashboard -->
             <div class="preview-card employee">
                 <div class="preview-header">
-                    <h2>👷 Employee Dashboard</h2>
+                    <h2>?? Employee Dashboard</h2>
                     <p>Micro-Level Daily Tasks</p>
                     <div>
-                        <span class="device-badge">📱 Mobile-First</span>
-                        <span class="device-badge">🏗️ Site-Ready</span>
+                        <span class="device-badge">?? Mobile-First</span>
+                        <span class="device-badge">??? Site-Ready</span>
                     </div>
                 </div>
                 <div class="preview-body">
@@ -262,14 +263,14 @@
                         <li>Profile information display</li>
                         <li>One-handed mobile operation</li>
                     </ul>
-                    <a href="employee.html" class="btn-preview">Open Employee Dashboard →</a>
+                    <a href="employee.html" class="btn-preview">Open Employee Dashboard ?</a>
                 </div>
             </div>
         </div>
 
         <!-- Testing Guide -->
         <div class="info-box">
-            <h2>🧪 How to Test Responsive Design</h2>
+            <h2>?? How to Test Responsive Design</h2>
             <p><strong>Step 1:</strong> Open any page (client.html, admin.html, employee.html)</p>
             <p><strong>Step 2:</strong> Press <code style="background: #e5e7eb; padding: 4px 8px; border-radius: 4px;">F12</code> to open Developer Tools</p>
             <p><strong>Step 3:</strong> Press <code style="background: #e5e7eb; padding: 4px 8px; border-radius: 4px;">Ctrl+Shift+M</code> to toggle Device Toolbar</p>
@@ -279,18 +280,18 @@
 
         <!-- Design Specs -->
         <div class="info-box">
-            <h2>📐 Design Specifications</h2>
+            <h2>?? Design Specifications</h2>
             <p><strong>Breakpoints:</strong></p>
             <ul class="feature-list">
-                <li>Mobile Small: ≤ 320px (compact phones)</li>
-                <li>Mobile: ≤ 480px (standard phones)</li>
-                <li>Tablet: ≤ 768px (tablets, large phones)</li>
-                <li>Desktop Small: ≤ 1024px (small laptops)</li>
+                <li>Mobile Small: = 320px (compact phones)</li>
+                <li>Mobile: = 480px (standard phones)</li>
+                <li>Tablet: = 768px (tablets, large phones)</li>
+                <li>Desktop Small: = 1024px (small laptops)</li>
                 <li>Desktop: > 1024px (full desktop)</li>
             </ul>
             <p style="margin-top: 20px;"><strong>Color Scheme:</strong></p>
             <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
-                <div style="background: #1e3a8a; padding: 20px 30px; border-radius: 8px; color: white; font-weight: bold;">Admin Blue</div>
+                <div style="background: #14532d; padding: 20px 30px; border-radius: 8px; color: white; font-weight: bold;">Admin Green</div>
                 <div style="background: #059669; padding: 20px 30px; border-radius: 8px; color: white; font-weight: bold;">Employee Green</div>
                 <div style="background: #f3f4f6; padding: 20px 30px; border-radius: 8px; color: #111827; font-weight: bold; border: 2px solid #d1d5db;">Neutral Gray</div>
             </div>
@@ -298,28 +299,28 @@
 
         <!-- Documentation -->
         <div class="info-box">
-            <h2>📚 Documentation Available</h2>
+            <h2>?? Documentation Available</h2>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
-                <a href="WIREFRAMES.md" style="background: #dbeafe; color: #1e40af; padding: 20px; border-radius: 8px; text-decoration: none; font-weight: bold; text-align: center;">📄 WIREFRAMES.md</a>
-                <a href="DATABASE_ERD.md" style="background: #fef3c7; color: #92400e; padding: 20px; border-radius: 8px; text-decoration: none; font-weight: bold; text-align: center;">📄 DATABASE_ERD.md</a>
-                <a href="PERMISSIONS_MATRIX.md" style="background: #d1fae5; color: #065f46; padding: 20px; border-radius: 8px; text-decoration: none; font-weight: bold; text-align: center;">📄 PERMISSIONS_MATRIX.md</a>
-                <a href="responsive-demo.html" style="background: #e0e7ff; color: #3730a3; padding: 20px; border-radius: 8px; text-decoration: none; font-weight: bold; text-align: center;">🧪 Testing Demo</a>
+                <a href="WIREFRAMES.md" style="background: #dcfce7; color: #166534; padding: 20px; border-radius: 8px; text-decoration: none; font-weight: bold; text-align: center;">?? WIREFRAMES.md</a>
+                <a href="DATABASE_ERD.md" style="background: #fef3c7; color: #92400e; padding: 20px; border-radius: 8px; text-decoration: none; font-weight: bold; text-align: center;">?? DATABASE_ERD.md</a>
+                <a href="PERMISSIONS_MATRIX.md" style="background: #d1fae5; color: #065f46; padding: 20px; border-radius: 8px; text-decoration: none; font-weight: bold; text-align: center;">?? PERMISSIONS_MATRIX.md</a>
+                <a href="responsive-demo.html" style="background: #dcfce7; color: #166534; padding: 20px; border-radius: 8px; text-decoration: none; font-weight: bold; text-align: center;">?? Testing Demo</a>
             </div>
         </div>
 
         <!-- Final Status -->
         <div class="info-box" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white;">
-            <h2 style="color: white;">🎯 Development Status</h2>
+            <h2 style="color: white;">?? Development Status</h2>
             <p style="color: rgba(255,255,255,0.95); font-size: 1.2rem; margin-bottom: 15px;">
-                <strong>✅ Ready for Development!</strong>
+                <strong>? Ready for Development!</strong>
             </p>
             <ul class="feature-list" style="border-color: rgba(255,255,255,0.2);">
-                <li style="color: white; border-color: rgba(255,255,255,0.2);">✅ Public Client Portal - Complete</li>
-                <li style="color: white; border-color: rgba(255,255,255,0.2);">✅ Admin Dashboard - Complete</li>
-                <li style="color: white; border-color: rgba(255,255,255,0.2);">✅ Employee Dashboard - Complete</li>
-                <li style="color: white; border-color: rgba(255,255,255,0.2);">✅ Responsive Design (320px - 1920px+) - Complete</li>
-                <li style="color: white; border-color: rgba(255,255,255,0.2);">✅ Mobile-First Construction Site UX - Complete</li>
-                <li style="color: white; border-color: rgba(255,255,255,0.2);">✅ Documentation & Wireframes - Complete</li>
+                <li style="color: white; border-color: rgba(255,255,255,0.2);">? Public Client Portal - Complete</li>
+                <li style="color: white; border-color: rgba(255,255,255,0.2);">? Admin Dashboard - Complete</li>
+                <li style="color: white; border-color: rgba(255,255,255,0.2);">? Employee Dashboard - Complete</li>
+                <li style="color: white; border-color: rgba(255,255,255,0.2);">? Responsive Design (320px - 1920px+) - Complete</li>
+                <li style="color: white; border-color: rgba(255,255,255,0.2);">? Mobile-First Construction Site UX - Complete</li>
+                <li style="color: white; border-color: rgba(255,255,255,0.2);">? Documentation & Wireframes - Complete</li>
             </ul>
             <p style="color: rgba(255,255,255,0.9); margin-top: 20px;">
                 All designs are working HTML/CSS (not Figma mockups). When you get professional Figma designs later, 

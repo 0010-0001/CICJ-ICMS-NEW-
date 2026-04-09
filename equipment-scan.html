@@ -1,0 +1,225 @@
+﻿<!DOCTYPE html>
+<!-- Equipment scanner page: camera/manual lookup and checkout/return flow UI. -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equipment Scanner - CICJ SH-COMS</title>
+    <link rel="stylesheet" href="css/equipment-scan.css?v=20260402a">
+    <link rel="stylesheet" href="css/system-typography.css?v=20260329a">
+    <link rel="stylesheet" href="css/button-hover-glow.css?v=20260328c">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<body>
+    <!-- Scanner page shell: camera section, manual entry, and action modal. -->
+    <div class="scan-page-container">
+        <!-- Header -->
+        <div class="scan-header">
+            <button class="btn-back" id="back-btn">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <div class="header-content">
+                <div class="header-icon">
+                    <i class="bi bi-qr-code-scan"></i>
+                </div>
+                <div class="header-text">
+                    <h1>Equipment Scanner</h1>
+                    <p>Scan QR code or enter equipment number manually</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="scan-content">
+            <!-- Scanner Section: live camera QR scan flow. -->
+            <div class="scan-section-card">
+                <div class="card-header-scan">
+                    <div class="header-left">
+                        <i class="bi bi-camera-fill"></i>
+                        <h2>Camera Scanner</h2>
+                    </div>
+                    <button class="btn-toggle-camera" id="toggle-camera-btn">
+                        <i class="bi bi-play-fill"></i> Start Camera
+                    </button>
+                </div>
+                
+                <div class="camera-container hidden" id="camera-container">
+                    <div id="qr-reader" style="width: 100%;"></div>
+                    <div class="scan-overlay">
+                        <div class="scan-box">
+                            <div class="corner top-left"></div>
+                            <div class="corner top-right"></div>
+                            <div class="corner bottom-left"></div>
+                            <div class="corner bottom-right"></div>
+                            <div class="scan-line"></div>
+                        </div>
+                    </div>
+                    <div class="scan-instruction">
+                        <i class="bi bi-qr-code"></i>
+                        <p>Align QR code within the frame</p>
+                    </div>
+                </div>
+                
+                <div class="camera-placeholder" id="camera-placeholder">
+                    <div class="placeholder-icon">
+                        <i class="bi bi-camera-video"></i>
+                    </div>
+                    <p>Click "Start Camera" to begin scanning</p>
+                    <small>Camera permission will be requested</small>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="divider-section">
+                <div class="divider-line"></div>
+                <span class="divider-text">OR</span>
+                <div class="divider-line"></div>
+            </div>
+
+            <!-- Manual Entry Section: fallback path when camera is not used. -->
+            <div class="manual-section-card">
+                <div class="card-header-scan">
+                    <div class="header-left">
+                        <i class="bi bi-keyboard"></i>
+                        <h2>Manual Entry</h2>
+                    </div>
+                </div>
+                
+                <div class="manual-input-container">
+                    <div class="input-wrapper">
+                        <i class="bi bi-upc-scan"></i>
+                        <input 
+                            type="text" 
+                            id="qr-number-input" 
+                            placeholder="Enter equipment number (e.g., EQ-00001)" 
+                            maxlength="8"
+                        >
+                    </div>
+                    <button class="btn-lookup" id="lookup-btn">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+                <p class="input-hint">
+                    <i class="bi bi-info-circle"></i>
+                    Format: EQ- followed by 5 digits
+                </p>
+            </div>
+
+            <!-- Equipment Details Card -->
+            <div class="equipment-details-card hidden" id="equipment-card">
+                <div class="equipment-header">
+                    <div class="equipment-icon">
+                        <i class="bi bi-box-seam-fill"></i>
+                    </div>
+                    <div class="equipment-title">
+                        <h3 id="equipment-name">Equipment Name</h3>
+                        <span class="equipment-qr" id="equipment-qr">EQ-00001</span>
+                    </div>
+                    <span class="status-badge status-available" id="equipment-status">Available</span>
+                </div>
+                
+                <div class="equipment-body">
+                    <div class="equipment-grid">
+                        <div class="equipment-detail">
+                            <div class="detail-icon">
+                                <i class="bi bi-wrench"></i>
+                            </div>
+                            <div class="detail-content">
+                                <span class="detail-label">Condition</span>
+                                <span class="detail-value" id="equipment-condition">Good</span>
+                            </div>
+                        </div>
+                        
+                        <div class="equipment-detail">
+                            <div class="detail-icon">
+                                <i class="bi bi-tag"></i>
+                            </div>
+                            <div class="detail-content">
+                                <span class="detail-label">Status</span>
+                                <span class="detail-value" id="equipment-status-text">Available</span>
+                            </div>
+                        </div>
+                        
+                        <div class="equipment-detail" id="assigned-row" style="display: none;">
+                            <div class="detail-icon">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                            <div class="detail-content">
+                                <span class="detail-label">Assigned To</span>
+                                <span class="detail-value" id="equipment-assigned">Nobody</span>
+                            </div>
+                        </div>
+                        
+                        <div class="equipment-detail" id="location-row" style="display: none;">
+                            <div class="detail-icon">
+                                <i class="bi bi-geo-alt-fill"></i>
+                            </div>
+                            <div class="detail-content">
+                                <span class="detail-label">Location</span>
+                                <span class="detail-value" id="equipment-location">Unknown</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="equipment-actions">
+                    <button class="btn-action btn-checkout" id="checkout-btn">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Checkout Equipment</span>
+                    </button>
+                    <button class="btn-action btn-return hidden" id="return-btn">
+                        <i class="bi bi-box-arrow-in-left"></i>
+                        <span>Return Equipment</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes Modal: confirm checkout/return with optional remarks. -->
+        <div class="modal-overlay hidden" id="notes-modal">
+            <div class="modal-container">
+                <div class="modal-header-custom">
+                    <div class="modal-icon-custom">
+                        <i class="bi bi-pencil-square"></i>
+                    </div>
+                    <div class="modal-title-custom">
+                        <h3 id="modal-title">Checkout Equipment</h3>
+                        <p>Add optional notes about this transaction</p>
+                    </div>
+                    <button class="modal-close-btn" id="modal-close-x-btn">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="modal-body-custom">
+                    <div class="form-group-custom">
+                        <label for="notes-input">
+                            <i class="bi bi-chat-left-text"></i> Notes (Optional)
+                        </label>
+                        <textarea 
+                            id="notes-input" 
+                            placeholder="e.g., Equipment condition, expected return date, special instructions..."
+                            rows="4"
+                        ></textarea>
+                    </div>
+                    <div class="gps-status-box" id="gps-status">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <span>Acquiring location...</span>
+                    </div>
+                </div>
+                <div class="modal-actions-custom">
+                    <button class="btn-cancel-custom" id="modal-cancel-btn">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button class="btn-confirm-custom" id="confirm-action-btn">
+                        <i class="bi bi-check-circle-fill"></i> Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="js/modal-utils.js?v=20260402a"></script>
+    <script src="js/equipment-scan.js?v=20260402a"></script>
+</body>
+</html>

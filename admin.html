@@ -1,31 +1,88 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
+<!-- Admin portal layout: sidebar, topbar, and permission-driven management tabs. -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | CICJ-ICMS</title>
-    <link rel="stylesheet" href="css/global.css">
-    <link rel="stylesheet" href="css/admin.css">
+    <title>Admin Dashboard | CICJ-SHCOMS</title>
+    <link rel="stylesheet" href="css/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/global.css?v=20260402a">
+    <link rel="stylesheet" href="css/admin.css?v=20260409a">
+    <link rel="stylesheet" href="css/logout-modal.css?v=20260328a">
+    <link rel="stylesheet" href="css/system-typography.css?v=20260329a">
+    <link rel="stylesheet" href="css/button-hover-glow.css?v=20260328c">
 </head>
 <body>
+    <!-- Dashboard shell: fixed sidebar + scrollable main area. -->
     <div class="dashboard-layout">
+        <!-- Left navigation and user identity card. -->
         <aside class="sidebar">
             <div class="sidebar-brand">
-                <h2>CICJ-ICMS</h2>
+                <img src="Images/CICJ.png" alt="CICJ Logo" class="brand-logo">
+                <div class="sidebar-brand-text">
+                    <h2>CICJ-SHCOMS</h2>
+                    <p>Admin Portal</p>
+                </div>
             </div>
             <nav class="sidebar-nav" id="sidebar-nav">
-                <a href="#" class="active" data-target="overview-tab">Overview</a>
-                <a href="#" data-target="user-tab">User Management</a>
-                <a href="#" data-target="equipment-tab">Equipment Inventory</a>
-                <a href="#" data-target="portfolio-tab">Project Files</a>
-                <a href="#" data-target="health-tab">System Health</a>
+                <!-- Navigation will be dynamically generated based on user permissions -->
             </nav>
+            <div class="sidebar-footer-card">
+                <div class="sidebar-footer-avatar" id="sidebar-profile-avatar" aria-hidden="true">
+                    <img id="sidebar-profile-avatar-image" alt="Profile photo">
+                    <i class="bi bi-person-fill" id="sidebar-profile-avatar-icon"></i>
+                </div>
+                <div class="sidebar-footer-info">
+                    <div class="sidebar-footer-name" id="sidebar-user-name">Admin User</div>
+                    <div class="sidebar-footer-role" id="sidebar-user-role">System Administrator</div>
+                </div>
+                <button type="button" class="sidebar-footer-menu-btn" id="sidebar-profile-menu-btn" aria-label="Open profile details">
+                    <i class="bi bi-three-dots-vertical" aria-hidden="true"></i>
+                </button>
+            </div>
         </aside>
 
+        <!-- Main workspace: topbar + permission-driven tab sections. -->
         <main class="main-content">
-            <header class="topbar">
-                <h1 id="page-title">Dashboard Overview</h1>
+            <header class="topbar topbar-no-title">
+                <h1 id="page-title" class="topbar-page-title-hidden" aria-hidden="true">Dashboard Overview</h1>
                 <div class="user-profile">
+                    <div class="topbar-notification" id="topbar-notification-root">
+                        <button type="button" id="topbar-notification-btn" class="topbar-notification-btn" aria-label="View notifications" aria-expanded="false">
+                            <i class="bi bi-bell"></i>
+                            <span id="topbar-notification-badge" class="topbar-notification-badge hidden">0</span>
+                        </button>
+                        <div id="topbar-notification-menu" class="topbar-notification-menu" role="menu" aria-label="Notifications">
+                            <div class="topbar-notification-head">
+                                <h3>Notifications</h3>
+                                <button type="button" id="topbar-notification-refresh-btn" class="topbar-notification-refresh-btn" aria-label="Refresh notifications">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </button>
+                            </div>
+                            <div id="topbar-notification-list" class="topbar-notification-list">
+                                <div class="topbar-notification-empty">No notifications yet.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="topbar-theme" id="topbar-theme-root">
+                        <button type="button" id="topbar-theme-btn" class="topbar-theme-btn" aria-label="Change theme" aria-expanded="false">
+                            <i class="bi bi-circle-half" id="topbar-theme-btn-icon"></i>
+                        </button>
+                        <div id="topbar-theme-menu" class="topbar-theme-menu" role="menu" aria-label="Theme options">
+                            <button type="button" class="topbar-theme-option active" data-theme-mode="neutral" role="menuitem">
+                                <i class="bi bi-circle-half"></i>
+                                <span>Neutral</span>
+                            </button>
+                            <button type="button" class="topbar-theme-option" data-theme-mode="light" role="menuitem">
+                                <i class="bi bi-sun"></i>
+                                <span>Light</span>
+                            </button>
+                            <button type="button" class="topbar-theme-option" data-theme-mode="dark" role="menuitem">
+                                <i class="bi bi-moon-stars"></i>
+                                <span>Dark</span>
+                            </button>
+                        </div>
+                    </div>
                     <span id="welcome-message">Welcome, Admin</span>
                     <button id="logout-btn" class="btn-outline">Logout</button>
                 </div>
@@ -33,175 +90,586 @@
 
             <section class="content-area">
                 <!-- Overview Tab -->
-                <div id="overview-tab" class="tab-section">
-                    <div class="stats-grid">
-                        <div class="stat-card"><h3>Active Employees</h3><p class="stat-number">24</p></div>
-                        <div class="stat-card"><h3>Equipment Deployed</h3><p class="stat-number">156</p></div>
+                <div id="overview-tab" class="tab-section hidden">
+                    <div class="overview-header-row">
+                        <div>
+                            <h2 class="overview-title">Admin Overview</h2>
+                            <p class="overview-subtitle">Monitor system health, active projects, and employee attendance.</p>
+                        </div>
+                        <div class="overview-actions">
+                            <div class="overview-search-wrap">
+                                <i class="bi bi-search"></i>
+                                <input type="text" id="overview-search-input" class="overview-search-input" placeholder="Search records, ID, or users..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" name="overview-search-query">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overview-kpi-grid">
+                        <div class="overview-kpi-card">
+                            <div class="overview-kpi-top">
+                                <h3>Active Employees</h3>
+                                <span class="overview-kpi-icon"><i class="bi bi-people"></i></span>
+                            </div>
+                            <p class="overview-kpi-number" id="active-employees-count">0</p>
+                            <p class="overview-kpi-trend trend-positive"><i class="bi bi-graph-up-arrow"></i> +4% <span>vs last week</span></p>
+                        </div>
+
+                        <div class="overview-kpi-card">
+                            <div class="overview-kpi-top">
+                                <h3>Equipment Deployed</h3>
+                                <span class="overview-kpi-icon"><i class="bi bi-wrench-adjustable-circle"></i></span>
+                            </div>
+                            <p class="overview-kpi-number" id="equipment-deployed-count">0</p>
+                            <p class="overview-kpi-trend trend-positive"><i class="bi bi-graph-up-arrow"></i> +12% <span>vs last week</span></p>
+                        </div>
+
+                        <div class="overview-kpi-card">
+                            <div class="overview-kpi-top">
+                                <h3>Active Projects</h3>
+                                <span class="overview-kpi-icon"><i class="bi bi-briefcase"></i></span>
+                            </div>
+                            <p class="overview-kpi-number" id="active-projects-count">0</p>
+                            <p class="overview-kpi-trend trend-positive"><i class="bi bi-graph-up-arrow"></i> +2 <span>newly started</span></p>
+                        </div>
+
+                        <div class="overview-kpi-card">
+                            <div class="overview-kpi-top">
+                                <h3>Pending Inquiries</h3>
+                                <span class="overview-kpi-icon warn"><i class="bi bi-chat-square"></i></span>
+                            </div>
+                            <p class="overview-kpi-number" id="inquiries-pending-count">0</p>
+                            <p class="overview-kpi-trend trend-negative"><i class="bi bi-activity"></i> +2 <span>requires attention</span></p>
+                        </div>
+                    </div>
+
+                    <div class="overview-panels-grid">
+                        <div class="overview-panel-card overview-attendance-card">
+                            <div class="overview-panel-head">
+                                <h3>Weekly Attendance Log</h3>
+                                <select id="weekly-range-select" class="overview-panel-select">
+                                    <option value="this_week" selected>This Week</option>
+                                    <option value="last_week">Last Week</option>
+                                </select>
+                            </div>
+                            <div class="weekly-attendance-chart">
+                                <div id="weekly-attendance-scale" class="weekly-attendance-scale">
+                                    <span>8</span>
+                                    <span>6</span>
+                                    <span>4</span>
+                                    <span>2</span>
+                                    <span>0</span>
+                                </div>
+                                <div id="weekly-attendance-bars" class="weekly-attendance-bars">
+                                    <div class="weekly-bar-col"><div class="weekly-bar" style="height:62%"></div><span>Mon</span></div>
+                                    <div class="weekly-bar-col"><div class="weekly-bar" style="height:68%"></div><span>Tue</span></div>
+                                    <div class="weekly-bar-col"><div class="weekly-bar" style="height:80%"></div><span>Wed</span></div>
+                                    <div class="weekly-bar-col"><div class="weekly-bar" style="height:72%"></div><span>Thu</span></div>
+                                    <div class="weekly-bar-col"><div class="weekly-bar" style="height:76%"></div><span>Fri</span></div>
+                                    <div class="weekly-bar-col"><div class="weekly-bar muted" style="height:28%"></div><span>Sat</span></div>
+                                    <div class="weekly-bar-col"><div class="weekly-bar muted" style="height:18%"></div><span>Sun</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="overview-panel-card">
+                            <div class="overview-panel-head">
+                                <h3>Equipment Status</h3>
+                            </div>
+                            <div class="equipment-status-wrap">
+                                <div id="equipment-status-chart" class="equipment-status-chart" style="--in-use:55; --maintenance:25; --out-order:10;">
+                                    <div class="equipment-status-center">
+                                        <div id="equipment-status-total" class="equipment-status-total">0</div>
+                                        <div class="equipment-status-caption">Total Items</div>
+                                    </div>
+                                </div>
+                                <div id="equipment-status-legend" class="equipment-status-legend">
+                                    <div class="equipment-status-legend-row">
+                                        <div class="legend-label"><span class="legend-dot green"></span><span>In Use</span></div>
+                                        <strong>55%</strong>
+                                    </div>
+                                    <div class="equipment-status-legend-row">
+                                        <div class="legend-label"><span class="legend-dot amber"></span><span>Maintenance</span></div>
+                                        <strong>25%</strong>
+                                    </div>
+                                    <div class="equipment-status-legend-row">
+                                        <div class="legend-label"><span class="legend-dot red"></span><span>Out of Order</span></div>
+                                        <strong>10%</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hidden-data-cache">
+                        <span id="total-users-count">0</span>
+                        <span id="total-equipment-count">0</span>
+                        <span id="inquiries-total-count">0</span>
+                        <span id="overview-files-count">0</span>
+                        <span id="attendance-actions-today-count">0</span>
+                        <table>
+                            <tbody id="clocked-in-employees-body"></tbody>
+                            <tbody id="deployed-equipment-body"></tbody>
+                        </table>
                     </div>
                 </div>
 
                 <!-- User Management Tab -->
                 <div id="user-tab" class="tab-section hidden">
                     <div class="tab-header">
-                        <h2>Account Provisioning</h2>
-                        <button class="btn-primary" id="open-add-user-modal-btn">+ Add New Hire</button>
+                        <div class="tab-title-block">
+                            <h2>Account Provisioning</h2>
+                            <p class="tab-description">Create accounts, assign roles, and manage permission access.</p>
+                        </div>
+                        <div class="user-tab-actions">
+                            <div class="user-toolbar">
+                                <label for="user-search-input" class="toolbar-label">Search</label>
+                                <input type="text" id="user-search-input" class="modern-input user-search-input" autocomplete="off" placeholder="Search name, email, contact, role, or status...">
+                            </div>
+                            <button class="btn-primary" id="open-add-user-modal-btn"><i class="bi bi-person-plus-fill"></i> Add New Hire</button>
+                        </div>
                     </div>
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    <th>Status</th>
-                                    <th>Permissions</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="user-table-body">
-                                <tr>
-                                    <td>Juan dela Cruz</td>
-                                    <td>juan@cicj.com</td>
-                                    <td>EMPLOYEE</td>
-                                    <td><span class="badge success">Active</span></td>
-                                    <td><button class="btn-small">View Matrix</button></td>
-                                    <td><button class="btn-small">Edit</button></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div id="user-management-shell" class="table-container">
+                        <div class="table-scroll-shell user-table-scroll">
+                            <table class="data-table" id="user-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Contact</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="user-table-body">
+                                    <tr>
+                                        <td colspan="7" class="loading-cell-large muted-text">
+                                            <div class="loading-icon-large"><i class="bi bi-people-fill"></i></div>
+                                            <div class="loading-label">Loading users...</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Equipment Tab -->
                 <div id="equipment-tab" class="tab-section hidden">
                     <div class="tab-header">
-                        <h2>Manage Equipment</h2>
+                        <div class="tab-title-block">
+                            <h2>Manage Equipment</h2>
+                            <p class="tab-description">Track inventory, status, and QR-tagged assets across sites.</p>
+                        </div>
                         <button id="open-modal-btn" class="btn-primary">+ Add Equipment</button>
                     </div>
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr><th>Name</th><th>Quantity</th><th>Condition</th><th>Status</th></tr>
-                            </thead>
-                            <tbody id="equipment-table-body">
-                                <!-- Sample Item -->
-                                <tr><td>Makita Hammer Drill</td><td>5</td><td>Good</td><td><span class="badge success">Available</span></td></tr>
-                            </tbody>
-                        </table>
+                    <div id="equipment-management-shell" class="table-container">
+                        <div class="equipment-toolbar">
+                            <label for="equipment-search-input" class="toolbar-label">Search</label>
+                            <input type="text" id="equipment-search-input" class="modern-input equipment-search-input" autocomplete="off" placeholder="Search name, QR number, condition, status, or location...">
+                        </div>
+                        <div class="table-scroll-shell">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>QR Code</th>
+                                        <th>QR Number</th>
+                                        <th>Quantity</th>
+                                        <th>Condition</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="equipment-table-body">
+                                    <tr><td colspan="7" class="loading-cell">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Client Inquiries Tab -->
+                <div id="inquiry-tab" class="tab-section hidden">
+                    <div class="tab-header">
+                        <div class="tab-title-block">
+                            <h2>Client Inquiries</h2>
+                            <p class="tab-description">Review client submissions, update status, and keep response flow organized.</p>
+                        </div>
+                    </div>
+
+                    <div id="inquiry-create-shell" class="table-container inquiry-create-shell">
+                        <h2>Submit New Inquiry</h2>
+                        <form id="admin-inquiry-form" class="admin-inquiry-form">
+                            <div class="admin-inquiry-grid">
+                                <div class="admin-inquiry-field">
+                                    <label for="admin-inquiry-client-name">Client Name</label>
+                                    <input type="text" id="admin-inquiry-client-name" class="modern-input" maxlength="120" placeholder="Client full name" required>
+                                </div>
+                                <div class="admin-inquiry-field">
+                                    <label for="admin-inquiry-client-email">Client Email</label>
+                                    <input type="email" id="admin-inquiry-client-email" class="modern-input" maxlength="120" placeholder="name@example.com" required>
+                                </div>
+                            </div>
+                            <div class="admin-inquiry-field">
+                                <label for="admin-inquiry-subject">Subject</label>
+                                <input type="text" id="admin-inquiry-subject" class="modern-input" maxlength="180" placeholder="Inquiry subject" required>
+                            </div>
+                            <div class="admin-inquiry-field">
+                                <label for="admin-inquiry-message">Message</label>
+                                <textarea id="admin-inquiry-message" class="modern-input" rows="4" maxlength="3000" placeholder="Write the client inquiry details..." required></textarea>
+                            </div>
+                            <div class="admin-inquiry-actions">
+                                <button type="submit" id="admin-inquiry-submit-btn" class="btn-primary">Submit Inquiry</button>
+                                <span id="admin-inquiry-form-message" class="admin-inquiry-form-message" aria-live="polite"></span>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div id="inquiry-stats-shell" class="stats-grid inquiry-stats-grid">
+                        <div class="stat-card inquiry-stat-card">
+                            <h3>Total Inquiries</h3>
+                            <p class="stat-number" id="inquiries-stat-total">0</p>
+                        </div>
+                        <div class="stat-card inquiry-stat-card">
+                            <h3>Pending</h3>
+                            <p class="stat-number" id="inquiries-stat-pending">0</p>
+                        </div>
+                        <div class="stat-card inquiry-stat-card">
+                            <h3>In Progress</h3>
+                            <p class="stat-number" id="inquiries-stat-progress">0</p>
+                        </div>
+                        <div class="stat-card inquiry-stat-card">
+                            <h3>Resolved / Closed</h3>
+                            <p class="stat-number" id="inquiries-stat-resolved">0</p>
+                        </div>
+                    </div>
+
+                    <div id="inquiry-management-shell" class="table-container inquiry-table-shell">
+                        <div class="inquiry-toolbar">
+                            <div class="inquiry-filter-group">
+                                <label for="inquiry-status-filter">Status</label>
+                                <select id="inquiry-status-filter" class="modern-select inquiry-filter-select">
+                                    <option value="ALL">All Statuses</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Resolved">Resolved</option>
+                                    <option value="Closed">Closed</option>
+                                </select>
+                            </div>
+                            <div class="inquiry-filter-group inquiry-search-group">
+                                <label for="inquiry-search-input">Search</label>
+                                <input type="text" id="inquiry-search-input" class="modern-input inquiry-filter-input" autocomplete="off" placeholder="Search client, email, subject, or message...">
+                            </div>
+                        </div>
+
+                        <div class="inquiry-table-scroll">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Submitted</th>
+                                        <th>Client</th>
+                                        <th>Email</th>
+                                        <th>Subject</th>
+                                        <th>Message</th>
+                                        <th>Status</th>
+                                        <th>Assigned To</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inquiry-table-body">
+                                    <tr>
+                                        <td colspan="8" class="loading-cell muted-text">Open the tab to load inquiries...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Portfolio Tab -->
                 <div id="portfolio-tab" class="tab-section hidden">
                     <div class="tab-header">
-                        <h2>Hybrid Storage (FTP & Cloud)</h2>
-                        <button class="btn-primary">+ Upload Blueprint</button>
+                        <div class="tab-title-block">
+                            <h2>Project Files & Media</h2>
+                            <p class="tab-description">Manage uploads, storage usage, and project media records.</p>
+                        </div>
+                        <button class="btn-primary" id="open-file-upload-btn"><i class="bi bi-cloud-arrow-up"></i> Upload File</button>
                     </div>
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr><th>File Name</th><th>Size</th><th>Storage Type</th><th>Action</th></tr>
-                            </thead>
-                            <tbody id="files-table-body">
-                            </tbody>
-                        </table>
+
+                    <div id="files-stats-shell" class="stats-grid files-stats-grid files-stats-section">
+                        <div class="stat-card">
+                            <h3>Total Files</h3>
+                            <p class="stat-number" id="files-total-count">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Cloudinary Storage (MB)</h3>
+                            <p class="stat-number text-success" id="files-cloud-storage">0.00</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Local FTP Storage (MB)</h3>
+                            <p class="stat-number files-ftp-stat" id="files-ftp-storage">0.00</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Total Storage (MB)</h3>
+                            <p class="stat-number" id="files-storage-total">0.00</p>
+                        </div>
+                    </div>
+
+                    <div class="table-container file-upload-panel hidden" id="file-upload-panel">
+                        <h2 class="panel-title-tight">Upload New File</h2>
+                        <p class="files-help-text">Images are optimized and stored in Cloudinary. Large blueprints/documents are tagged for Local FTP.</p>
+                        <form id="project-file-upload-form" class="file-upload-form">
+                            <div class="file-upload-row">
+                                <div>
+                                    <label for="project-file-input">Choose File</label>
+                                    <input type="file" id="project-file-input" required>
+                                </div>
+                                <div>
+                                    <label for="project-file-category">Category</label>
+                                    <select id="project-file-category">
+                                        <option value="project_progress">Project Progress Photo</option>
+                                        <option value="portfolio">Portfolio Image</option>
+                                        <option value="equipment">Equipment Photo</option>
+                                        <option value="blueprint">Blueprint / Document</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="file-upload-actions">
+                                <button type="button" class="btn-outline" id="cancel-file-upload-btn">Cancel</button>
+                                <button type="submit" class="btn-primary" id="submit-file-upload-btn"><i class="bi bi-upload"></i> Upload</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div id="files-management-shell" class="table-container">
+                        <div class="files-toolbar">
+                            <div class="files-toolbar-group">
+                                <label for="files-storage-filter">Storage</label>
+                                <select id="files-storage-filter">
+                                    <option value="ALL">All</option>
+                                    <option value="CLOUD">Cloud</option>
+                                    <option value="LOCAL_FTP">Local FTP</option>
+                                </select>
+                            </div>
+                            <div class="files-toolbar-group files-search-group">
+                                <label for="files-search-input">Search</label>
+                                <input type="text" id="files-search-input" autocomplete="off" placeholder="Search by file name, type, or uploader...">
+                            </div>
+                        </div>
+                        <div class="table-scroll-shell files-table-scroll">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>File</th>
+                                        <th>Type</th>
+                                        <th>Size (MB)</th>
+                                        <th>Storage</th>
+                                        <th>Uploaded</th>
+                                        <th>By</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="files-table-body">
+                                    <tr>
+                                        <td colspan="7" class="loading-cell muted-text">Open the tab to load files...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
                 <!-- System Health Tab -->
                 <div id="health-tab" class="tab-section hidden">
-                    <h2>System Health Monitoring</h2>
+                    <div class="tab-header tab-header-no-action">
+                        <div class="tab-title-block">
+                            <h2>System Health Monitoring</h2>
+                            <p class="tab-description">Monitor security events, backups, and audit activity in one place.</p>
+                        </div>
+                    </div>
                     
                     <!-- Server Status Cards -->
-                    <div class="stats-grid" style="margin-bottom: 30px;">
+                    <div id="health-overview-shell" class="stats-grid section-gap-lg">
                         <div class="stat-card">
                             <h3>Server Uptime</h3>
                             <p class="stat-number text-success" id="server-uptime">99.9%</p>
-                            <small style="color: #6b7280;">Last 30 days</small>
+                            <small class="muted-note">Last 30 days</small>
                         </div>
                         <div class="stat-card">
                             <h3>Database Status</h3>
                             <p class="stat-number text-success" id="db-status">●</p>
-                            <small style="color: #6b7280;">MySQL Connected</small>
+                            <small class="muted-note">MySQL Connected</small>
                         </div>
                         <div class="stat-card">
                             <h3>Last Backup</h3>
-                            <p class="stat-number" style="font-size: 1.2rem;" id="last-backup">2 hours ago</p>
-                            <small style="color: #6b7280;">Auto-backup enabled</small>
+                            <p class="stat-number text-success" id="last-backup">2 hours ago</p>
+                            <small class="muted-note">Auto-backup enabled</small>
                         </div>
                         <div class="stat-card">
                             <h3>Active Users</h3>
-                            <p class="stat-number text-orange" id="active-users">8</p>
-                            <small style="color: #6b7280;">Currently online</small>
+                            <p class="stat-number text-success" id="active-users">8</p>
+                            <small class="muted-note">Active in last 15 minutes</small>
+                        </div>
+                    </div>
+
+                    <!-- Security Event Monitoring -->
+                    <div id="health-siem-shell" class="table-container section-gap-lg">
+                        <div class="tab-header">
+                            <h2>Security Event Monitoring (SIEM)</h2>
+                        </div>
+
+                        <div class="stats-grid security-stats-grid security-stats-section">
+                            <div class="stat-card security-stat-card">
+                                <h3>Failed Logins (24h)</h3>
+                                <p class="stat-number text-orange" id="siem-failed-logins">0</p>
+                                <small class="muted-note">Repeated credential failures detected</small>
+                            </div>
+                            <div class="stat-card security-stat-card">
+                                <h3>Unauthorized Access (24h)</h3>
+                                <p class="stat-number text-orange" id="siem-unauthorized">0</p>
+                                <small class="muted-note">Token/permission/ownership denials</small>
+                            </div>
+                            <div class="stat-card security-stat-card">
+                                <h3>Equipment Anomalies (24h)</h3>
+                                <p class="stat-number text-orange" id="siem-equipment-anomalies">0</p>
+                                <small class="muted-note">Suspicious checkout/return activity</small>
+                            </div>
+                        </div>
+
+                        <div class="siem-toolbar">
+                            <div class="health-toolbar-item">
+                                <label for="siem-severity-filter">Severity</label>
+                                <select id="siem-severity-filter">
+                                    <option value="ALL">All Severities</option>
+                                    <option value="high">High</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="low">Low</option>
+                                </select>
+                            </div>
+                            <div class="health-toolbar-item">
+                                <label for="siem-event-filter">Event Type</label>
+                                <select id="siem-event-filter">
+                                    <option value="ALL">All Events</option>
+                                </select>
+                            </div>
+                            <div class="health-toolbar-item">
+                                <label for="siem-time-filter">Time Window</label>
+                                <select id="siem-time-filter">
+                                    <option value="24h" selected>Last 24 Hours</option>
+                                    <option value="12h">Last 12 Hours</option>
+                                    <option value="6h">Last 6 Hours</option>
+                                    <option value="1h">Last 1 Hour</option>
+                                </select>
+                            </div>
+                            <button type="button" id="siem-filter-reset-btn" class="btn-outline">Reset</button>
+                        </div>
+
+                        <div class="health-logs-scroll">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Severity</th>
+                                        <th>Event Type</th>
+                                        <th>Description</th>
+                                        <th>IP Address</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="siem-alerts-body">
+                                    <tr>
+                                        <td colspan="5" class="loading-cell muted-text">No security alerts yet</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
                     <!-- Database Backup Status -->
-                    <div class="table-container" style="margin-bottom: 30px;">
+                    <div id="health-backup-shell" class="table-container section-gap-lg">
                         <div class="tab-header">
                             <h2>Database Backup History</h2>
-                            <button class="btn-primary" id="trigger-backup-btn">🔄 Trigger Backup</button>
+                            <button class="btn-primary" id="trigger-backup-btn"><i class="bi bi-arrow-repeat"></i> Trigger Backup</button>
                         </div>
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Backup ID</th>
-                                    <th>Timestamp</th>
-                                    <th>Type</th>
-                                    <th>Size</th>
-                                    <th>Status</th>
-                                    <th>Storage</th>
-                                </tr>
-                            </thead>
-                            <tbody id="backup-table-body">
-                                <tr>
-                                    <td>#BK-001</td>
-                                    <td>2026-03-08 06:00:00</td>
-                                    <td>Automated</td>
-                                    <td>127.5 MB</td>
-                                    <td><span class="badge success">Success</span></td>
-                                    <td>LOCAL_FTP</td>
-                                </tr>
-                                <tr>
-                                    <td>#BK-002</td>
-                                    <td>2026-03-07 06:00:00</td>
-                                    <td>Automated</td>
-                                    <td>125.2 MB</td>
-                                    <td><span class="badge success">Success</span></td>
-                                    <td>CLOUD</td>
-                                </tr>
-                                <tr>
-                                    <td>#BK-003</td>
-                                    <td>2026-03-06 06:00:00</td>
-                                    <td>Manual</td>
-                                    <td>124.8 MB</td>
-                                    <td><span class="badge success">Success</span></td>
-                                    <td>LOCAL_FTP</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="table-scroll-shell backup-table-scroll">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Backup ID</th>
+                                        <th>Timestamp</th>
+                                        <th>Type</th>
+                                        <th>Size</th>
+                                        <th>Status</th>
+                                        <th>Storage</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="backup-table-body">
+                                    <tr>
+                                        <td>#BK-001</td>
+                                        <td>2026-03-08 06:00:00</td>
+                                        <td>Automated</td>
+                                        <td>127.5 MB</td>
+                                        <td><span class="badge success">Success</span></td>
+                                        <td>LOCAL_FTP</td>
+                                    </tr>
+                                    <tr>
+                                        <td>#BK-002</td>
+                                        <td>2026-03-07 06:00:00</td>
+                                        <td>Automated</td>
+                                        <td>125.2 MB</td>
+                                        <td><span class="badge success">Success</span></td>
+                                        <td>CLOUD</td>
+                                    </tr>
+                                    <tr>
+                                        <td>#BK-003</td>
+                                        <td>2026-03-06 06:00:00</td>
+                                        <td>Manual</td>
+                                        <td>124.8 MB</td>
+                                        <td><span class="badge success">Success</span></td>
+                                        <td>LOCAL_FTP</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
-                    <!-- Network IP Logs (SAM Compliance) -->
-                    <div class="table-container">
+                    <!-- Network IP Logs -->
+                    <div id="health-audit-shell" class="table-container">
                         <div class="tab-header">
                             <h2>Network IP Logs & Audit Trail</h2>
-                            <button class="btn-primary" id="export-logs-btn">📥 Export Logs (CSV)</button>
+                            <button class="btn-primary" id="export-logs-btn"><i class="bi bi-download"></i> Export Logs (CSV)</button>
                         </div>
-                        <p style="color: #6b7280; margin-bottom: 15px;">
-                            <strong>SAM Compliance:</strong> All system events logged with IP addresses for government audit requirements
-                        </p>
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Timestamp</th>
-                                    <th>Event Type</th>
-                                    <th>Description</th>
-                                    <th>IP Address</th>
-                                    <th>User</th>
-                                </tr>
-                            </thead>
-                            <tbody id="health-table-body">
+                        <div class="health-toolbar">
+                            <div class="health-toolbar-item">
+                                <label for="health-event-filter">Event Type</label>
+                                <select id="health-event-filter">
+                                    <option value="ALL">All Events</option>
+                                </select>
+                            </div>
+                            <div class="health-toolbar-item">
+                                <label for="health-date-filter">Date</label>
+                                <input type="date" id="health-date-filter">
+                            </div>
+                            <div class="health-toolbar-item health-toolbar-search">
+                                <label for="health-search-input">Search (IP/User/Description)</label>
+                                <input type="text" id="health-search-input" placeholder="e.g. 192.168, backup event, user" autocomplete="off">
+                            </div>
+                            <button type="button" id="health-filter-reset-btn" class="btn-outline">Reset</button>
+                        </div>
+
+                        <div class="health-logs-scroll">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Event Type</th>
+                                        <th>Description</th>
+                                        <th>IP Address</th>
+                                        <th>User</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="health-table-body">
                                 <tr>
                                     <td>2026-03-08 09:15:23</td>
                                     <td><span class="badge">LOGIN</span></td>
@@ -230,33 +698,341 @@
                                     <td>localhost</td>
                                     <td>System</td>
                                 </tr>
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attendance Management Tab -->
+                <div id="attendance-tab" class="tab-section hidden">
+                    <div class="tab-header">
+                        <div class="tab-title-block">
+                            <h2><i class="bi bi-calendar-check icon-mr-8"></i>Attendance Management</h2>
+                            <p class="tab-description">Review logs, apply filters, and manage geo-fenced construction sites.</p>
+                        </div>
+                        <button id="export-attendance-btn" class="btn-primary">
+                            <i class="bi bi-download"></i> Export CSV
+                        </button>
+                    </div>
+
+                    <div id="attendance-stats-shell" class="stats-grid section-gap-md">
+                        <div class="stat-card">
+                            <h3><i class="bi bi-person-check-fill icon-green icon-mr-6"></i>Clocked In Now</h3>
+                            <p class="stat-number text-success" id="attendance-clocked-in-count">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3><i class="bi bi-calendar-day icon-green icon-mr-6"></i>Today's Logs</h3>
+                            <p class="stat-number text-success" id="attendance-today-count">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3><i class="bi bi-calendar-month icon-green icon-mr-6"></i>This Month</h3>
+                            <p class="stat-number text-success" id="attendance-month-count">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3><i class="bi bi-geo-alt-fill icon-green icon-mr-6"></i>Active Sites</h3>
+                            <p class="stat-number text-success" id="active-sites-count">0</p>
+                        </div>
+                    </div>
+
+                    <div id="attendance-logs-shell" class="table-container">
+                        <div class="subheader-row">
+                            <h3><i class="bi bi-list-check icon-mr-8 icon-green"></i>All Attendance Logs</h3>
+                            <div class="attendance-filter-item attendance-search-inline">
+                                <i class="bi bi-search icon-muted"></i>
+                                <input type="text" id="attendance-search-input" class="modern-input attendance-search-input" autocomplete="off" placeholder="Search employee, email, action, location...">
+                            </div>
+                        </div>
+                        <div class="attendance-filters">
+                            <div class="attendance-filter-item">
+                                <i class="bi bi-calendar-range icon-muted"></i>
+                                <input type="date" id="attendance-date-filter" class="modern-input attendance-date-input">
+                            </div>
+                            <div class="attendance-filter-item">
+                                <i class="bi bi-person-fill icon-muted"></i>
+                                <select id="attendance-user-filter" class="modern-select attendance-user-select">
+                                    <option value="">All Employees</option>
+                                </select>
+                            </div>
+                            <button id="clear-attendance-filter" class="btn-outline btn-compact">
+                                <i class="bi bi-x-circle"></i> Clear Filters
+                            </button>
+                        </div>
+                        <div class="table-scroll-shell">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Employee</th>
+                                        <th>Action</th>
+                                        <th>Timestamp</th>
+                                        <th>Location (GPS)</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendance-logs-body">
+                                    <tr>
+                                        <td colspan="6" class="loading-cell muted-text">
+                                            <div class="loading-label-plain">Loading attendance logs...</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="attendance-sites-shell" class="table-container section-top-gap-xl">
+                        <div class="subheader-row">
+                            <h3><i class="bi bi-geo-fill icon-mr-8 icon-orange"></i>Construction Sites (Geo-Fencing)</h3>
+                            <button id="add-site-btn" class="btn-primary">
+                                <i class="bi bi-plus-circle-fill"></i> Add Site
+                            </button>
+                        </div>
+                        <div class="table-scroll-shell sites-table-scroll">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Site Name</th>
+                                        <th>Address</th>
+                                        <th>GPS Coordinates</th>
+                                        <th>Radius (m)</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="construction-sites-body">
+                                    <tr>
+                                        <td colspan="6" class="loading-cell muted-text">
+                                            <div class="loading-label-plain">Loading construction sites...</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports Tab -->
+                <div id="reports-tab" class="tab-section hidden">
+                    <div class="tab-header">
+                        <div class="tab-title-block">
+                            <h2>Administrative Reports</h2>
+                            <p class="tab-description">Generate CSV and PDF reports for attendance, equipment, and inquiries.</p>
+                        </div>
+                    </div>
+
+                    <div id="reports-shell" class="table-container report-shell">
+                        <p class="report-intro">Generate exportable reports for attendance, equipment usage, and inquiry performance. Use CSV for spreadsheets and PDF for printable reports.</p>
+
+                        <div class="report-filters">
+                            <div class="report-filter-item">
+                                <label for="report-start-date">Start Date</label>
+                                <input type="date" id="report-start-date" class="modern-input report-date-input">
+                            </div>
+                            <div class="report-filter-item">
+                                <label for="report-end-date">End Date</label>
+                                <input type="date" id="report-end-date" class="modern-input report-date-input">
+                            </div>
+                            <div class="report-quick-actions">
+                                <button type="button" id="report-set-week-btn" class="btn-secondary btn-h-40">Use Last 7 Days</button>
+                                <button type="button" id="report-set-month-btn" class="btn-secondary btn-h-40">Use Last 30 Days</button>
+                                <button type="button" id="report-clear-dates-btn" class="btn-secondary btn-h-40">Clear Dates</button>
+                            </div>
+                        </div>
+
+                        <div class="stats-grid report-stats-grid">
+                            <div class="stat-card report-card">
+                                <h3><span class="report-card-icon"><i class="bi bi-calendar-week"></i></span>Weekly Attendance Logs</h3>
+                                <p class="report-card-copy">Clock-in/out activity with employee and GPS information.</p>
+                                <div class="report-actions-row">
+                                    <button class="btn-primary report-download-btn" data-report-type="attendance" data-format="csv">
+                                        <i class="bi bi-filetype-csv"></i> Download CSV
+                                    </button>
+                                    <button class="btn-secondary report-download-btn" data-report-type="attendance" data-format="pdf">
+                                        <i class="bi bi-filetype-pdf"></i> Download PDF
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="stat-card report-card">
+                                <h3><span class="report-card-icon"><i class="bi bi-tools"></i></span>Equipment Usage History</h3>
+                                <p class="report-card-copy">Checkout/return trail with user, status, and notes.</p>
+                                <div class="report-actions-row">
+                                    <button class="btn-primary report-download-btn" data-report-type="equipment-usage" data-format="csv">
+                                        <i class="bi bi-filetype-csv"></i> Download CSV
+                                    </button>
+                                    <button class="btn-secondary report-download-btn" data-report-type="equipment-usage" data-format="pdf">
+                                        <i class="bi bi-filetype-pdf"></i> Download PDF
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="stat-card report-card">
+                                <h3><span class="report-card-icon"><i class="bi bi-chat-square-text"></i></span>Inquiry Resolution Statistics</h3>
+                                <p class="report-card-copy">Summary metrics for pending and resolved inquiries.</p>
+                                <div class="report-actions-row">
+                                    <button class="btn-primary report-download-btn" data-report-type="inquiry-resolution" data-format="csv">
+                                        <i class="bi bi-filetype-csv"></i> Download CSV
+                                    </button>
+                                    <button class="btn-secondary report-download-btn" data-report-type="inquiry-resolution" data-format="pdf">
+                                        <i class="bi bi-filetype-pdf"></i> Download PDF
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Modal for Adding Equipment -->
-    <div id="equipment-modal" class="modal-overlay hidden">
-        <div class="modal-content">
+    <!-- Modal for Adding Construction Site -->
+    <div id="site-modal" class="modal-overlay hidden">
+        <div class="modal-content modern-modal modal-compact">
             <div class="modal-header">
-                <h2>Add New Equipment</h2>
+                <div class="modal-header-content">
+                    <div class="modal-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                    <div>
+                        <h2 class="modal-title" id="site-modal-title">Add Construction Site</h2>
+                        <p class="modal-subtitle">Configure GPS location and geo-fence perimeter</p>
+                    </div>
+                </div>
+                <span class="close-modal" id="close-site-modal-btn">&times;</span>
+            </div>
+            <form id="add-site-form" class="form-scroll-body">
+                <div class="form-section">
+                    <div class="form-grid form-grid-single">
+                        <div class="input-group">
+                            <label class="modern-label"><i class="bi bi-building icon-mr-6"></i>Site Name *</label>
+                            <input type="text" id="site-name" class="modern-input" required placeholder="e.g., CICJ Main Construction Site">
+                        </div>
+                        <div class="input-group">
+                            <label class="modern-label"><i class="bi bi-geo icon-mr-6"></i>Site Address</label>
+                            <input type="text" id="site-address" class="modern-input" placeholder="e.g., Manila, Philippines">
+                        </div>
+                    </div>
+                    
+                    <div class="section-divider section-divider-spaced">
+                        <h4 class="section-divider-title">
+                            <i class="bi bi-pin-map-fill icon-orange icon-mr-6"></i>GPS Coordinates
+                        </h4>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label class="modern-label">Latitude *</label>
+                            <input type="number" id="site-lat" class="modern-input" step="0.000001" min="-90" max="90" required placeholder="14.5995">
+                            <small class="muted-note"><i class="bi bi-info-circle"></i> Range: -90 to 90</small>
+                        </div>
+                        <div class="input-group">
+                            <label class="modern-label">Longitude *</label>
+                            <input type="number" id="site-lng" class="modern-input" step="0.000001" min="-180" max="180" required placeholder="120.9842">
+                            <small class="muted-note"><i class="bi bi-info-circle"></i> Range: -180 to 180</small>
+                        </div>
+                    </div>
+                    
+                    <button type="button" id="get-my-location-btn" class="btn-secondary btn-block section-mt-12 section-mb-16">
+                        <i class="bi bi-geo-alt-fill"></i> Get My Location (Auto-fill)
+                    </button>
+                    <small class="muted-note centered-text section-mt-negative-8 section-mb-16">
+                        <i class="bi bi-info-circle"></i> Click to use your current GPS coordinates, or enter manually above
+                    </small>
+                    
+                    <div class="input-group">
+                        <label class="modern-label"><i class="bi bi-circle icon-mr-6"></i>Geo-Fence Radius (meters) *</label>
+                        <input type="number" id="site-radius" class="modern-input" min="10" max="10000" value="100" required>
+                        <small class="muted-note"><i class="bi bi-info-circle"></i> Range: 10-10,000 meters (default: 100m perimeter)</small>
+                    </div>
+                </div>
+                <div class="modal-actions modal-actions-between">
+                    <div id="site-danger-actions" class="hidden danger-actions-row">
+                        <button type="button" class="btn-danger danger-inline-btn" id="delete-site-btn">
+                            <i class="bi bi-trash-fill"></i> Delete Site
+                        </button>
+                        <button type="button" class="btn-warning danger-inline-btn" id="mark-done-site-btn">
+                            <i class="bi bi-check-circle-fill"></i> <span id="mark-done-text">Mark as Done</span>
+                        </button>
+                    </div>
+                    <div class="modal-action-buttons-right">
+                        <button type="button" class="btn-secondary" id="cancel-site-btn">Cancel</button>
+                        <button type="submit" class="btn-primary" id="submit-site-btn">
+                            <i class="bi bi-check-circle-fill"></i> Save Site
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Adding/Editing Equipment -->
+    <div id="equipment-modal" class="modal-overlay hidden">
+        <div class="modal-content modern-modal modal-compact">
+            <div class="modal-header">
+                <div class="modal-header-content">
+                    <div>
+                        <h2 class="modal-title" id="equipment-modal-title">Add New Equipment</h2>
+                        <p class="modal-subtitle">Equipment inventory with QR code generation</p>
+                    </div>
+                </div>
                 <span class="close-modal" id="close-modal-btn">&times;</span>
             </div>
-            <form id="add-equipment-form">
-                <div class="input-group">
-                    <label>Equipment Name</label>
-                    <input type="text" id="equip-name" required>
+            <form id="add-equipment-form" class="form-scroll-body">
+                <input type="hidden" id="equip-id">
+                <div class="form-section">
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label class="modern-label">Equipment Name</label>
+                            <input type="text" id="equip-name" class="modern-input" required placeholder="e.g., Excavator, Safety Helmet">
+                        </div>
+                        <div class="input-group">
+                            <label class="modern-label">Quantity</label>
+                            <input type="number" id="equip-qty" class="modern-input" required min="1" placeholder="1">
+                            <small class="muted-note note-mt-4">
+                                <i class="bi bi-info-circle"></i> Each item gets its own QR code
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label class="modern-label">Condition</label>
+                            <select id="equip-condition" class="modern-select" required>
+                                <option value="Excellent">Excellent</option>
+                                <option value="Good" selected>Good</option>
+                                <option value="Fair">Fair</option>
+                                <option value="Poor">Poor</option>
+                                <option value="Needs Repair">Needs Repair</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label class="modern-label">Status</label>
+                            <select id="equip-status" class="modern-select" required>
+                                <option value="Available" selected>Available</option>
+                                <option value="Checked Out">Checked Out</option>
+                                <option value="In Maintenance">In Maintenance</option>
+                                <option value="Out of Service">Out of Service</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="modern-label">Location</label>
+                        <input type="text" id="equip-location" class="modern-input" placeholder="e.g., Warehouse A, Site 3">
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label>Quantity</label>
-                    <input type="number" id="equip-qty" required min="1">
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn-outline" id="cancel-modal-btn">Cancel</button>
-                    <button type="submit" class="btn-primary">Save Item</button>
+                
+                <div class="modal-actions modal-actions-between">
+                    <div id="equipment-danger-actions" class="hidden danger-actions-row">
+                        <button type="button" class="btn-danger danger-inline-btn" id="delete-equipment-btn">
+                            <i class="bi bi-trash-fill"></i> Delete Equipment
+                        </button>
+                    </div>
+                    <div class="modal-action-buttons-right">
+                        <button type="button" class="btn-secondary" id="cancel-modal-btn">Cancel</button>
+                        <button type="submit" class="btn-primary" id="submit-equipment-btn">
+                            <i class="bi bi-check-circle-fill"></i> Save Equipment
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -264,59 +1040,123 @@
 
     <!-- Modal for Adding New Hire with Permissions Matrix -->
     <div id="add-user-modal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-content modern-modal">
             <div class="modal-header">
-                <h2>Add New Hire - Account Provisioning</h2>
+                <div class="modal-header-content">
+                    <div class="modal-icon"><i class="bi bi-person-plus-fill"></i></div>
+                    <div>
+                        <h2 class="modal-title">Add New Team Member</h2>
+                        <p class="modal-subtitle">Create user account and configure permissions</p>
+                    </div>
+                </div>
                 <span class="close-modal" id="close-user-modal-btn">&times;</span>
             </div>
-            <form id="add-user-form">
-                <!-- Basic Information -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
-                    <div class="input-group">
-                        <label>Full Name *</label>
-                        <input type="text" id="user-fullname" required placeholder="Juan dela Cruz">
+            <form id="add-user-form" autocomplete="off">
+                <!-- Step 1: Basic Information -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span class="section-number">1</span>
+                        <h3 class="section-title">Basic Information</h3>
                     </div>
-                    <div class="input-group">
-                        <label>Email Address *</label>
-                        <input type="email" id="user-email" required placeholder="juan@cicj.com">
-                    </div>
-                    <div class="input-group">
-                        <label>Contact Number</label>
-                        <input type="tel" id="user-contact" placeholder="+63 912 345 6789">
-                    </div>
-                    <div class="input-group">
-                        <label>Role *</label>
-                        <select id="user-role" required>
-                            <option value="">Select Role</option>
-                            <option value="ADMIN">Admin</option>
-                            <option value="EMPLOYEE">Employee</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Password *</label>
-                        <input type="password" id="user-password" required minlength="8" placeholder="Min. 8 characters">
-                    </div>
-                    <div class="input-group">
-                        <label>Confirm Password *</label>
-                        <input type="password" id="user-password-confirm" required placeholder="Re-enter password">
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label class="modern-label">Full Name *</label>
+                            <input type="text" id="user-fullname" class="modern-input" required placeholder="Juan dela Cruz">
+                        </div>
+                        <div class="input-group">
+                            <label class="modern-label">Email Address *</label>
+                            <input type="email" id="user-email" class="modern-input" required placeholder="juan@cicj.com" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+                        </div>
+                        <div class="input-group">
+                            <label class="modern-label">Contact Number</label>
+                            <input type="tel" id="user-contact" class="modern-input" placeholder="+63 912 345 6789">
+                        </div>
+                        <div class="input-group">
+                            <label class="modern-label">Role *</label>
+                            <select id="user-role" class="modern-select" required>
+                                <option value="">Select Role</option>
+                                <option value="ADMIN">Admin</option>
+                                <option value="EMPLOYEE">Employee</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label class="modern-label">Password *</label>
+                            <div class="password-input-wrap">
+                                <input type="password" id="user-password" class="modern-input" required minlength="8" maxlength="128" placeholder="Minimum 8 characters" autocomplete="new-password">
+                                <button type="button" class="password-toggle-btn" id="user-password-toggle" aria-label="Show password" aria-pressed="false">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label class="modern-label">Confirm Password *</label>
+                            <div class="password-input-wrap">
+                                <input type="password" id="user-password-confirm" class="modern-input" required placeholder="Re-enter password" autocomplete="new-password">
+                                <button type="button" class="password-toggle-btn" id="user-password-confirm-toggle" aria-label="Show confirm password" aria-pressed="false">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-group full-width password-requirements-group">
+                            <ul id="user-password-requirements" class="password-requirements" aria-live="polite">
+                                <li id="password-rule-length" class="password-rule unmet"><i class="bi bi-circle"></i> At least 8 characters</li>
+                                <li id="password-rule-uppercase" class="password-rule unmet"><i class="bi bi-circle"></i> 1 uppercase letter</li>
+                                <li id="password-rule-lowercase" class="password-rule unmet"><i class="bi bi-circle"></i> 1 lowercase letter</li>
+                                <li id="password-rule-number" class="password-rule unmet"><i class="bi bi-circle"></i> 1 number</li>
+                                <li id="password-rule-special" class="password-rule unmet"><i class="bi bi-circle"></i> 1 special character</li>
+                                <li id="password-rule-match" class="password-rule unmet"><i class="bi bi-circle"></i> Passwords match</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Permissions Matrix Section -->
-                <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                    <h3 style="margin-bottom: 15px; color: #1e3a8a;">
-                        🔐 Granular Permissions Matrix (Principle of Least Privilege)
-                    </h3>
-                    <p style="color: #6b7280; font-size: 14px; margin-bottom: 20px;">
-                        Toggle exact permissions for this user. Default permissions are pre-selected based on role.
+                <!-- Step 2: Permissions Matrix -->
+                <div class="form-section permissions-section">
+                    <div class="section-header">
+                        <span class="section-number">2</span>
+                        <h3 class="section-title">Access Permissions</h3>
+                    </div>
+                    <p class="section-description">
+                        Configure access rights using the Principle of Least Privilege. Apply quick presets or customize individual permissions.
                     </p>
+                    
+                    <!-- Quick Permission Presets -->
+                    <div class="presets-container">
+                        <label class="preset-label">Quick Templates:</label>
+                        <div class="preset-buttons">
+                            <button type="button" class="preset-btn" id="preset-field-worker">
+                                <span class="preset-icon"><i class="bi bi-tools"></i></span>
+                                <span>Field Worker</span>
+                            </button>
+                            <button type="button" class="preset-btn" id="preset-supervisor">
+                                <span class="preset-icon"><i class="bi bi-person-badge"></i></span>
+                                <span>Supervisor</span>
+                            </button>
+                            <button type="button" class="preset-btn" id="preset-hr-admin">
+                                <span class="preset-icon"><i class="bi bi-clipboard-check"></i></span>
+                                <span>HR Admin</span>
+                            </button>
+                            <button type="button" class="preset-btn" id="preset-sales-manager">
+                                <span class="preset-icon"><i class="bi bi-briefcase-fill"></i></span>
+                                <span>Sales Manager</span>
+                            </button>
+                            <button type="button" class="preset-btn" id="preset-super-admin">
+                                <span class="preset-icon"><i class="bi bi-key-fill"></i></span>
+                                <span>Super Admin</span>
+                            </button>
+                            <button type="button" class="preset-btn preset-btn-clear" id="preset-clear-all">
+                                <span class="preset-icon"><i class="bi bi-x-circle-fill"></i></span>
+                                <span>Clear All</span>
+                            </button>
+                        </div>
+                    </div>
 
                     <!-- Permission Categories -->
                     <div class="permissions-grid">
                         
                         <!-- User Management Permissions -->
                         <div class="permission-category">
-                            <h4 class="category-title">👥 User Management</h4>
+                            <h4 class="category-title"><i class="bi bi-people"></i> User Management</h4>
                             <div class="permission-checkboxes">
                                 <label class="checkbox-label">
                                     <input type="checkbox" name="permission" value="can_view_users">
@@ -343,7 +1183,7 @@
 
                         <!-- Attendance Permissions -->
                         <div class="permission-category">
-                            <h4 class="category-title">📅 Attendance</h4>
+                            <h4 class="category-title"><i class="bi bi-calendar-check"></i> Attendance</h4>
                             <div class="permission-checkboxes">
                                 <label class="checkbox-label">
                                     <input type="checkbox" name="permission" value="can_view_own_attendance" checked>
@@ -370,7 +1210,7 @@
 
                         <!-- Equipment Permissions -->
                         <div class="permission-category">
-                            <h4 class="category-title">🔧 Equipment</h4>
+                            <h4 class="category-title"><i class="bi bi-tools"></i> Equipment</h4>
                             <div class="permission-checkboxes">
                                 <label class="checkbox-label">
                                     <input type="checkbox" name="permission" value="can_view_equipment" checked>
@@ -397,7 +1237,7 @@
 
                         <!-- Files Permissions -->
                         <div class="permission-category">
-                            <h4 class="category-title">📁 Project Files</h4>
+                            <h4 class="category-title"><i class="bi bi-folder"></i> Project Files</h4>
                             <div class="permission-checkboxes">
                                 <label class="checkbox-label">
                                     <input type="checkbox" name="permission" value="can_view_files" checked>
@@ -424,7 +1264,7 @@
 
                         <!-- Inquiries Permissions -->
                         <div class="permission-category">
-                            <h4 class="category-title">💬 Client Inquiries</h4>
+                            <h4 class="category-title"><i class="bi bi-chat-dots"></i> Client Inquiries</h4>
                             <div class="permission-checkboxes">
                                 <label class="checkbox-label">
                                     <input type="checkbox" name="permission" value="can_view_inquiries">
@@ -451,7 +1291,7 @@
 
                         <!-- System Administration Permissions -->
                         <div class="permission-category">
-                            <h4 class="category-title">⚙️ System Admin</h4>
+                            <h4 class="category-title"><i class="bi bi-gear"></i> System Admin</h4>
                             <div class="permission-checkboxes">
                                 <label class="checkbox-label">
                                     <input type="checkbox" name="permission" value="can_view_health_logs">
@@ -460,10 +1300,6 @@
                                 <label class="checkbox-label">
                                     <input type="checkbox" name="permission" value="can_export_health_logs">
                                     <span>Export Logs (SAM)</span>
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox" name="permission" value="can_manage_permissions">
-                                    <span>Manage Permissions</span>
                                 </label>
                                 <label class="checkbox-label">
                                     <input type="checkbox" name="permission" value="can_view_audit_trail">
@@ -477,39 +1313,354 @@
                         </div>
 
                     </div>
+                </div>
 
-                    <!-- Quick Permission Presets -->
-                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-                        <p style="font-weight: 600; margin-bottom: 10px; color: #374151;">Quick Presets:</p>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button type="button" class="btn-small" id="preset-field-worker">Field Worker</button>
-                            <button type="button" class="btn-small" id="preset-supervisor">Supervisor</button>
-                            <button type="button" class="btn-small" id="preset-hr-admin">HR Admin</button>
-                            <button type="button" class="btn-small" id="preset-sales-manager">Sales Manager</button>
-                            <button type="button" class="btn-small" id="preset-super-admin">Super Admin</button>
-                            <button type="button" class="btn-small" id="preset-clear-all">Clear All</button>
+                <!-- Step 3: Account Status -->
+                <div class="form-section account-status-section">
+                    <div class="status-toggle">
+                        <div class="toggle-info">
+                            <label class="toggle-label">Account Status</label>
+                            <p class="toggle-description">Enable login access immediately after creation</p>
                         </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="user-active" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
                     </div>
                 </div>
 
-                <!-- Account Status -->
-                <div class="input-group" style="margin-bottom: 20px;">
-                    <label class="checkbox-label" style="display: flex; align-items: center; gap: 10px;">
-                        <input type="checkbox" id="user-active" checked>
-                        <span style="font-weight: 600;">Account Active (User can login immediately)</span>
-                    </label>
-                </div>
-
                 <div class="modal-actions">
-                    <button type="button" class="btn-secondary" id="cancel-user-modal-btn">Cancel</button>
-                    <button type="submit" class="btn-primary">Create User Account</button>
+                    <button type="button" class="btn-secondary modern-btn-secondary" id="cancel-user-modal-btn">
+                        <span>Cancel</span>
+                    </button>
+                    <button type="submit" class="btn-primary modern-btn-primary">
+                        <span><i class="bi bi-check-circle"></i> Create Account</span>
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Edit User Permissions Modal -->
+    <div id="edit-user-modal" class="modal-overlay hidden">
+        <div class="modal-content modern-modal edit-modal modal-wide">
+            <div class="modal-header">
+                <div class="modal-header-content">
+                    <div class="modal-icon"><i class="bi bi-pencil-square"></i></div>
+                    <div>
+                        <h2 class="modal-title">Edit User Permissions</h2>
+                        <p class="modal-subtitle" id="edit-user-subtitle">Loading user...</p>
+                    </div>
+                </div>
+                <span class="close-modal" id="close-edit-user-modal-btn">&times;</span>
+            </div>
+            <form id="edit-user-form">
+                <input type="hidden" id="edit-user-id">
+                
+                <!-- User Info Display -->
+                <div class="form-section edit-info-section">
+                    <div class="section-header edit-section-header">
+                        <span class="section-number edit-section-number"><i class="bi bi-person-fill"></i></span>
+                        <h3 class="section-title">User Information</h3>
+                    </div>
+                    <div class="user-info-display edit-user-info">
+                        <div class="info-card">
+                            <div class="info-icon edit-user-avatar" id="edit-user-avatar">
+                                <img id="edit-user-avatar-image" alt="User profile photo">
+                                <i class="bi bi-person-circle"></i>
+                            </div>
+                            <div class="info-content">
+                                <span class="info-label">Full Name</span>
+                                <span class="info-value" id="edit-user-fullname">-</span>
+                            </div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-icon"><i class="bi bi-envelope"></i></div>
+                            <div class="info-content">
+                                <span class="info-label">Email Address</span>
+                                <span class="info-value" id="edit-user-email-value">-</span>
+                            </div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-icon"><i class="bi bi-bullseye"></i></div>
+                            <div class="info-content">
+                                <span class="info-label">Role</span>
+                                <span class="info-value" id="edit-user-role-value">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Permissions Matrix -->
+                <div class="form-section permissions-section edit-permissions-section">
+                    <div class="section-header edit-section-header">
+                        <span class="section-number edit-section-number"><i class="bi bi-shield-lock-fill"></i></span>
+                        <h3 class="section-title">Access Permissions</h3>
+                    </div>
+                    <p class="section-description edit-section-description">
+                        Configure access rights for this user. Changes take effect immediately after saving.
+                    </p>
+
+                    <!-- Permission Categories -->
+                    <div class="permissions-grid edit-permissions-grid" id="edit-permissions-grid">
+                        <!-- Will be populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Account Status -->
+                <div class="form-section account-status-section edit-status-section">
+                    <div class="section-header edit-section-header">
+                        <span class="section-number edit-section-number"><i class="bi bi-lightning-charge-fill"></i></span>
+                        <h3 class="section-title">Account Status</h3>
+                    </div>
+                    <div class="status-toggle edit-status-toggle">
+                        <div class="toggle-info">
+                            <div class="toggle-label-wrapper">
+                                <label class="toggle-label">Enable Login Access</label>
+                                <span class="toggle-badge" id="status-badge">Active</span>
+                            </div>
+                            <p class="toggle-description">Control whether this user can log in to the system</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="edit-user-active">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="form-section danger-zone-section">
+                    <div class="danger-zone">
+                        <div class="danger-zone-header">
+                            <div class="danger-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                            <div>
+                                <h3 class="danger-title">Danger Zone</h3>
+                                <p class="danger-description">Permanent actions that cannot be undone</p>
+                            </div>
+                        </div>
+                        <div class="danger-action">
+                            <div class="danger-info">
+                                <strong>Delete User Account</strong>
+                                <p>Permanently remove this user and all associated data. This action cannot be reversed.</p>
+                            </div>
+                            <button type="button" class="btn-danger" id="delete-user-btn">
+                                <span><i class="bi bi-trash"></i> Delete User</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions edit-modal-actions">
+                    <button type="button" class="btn-secondary modern-btn-secondary edit-cancel-btn" id="cancel-edit-user-modal-btn">
+                        <span><i class="bi bi-x-circle"></i> Cancel</span>
+                    </button>
+                    <button type="submit" class="btn-primary modern-btn-primary edit-save-btn">
+                        <span><i class="bi bi-floppy"></i> Save Changes</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Password Confirmation Modal for Delete -->
+    <div id="delete-confirm-modal" class="modal-overlay hidden">
+        <div class="delete-confirm-modal">
+            <div class="delete-confirm-header">
+                <div class="header-content">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <div>
+                        <h2>Confirm Account Deletion</h2>
+                        <p>This action requires authentication</p>
+                    </div>
+                </div>
+                <span class="close-modal" id="close-delete-confirm-btn">&times;</span>
+            </div>
+            <div class="delete-confirm-body">
+                <p class="warning-text">
+                    <strong>Warning: This cannot be undone</strong><br>
+                    You are about to permanently delete:
+                </p>
+                
+                <div class="user-info-card">
+                    <div class="user-info-row">
+                        <i class="bi bi-person-circle"></i>
+                        <span id="delete-user-name">-</span>
+                    </div>
+                    <div class="user-info-row">
+                        <i class="bi bi-envelope"></i>
+                        <span id="delete-user-email">-</span>
+                    </div>
+                </div>
+                
+                <div class="password-field">
+                    <label>
+                        <i class="bi bi-key-fill"></i>
+                        Enter Your Password to Confirm
+                    </label>
+                    <input 
+                        type="password" 
+                        id="delete-confirm-password" 
+                        placeholder="Enter your admin password"
+                        autocomplete="current-password"
+                        required
+                    >
+                    <p class="help-text">For security, we need to verify your identity before deleting this user.</p>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" id="cancel-delete-btn">Cancel</button>
+                    <button type="button" class="btn-delete" id="confirm-delete-btn">
+                        <i class="bi bi-trash"></i> Delete Permanently
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Profile Modal -->
+    <div class="profile-modal-overlay" id="profile-modal">
+        <div class="profile-modal-content" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
+            <div class="profile-modal-header">
+                <div class="profile-modal-title-wrap">
+                    <div class="profile-modal-avatar" id="profile-modal-avatar">
+                        <img id="profile-modal-avatar-image" alt="Profile photo">
+                        <i class="bi bi-person-circle" id="profile-modal-avatar-icon"></i>
+                    </div>
+                    <div>
+                        <h2 id="profile-modal-title">My Profile Center</h2>
+                        <p>Manage your account photo, view attendance records, and track activity.</p>
+                    </div>
+                </div>
+                <button type="button" class="profile-modal-close-btn" id="profile-modal-close-btn" aria-label="Close profile modal">&times;</button>
+            </div>
+
+            <div class="profile-modal-tabs" role="tablist" aria-label="Profile sections">
+                <button type="button" class="profile-modal-tab-btn active" id="profile-tab-btn-profile" data-profile-tab="profile" role="tab" aria-selected="true" aria-controls="profile-panel-profile">Profile</button>
+                <button type="button" class="profile-modal-tab-btn" id="profile-tab-btn-records" data-profile-tab="records" role="tab" aria-selected="false" aria-controls="profile-panel-records">Records</button>
+                <button type="button" class="profile-modal-tab-btn" id="profile-tab-btn-activity" data-profile-tab="activity" role="tab" aria-selected="false" aria-controls="profile-panel-activity">Activity</button>
+            </div>
+
+            <div class="profile-modal-body">
+                <section class="profile-modal-panel active" id="profile-panel-profile" data-profile-panel="profile" role="tabpanel" aria-labelledby="profile-tab-btn-profile">
+                    <div class="profile-modal-profile-grid">
+                        <aside class="profile-photo-card">
+                            <div class="profile-photo-preview" id="profile-photo-preview">
+                                <img id="profile-photo-preview-image" alt="Profile preview">
+                                <i class="bi bi-person-circle" id="profile-photo-preview-icon"></i>
+                            </div>
+                            <input type="file" id="profile-photo-input" class="profile-photo-input-hidden" accept="image/*">
+                            <div class="profile-photo-actions">
+                                <button type="button" class="btn-secondary" id="profile-photo-choose-btn">Choose Photo</button>
+                                <div class="profile-photo-actions-row">
+                                    <button type="button" class="btn-main" id="profile-photo-save-btn">Save Photo</button>
+                                    <button type="button" class="btn-cancel" id="profile-photo-remove-btn">Remove</button>
+                                </div>
+                            </div>
+                            <p class="profile-photo-status" id="profile-photo-status">Your photo is saved in this browser.</p>
+                        </aside>
+
+                        <div class="profile-modal-details-card">
+                            <div class="profile-modal-row">
+                                <span class="profile-modal-label">Full Name</span>
+                                <span class="profile-modal-value" id="profile-modal-name">-</span>
+                            </div>
+                            <div class="profile-modal-row">
+                                <span class="profile-modal-label">Role</span>
+                                <span class="profile-modal-value" id="profile-modal-role">-</span>
+                            </div>
+                            <div class="profile-modal-row">
+                                <span class="profile-modal-label">Email</span>
+                                <span class="profile-modal-value" id="profile-modal-email">-</span>
+                            </div>
+                            <div class="profile-modal-row">
+                                <span class="profile-modal-label">Contact Number</span>
+                                <span class="profile-modal-value" id="profile-modal-contact">-</span>
+                            </div>
+                            <div class="profile-modal-row">
+                                <span class="profile-modal-label">Member Since</span>
+                                <span class="profile-modal-value" id="profile-modal-created-at">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="profile-modal-panel" id="profile-panel-records" data-profile-panel="records" role="tabpanel" aria-labelledby="profile-tab-btn-records" hidden>
+                    <div class="profile-records-stats">
+                        <div class="profile-record-stat-card">
+                            <span>Total Logs</span>
+                            <strong id="profile-records-total">0</strong>
+                        </div>
+                        <div class="profile-record-stat-card">
+                            <span>Clock In</span>
+                            <strong id="profile-records-checkins">0</strong>
+                        </div>
+                        <div class="profile-record-stat-card">
+                            <span>Clock Out</span>
+                            <strong id="profile-records-checkouts">0</strong>
+                        </div>
+                    </div>
+                    <div class="profile-records-list" id="profile-records-list">
+                        <div class="profile-records-empty">Load your attendance records to get started.</div>
+                    </div>
+                </section>
+
+                <section class="profile-modal-panel" id="profile-panel-activity" data-profile-panel="activity" role="tabpanel" aria-labelledby="profile-tab-btn-activity" hidden>
+                    <div class="profile-activity-list" id="profile-activity-list">
+                        <div class="profile-activity-empty">No recent activity yet.</div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="profile-modal-actions">
+                <button type="button" class="btn-secondary" id="profile-modal-close-action-btn">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div class="logout-modal-overlay" id="logout-modal">
+        <div class="logout-modal-content">
+            <div class="logout-modal-header">
+                <div class="logout-header-icon">
+                    <i class="bi bi-box-arrow-right"></i>
+                </div>
+                <div class="logout-header-text">
+                    <h2>Confirm Logout</h2>
+                    <p>You are about to sign out of your account</p>
+                </div>
+            </div>
+            <div class="logout-modal-body">
+                <div class="logout-message">
+                    <p>Are you sure you want to logout? Any unsaved changes will be lost.</p>
+                    <div class="logout-user-info">
+                        <div class="logout-user-icon">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <div class="logout-user-details">
+                            <p class="logout-user-name" id="logout-user-name">Admin User</p>
+                            <p class="logout-user-role" id="logout-user-role">Administrator</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="logout-modal-actions">
+                    <button class="btn-logout-cancel" id="logout-cancel-btn">
+                        <i class="bi bi-x-lg"></i>
+                        Cancel
+                    </button>
+                    <button class="btn-logout-confirm" id="logout-confirm-btn">
+                        <i class="bi bi-box-arrow-right"></i>
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Security: Input validation utilities -->
-    <script src="js/validation.js"></script>
-    <script src="js/admin.js"></script>
+    <script src="js/modal-utils.js?v=20260402a"></script>
+    <script src="js/validation.js?v=20260315b"></script>
+    <script src="js/permissions-map.js?v=20260315b"></script>
+    <script src="js/admin.js?v=20260403f"></script>
+    <script src="js/admin-attendance.js?v=20260402f"></script>
 </body>
 </html>

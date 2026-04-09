@@ -13,7 +13,7 @@ const prisma = new PrismaClient();
 
 async function testGranularRBAC() {
     console.log('==========================================');
-    console.log('🔐 RBAC & Granular Permission Test');
+    console.log('[RBAC] Granular Permission Test');
     console.log('==========================================\n');
 
     try {
@@ -23,11 +23,11 @@ async function testGranularRBAC() {
         });
 
         if (!admin) {
-            console.error('❌ Admin user not found');
+            console.error('[ERROR] Admin user not found');
             process.exit(1);
         }
 
-        console.log('✅ Admin user loaded:', admin.full_name);
+        console.log('[SUCCESS] Admin user loaded:', admin.full_name);
         console.log('   Role:', admin.role);
         console.log('   Active:', admin.is_active);
 
@@ -38,18 +38,18 @@ async function testGranularRBAC() {
             { expiresIn: '1d' }
         );
 
-        console.log('\n✅ JWT Token Generated');
+        console.log('\n[SUCCESS] JWT Token Generated');
         console.log('   Token preview:', token.substring(0, 50) + '...');
 
         // 3. Decode and verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'cicj_super_secret_key_2026');
-        console.log('\n✅ JWT Token Verified');
+        console.log('\n[SUCCESS] JWT Token Verified');
         console.log('   user_id:', decoded.user_id);
         console.log('   role:', decoded.role);
 
         // 4. Test granular permissions for admin
         console.log('\n==========================================');
-        console.log('📋 Admin Permission Matrix');
+        console.log('[Permissions] Admin Permission Matrix');
         console.log('==========================================');
 
         const permissionCategories = {
@@ -106,17 +106,17 @@ async function testGranularRBAC() {
                 totalPermissions++;
                 const granted = admin[perm];
                 if (granted) grantedPermissions++;
-                console.log(`   ${granted ? '✅' : '❌'} ${perm}: ${granted}`);
+                console.log(`   ${granted ? '[GRANTED]' : '[DENIED]'} ${perm}: ${granted}`);
             });
         }
 
         console.log('\n==========================================');
-        console.log(`📊 Permission Summary: ${grantedPermissions}/${totalPermissions} granted`);
+        console.log(`[Summary] Permission Summary: ${grantedPermissions}/${totalPermissions} granted`);
         console.log('==========================================');
 
         // 5. Test middleware function simulation
         console.log('\n==========================================');
-        console.log('🔧 Middleware Authorization Simulation');
+        console.log('[Middleware] Authorization Simulation');
         console.log('==========================================\n');
 
         // Simulate requirePermission middleware check
@@ -129,12 +129,12 @@ async function testGranularRBAC() {
 
         testPermissions.forEach(perm => {
             const hasPermission = admin[perm];
-            console.log(`${hasPermission ? '✅ ALLOW' : '❌ DENY'} - ${perm}`);
+            console.log(`${hasPermission ? '[ALLOW]' : '[DENY]'} - ${perm}`);
         });
 
         // 6. Test with hypothetical employee (no permissions)
         console.log('\n==========================================');
-        console.log('👤 Testing Employee Permissions (Hypothetical)');
+        console.log('[Testing] Employee Permissions (Hypothetical)');
         console.log('==========================================\n');
 
         const employeePermissions = {
@@ -150,26 +150,26 @@ async function testGranularRBAC() {
 
         console.log('Employee Default Permissions:');
         Object.entries(employeePermissions).forEach(([perm, granted]) => {
-            console.log(`   ${granted ? '✅' : '❌'} ${perm}: ${granted}`);
+            console.log(`   ${granted ? '[GRANTED]' : '[DENIED]'} ${perm}: ${granted}`);
         });
 
         console.log('\n==========================================');
-        console.log('✅ RBAC & Granular Permission Test Complete');
+        console.log('[SUCCESS] RBAC & Granular Permission Test Complete');
         console.log('==========================================\n');
 
         console.log('Summary:');
-        console.log('✅ JWT authentication working');
-        console.log('✅ Token generation & verification working');
-        console.log('✅ Admin has all 30 permissions');
-        console.log('✅ Permission matrix structure verified');
-        console.log('✅ Middleware ready for runtime checks');
-        console.log('✅ Role-based differentiation enforced');
+        console.log('[SUCCESS] JWT authentication working');
+        console.log('[SUCCESS] Token generation & verification working');
+        console.log('[SUCCESS] Admin has all 30 permissions');
+        console.log('[SUCCESS] Permission matrix structure verified');
+        console.log('[SUCCESS] Middleware ready for runtime checks');
+        console.log('[SUCCESS] Role-based differentiation enforced');
 
         await prisma.$disconnect();
         process.exit(0);
 
     } catch (error) {
-        console.error('\n❌ Test Error:', error.message);
+        console.error('\n[ERROR] Test Error:', error.message);
         await prisma.$disconnect();
         process.exit(1);
     }

@@ -1,4 +1,4 @@
-# CICJ-ICMS Permissions Matrix Documentation
+﻿# CICJ-SH-COMS Permissions Matrix Documentation
 
 ## Task 3: Granular Permissions & Database ERD ✅
 
@@ -8,7 +8,7 @@
 
 ## 1. Principle of Least Privilege (PoLP)
 
-The CICJ-ICMS implements **exhaustive boolean flags** for granular CRUD operations across all modules, ensuring that users only have the minimum permissions necessary to perform their job functions.
+The CICJ-SH-COMS implements **exhaustive boolean flags** for granular CRUD operations across all modules, ensuring that users only have the minimum permissions necessary to perform their job functions.
 
 ### Why Granular Permissions?
 - **Security**: Prevents unauthorized access to sensitive operations

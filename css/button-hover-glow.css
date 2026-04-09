@@ -1,0 +1,81 @@
+/*
+   Global button shadow behavior
+   - No glow/ring shadows in any state
+   - Applies across neutral, light, and dark modes
+*/
+
+/* Utility overrides so button focus/hover effects stay visually consistent. */
+
+:is(
+    button,
+    [type="button"],
+    [type="submit"],
+    [type="reset"],
+    [role="button"],
+    [class*="btn"],
+    a[class*="btn"],
+    .profile-modal-tab-btn,
+    .topbar-theme-option,
+    .topbar-notification-refresh-btn,
+    .sidebar-footer-menu-btn,
+    .password-toggle-btn
+) {
+    box-shadow: none !important;
+}
+
+:is(
+    button,
+    [type="button"],
+    [type="submit"],
+    [type="reset"],
+    [role="button"],
+    [class*="btn"],
+    a[class*="btn"],
+    .profile-modal-tab-btn,
+    .topbar-theme-option,
+    .topbar-notification-refresh-btn,
+    .sidebar-footer-menu-btn,
+    .password-toggle-btn
+):is(:hover, :focus, :focus-visible, :active) {
+    box-shadow: none !important;
+}
+
+/* Modal close controls: never show outline, ring, or border box */
+:where(.close-modal, .profile-modal-close-btn) {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+:where(.close-modal, .profile-modal-close-btn):is(:hover, :focus, :focus-visible, :active) {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+:where(
+    button:disabled,
+    [type="button"]:disabled,
+    [type="submit"]:disabled,
+    [type="reset"]:disabled,
+    .disabled,
+    [aria-disabled="true"]
+):hover {
+    box-shadow: none !important;
+}
+
+/* File chooser pseudo button used in admin upload forms */
+#project-file-input::file-selector-button,
+#project-file-input::-webkit-file-upload-button {
+    box-shadow: none !important;
+}
+
+#project-file-input:hover::file-selector-button,
+#project-file-input:hover::-webkit-file-upload-button {
+    box-shadow: none !important;
+}
+
+body.theme-dark #project-file-input:hover::file-selector-button,
+body.theme-dark #project-file-input:hover::-webkit-file-upload-button {
+    box-shadow: none !important;
+}

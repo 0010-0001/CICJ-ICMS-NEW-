@@ -10,7 +10,7 @@ const prisma = new PrismaClient();
 
 async function testUserProvisioning() {
     console.log('==========================================');
-    console.log('🔧 User Provisioning API Test');
+    console.log('[User Provisioning] API Test');
     console.log('==========================================\n');
 
     try {
@@ -20,7 +20,7 @@ async function testUserProvisioning() {
         });
 
         if (!admin) {
-            console.error('❌ Admin user not found');
+            console.error('[ERROR] Admin user not found');
             process.exit(1);
         }
 
@@ -30,7 +30,7 @@ async function testUserProvisioning() {
             { expiresIn: '1d' }
         );
 
-        console.log('✅ Admin authenticated');
+        console.log('[SUCCESS] Admin authenticated');
         console.log('   Token:', token.substring(0, 50) + '...\n');
 
         // 2. Simulate frontend request body (Field Worker preset)
@@ -50,26 +50,26 @@ async function testUserProvisioning() {
             can_delete_users: false,
             can_activate_users: false,
 
-            can_view_own_attendance: true,  // ✅
+            can_view_own_attendance: true,  // [GRANTED]
             can_view_all_attendance: false,
             can_edit_attendance: false,
             can_delete_attendance: false,
             can_export_attendance: false,
 
-            can_view_equipment: true,  // ✅
+            can_view_equipment: true,  // [GRANTED]
             can_add_equipment: false,
             can_edit_equipment: false,
             can_delete_equipment: false,
             can_assign_equipment: false,
 
-            can_view_files: true,  // ✅
+            can_view_files: true,  // [GRANTED]
             can_upload_files: false,
             can_edit_files: false,
             can_delete_files: false,
-            can_download_files: true,  // ✅
+            can_download_files: true,  // [GRANTED]
 
             can_view_inquiries: false,
-            can_add_inquiries: true,  // ✅
+            can_add_inquiries: true,  // [GRANTED]
             can_update_inquiries: false,
             can_delete_inquiries: false,
             can_assign_inquiries: false,
@@ -81,7 +81,7 @@ async function testUserProvisioning() {
             can_backup_database: false
         };
 
-        console.log('📦 Creating new user: ' + newUserData.full_name);
+        console.log('[Creating User] ' + newUserData.full_name);
         console.log('   Email: ' + newUserData.email);
         console.log('   Role: ' + newUserData.role);
 
@@ -148,7 +148,7 @@ async function testUserProvisioning() {
             }
         });
 
-        console.log('✅ User created successfully!');
+        console.log('[SUCCESS] User created successfully!');
         console.log('   user_id:', createdUser.user_id);
         console.log('   full_name:', createdUser.full_name);
         console.log('   email:', createdUser.email);
@@ -157,7 +157,7 @@ async function testUserProvisioning() {
 
         // 5. Verify permissions were saved correctly
         console.log('\n==========================================');
-        console.log('🔍 Verifying Permissions in Database');
+        console.log('[Verifying] Permissions in Database');
         console.log('==========================================\n');
 
         const savedUser = await prisma.user.findUnique({
@@ -204,24 +204,24 @@ async function testUserProvisioning() {
                 if (!match) verificationSuccess = false;
                 if (granted) totalGranted++;
 
-                console.log(`   ${granted ? '✅' : '❌'} ${perm}: ${granted} ${!match ? '(MISMATCH!)' : ''}`);
+                console.log(`   ${granted ? '[GRANTED]' : '[DENIED]'} ${perm}: ${granted} ${!match ? '(MISMATCH!)' : ''}`);
             });
             console.log('');
         }
 
         console.log('==========================================');
-        console.log(`📊 Total Permissions Granted: ${totalGranted} / 30`);
+        console.log(`[Summary] Total Permissions Granted: ${totalGranted} / 30`);
         console.log('==========================================\n');
 
         // 6. Verify password encryption
         const passwordMatches = await bcrypt.compare('FieldWorker123!', savedUser.password_hash);
-        console.log('🔐 Password Verification:');
+        console.log('[Password Verification]:');
         console.log('   Hash stored:', savedUser.password_hash.substring(0, 30) + '...');
-        console.log('   bcrypt.compare result:', passwordMatches ? '✅ PASS' : '❌ FAIL');
+        console.log('   bcrypt.compare result:', passwordMatches ? '[PASS]' : '[FAIL]');
 
         // 7. Test login with new credentials
         console.log('\n==========================================');
-        console.log('🔑 Testing Login with New User');
+        console.log('[Testing] Login with New User');
         console.log('==========================================\n');
 
         const loginUser = await prisma.user.findUnique({
@@ -236,35 +236,35 @@ async function testUserProvisioning() {
                     process.env.JWT_SECRET || 'cicj_super_secret_key_2026',
                     { expiresIn: '1d' }
                 );
-                console.log('✅ Login successful for:', loginUser.full_name);
+                console.log('[SUCCESS] Login successful for:', loginUser.full_name);
                 console.log('   Token generated:', userToken.substring(0, 50) + '...');
             } else {
-                console.log('❌ Password mismatch');
+                console.log('[ERROR] Password mismatch');
                 verificationSuccess = false;
             }
         } else {
-            console.log('❌ User not found or inactive');
+            console.log('[ERROR] User not found or inactive');
             verificationSuccess = false;
         }
 
         // 8. Summary
         console.log('\n==========================================');
-        console.log('📊 Test Summary');
+        console.log('[Test Summary]');
         console.log('==========================================\n');
 
         if (verificationSuccess && totalGranted === 5) {
-            console.log('✅ All tests passed!');
-            console.log('✅ User created with exact permissions from Matrix UI');
-            console.log('✅ Password encrypted with bcrypt');
-            console.log('✅ Login functional');
-            console.log('✅ JWT token generation working');
-            console.log('\n🎉 User Provisioning API is production-ready!\n');
+            console.log('[SUCCESS] All tests passed!');
+            console.log('[SUCCESS] User created with exact permissions from Matrix UI');
+            console.log('[SUCCESS] Password encrypted with bcrypt');
+            console.log('[SUCCESS] Login functional');
+            console.log('[SUCCESS] JWT token generation working');
+            console.log('\n[COMPLETE] User Provisioning API is production-ready!\n');
         } else {
-            console.log('❌ Some tests failed. Review output above.');
+            console.log('[ERROR] Some tests failed. Review output above.');
         }
 
         // Cleanup
-        console.log('\n🧹 Cleaning up test user...');
+        console.log('\n[Cleanup] Cleaning up test user...');
         await prisma.user.delete({
             where: { email: 'juan.delacruz@cicj.com' }
         });
