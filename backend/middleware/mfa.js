@@ -7,6 +7,7 @@
  */
 
 const nodemailer = require('nodemailer');
+const dns = require('dns');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -39,6 +40,8 @@ const logOTPToTerminal = (email, otp, note = 'MFA code generated') => {
 let transporter;
 
 const initializeEmailTransporter = () => {
+    // Force IPv4 for SMTP to avoid IPv6-only resolution on some hosts.
+    dns.setDefaultResultOrder('ipv4first');
     // Create reusable SMTP connection settings for OTP emails.
     try {
         transporter = nodemailer.createTransport({
