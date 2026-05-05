@@ -7,6 +7,7 @@
  */
 
 const nodemailer = require('nodemailer');
+const axios = require('axios');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -77,7 +78,51 @@ const generateOTP = () => {
 const sendOTPEmail = async (email, otp, userName = 'User') => {
     // In dev mode, OTP can be printed in terminal when SMTP is not configured.
     try {
-        // Check if email is configured
+        // Prefer Brevo HTTP API when configured (avoids SMTP blocks).
+        if (process.env.BREVO_API_KEY) {
+            const senderEmail = process.env.BREVO_SENDER_EMAIL || process.env.SMTP_USER;
+            const senderName = process.env.BREVO_SENDER_NAME || 'CICJ-SH-COMS Security';
+
+            if (!senderEmail) {
+                throw new Error('Brevo sender email missing');
+            }
+
+            await axios.post(
+                'https://api.brevo.com/v3/smtp/email',
+                {
+                    sender: {
+                        name: senderName,
+                        email: senderEmail
+                    },
+                    to: [{ email, name: userName }],
+                    subject: 'Login Verification Code - CICJ-SH-COMS',
+                    htmlContent: `
+<html>
+  <body style="font-family:Arial,sans-serif;background:#f3f4f6;padding:20px;">
+    <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;padding:24px;">
+      <h2 style="margin:0 0 8px 0;">CICJ-SH-COMS Verification</h2>
+      <p style="margin:0 0 16px 0;">Hi ${userName},</p>
+      <p style="margin:0 0 16px 0;">Use this code to finish signing in:</p>
+      <div style="font-size:28px;font-weight:bold;letter-spacing:6px;background:#2dad50;color:#fff;padding:14px;border-radius:8px;text-align:center;">${otp}</div>
+      <p style="margin:16px 0 0 0;color:#6b7280;">This code expires in ${OTP_EXPIRY_MINUTES} minute(s).</p>
+    </div>
+  </body>
+</html>
+                    `.trim()
+                },
+                {
+                    headers: {
+                        'api-key': process.env.BREVO_API_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000
+                }
+            );
+
+            return { success: true, devMode: false };
+        }
+
+        // Check if SMTP email is configured
         if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
             console.warn('[MFA] Email not configured. OTP would be:', otp);
             // In development, just log the OTP
