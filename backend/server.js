@@ -4868,6 +4868,13 @@ app.get('/api/users/me/permissions', authenticateToken, async (req, res) => {
 });
 
 // Health Check Endpoint (for Docker/Kubernetes health monitoring)
+app.get('/', (req, res) => {
+    res.status(200).json({
+        status: 'ok',
+        message: 'CICJ-SHCOMS API is running.'
+    });
+});
+
 app.get('/health', async (req, res) => {
     try {
         // Check database connection
@@ -4893,8 +4900,10 @@ initializeEmailTransporter();
 
 async function startServer() {
     try {
-        await ensureArchiveStore();
         app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+        ensureArchiveStore().catch((error) => {
+            console.error('Archive store init failed:', error);
+        });
     } catch (error) {
         console.error('Startup Error:', error);
         process.exit(1);
