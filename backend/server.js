@@ -3392,7 +3392,10 @@ app.post('/api/inquiries/public', publicInquiryLimiter, async (req, res) => {
         const verifyRes = await axios.post(
             'https://www.google.com/recaptcha/api/siteverify',
             verifyPayload,
-            { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+            {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                timeout: 8000
+            }
         );
 
         if (!verifyRes?.data?.success) {
@@ -3428,19 +3431,17 @@ app.post('/api/inquiries/public', publicInquiryLimiter, async (req, res) => {
             }
         });
 
-        try {
-            await notifyAdmins(
-                'NOTIFICATION_NEW_INQUIRY',
-                'MEDIUM',
-                'New Client Inquiry Submitted',
-                `New inquiry from ${client_name} (${client_email}) submitted via the client page.`,
-                req,
-                { inquiry_id: newInquiry.inquiry_id, client_name, client_email, submitted_status: 'Pending' },
-                `New Inquiry: ${client_name}`
-            );
-        } catch (notifyErr) {
+        notifyAdmins(
+            'NOTIFICATION_NEW_INQUIRY',
+            'MEDIUM',
+            'New Client Inquiry Submitted',
+            `New inquiry from ${client_name} (${client_email}) submitted via the client page.`,
+            req,
+            { inquiry_id: newInquiry.inquiry_id, client_name, client_email, submitted_status: 'Pending' },
+            `New Inquiry: ${client_name}`
+        ).catch((notifyErr) => {
             console.warn('Notification warning (non-fatal):', notifyErr.message);
-        }
+        });
 
         res.status(201).json({ message: 'Inquiry submitted successfully.', inquiry_id: newInquiry.inquiry_id });
     } catch (error) {
