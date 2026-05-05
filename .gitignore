@@ -19,9 +19,6 @@ Thumbs.db
 /dist
 /build
 
-# Prisma
-/backend/prisma/migrations/
-
 # Uploads
 /backend/uploads/
 
