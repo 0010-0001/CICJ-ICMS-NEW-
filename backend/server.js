@@ -71,6 +71,7 @@ const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET;
+const SEED_ADMIN_TOKEN = process.env.SEED_ADMIN_TOKEN;
 
 // ==========================================
 // PASSPORT OAUTH CONFIGURATION
@@ -131,6 +132,47 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 // ==========================================
 // SECURITY MIDDLEWARE
 // ==========================================
+
+function buildAdminPermissions() {
+    return {
+        can_view_users: true,
+        can_add_users: true,
+        can_edit_users: true,
+        can_delete_users: true,
+        can_activate_users: true,
+        can_view_own_attendance: true,
+        can_view_all_attendance: true,
+        can_edit_attendance: true,
+        can_delete_attendance: true,
+        can_export_attendance: true,
+        can_view_equipment: true,
+        can_add_equipment: true,
+        can_edit_equipment: true,
+        can_delete_equipment: true,
+        can_assign_equipment: true,
+        can_view_files: true,
+        can_upload_files: true,
+        can_edit_files: true,
+        can_delete_files: true,
+        can_download_files: true,
+        can_view_inquiries: true,
+        can_add_inquiries: true,
+        can_update_inquiries: true,
+        can_delete_inquiries: true,
+        can_assign_inquiries: true,
+        can_view_health_logs: true,
+        can_export_health_logs: true,
+        can_acknowledge_security_alerts: true,
+        can_manage_permissions: true,
+        can_view_audit_trail: true,
+        can_backup_database: true,
+        can_view_reports: true,
+        can_export_attendance_report: true,
+        can_export_equipment_report: true,
+        can_export_inquiry_report: true,
+        can_export_files_report: true
+    };
+}
 
 // 1. Helmet - Security headers (XSS, clickjacking, MIME sniffing protection)
 app.use(helmet({
@@ -4892,6 +4934,54 @@ app.get('/health', async (req, res) => {
             database: 'disconnected',
             error: error.message
         });
+    }
+});
+
+app.post('/admin/seed', async (req, res) => {
+    try {
+        if (!SEED_ADMIN_TOKEN) {
+            return res.status(403).json({ error: 'Seed token not configured.' });
+        }
+
+        const token = req.headers['x-seed-token'];
+        if (token !== SEED_ADMIN_TOKEN) {
+            return res.status(403).json({ error: 'Invalid seed token.' });
+        }
+
+        const email = process.env.SEED_ADMIN_EMAIL;
+        const password = process.env.SEED_ADMIN_PASSWORD;
+        const fullName = process.env.SEED_ADMIN_NAME || 'System Admin';
+
+        if (!email || !password) {
+            return res.status(400).json({ error: 'Seed admin env vars missing.' });
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+        const permissions = buildAdminPermissions();
+
+        const admin = await prisma.user.upsert({
+            where: { email },
+            update: {
+                full_name: fullName,
+                role: 'ADMIN',
+                is_active: true,
+                password_hash: passwordHash,
+                ...permissions
+            },
+            create: {
+                full_name: fullName,
+                email,
+                role: 'ADMIN',
+                is_active: true,
+                password_hash: passwordHash,
+                ...permissions
+            }
+        });
+
+        return res.status(200).json({ status: 'ok', email: admin.email });
+    } catch (error) {
+        console.error('Seed Admin Error:', error);
+        return res.status(500).json({ error: 'Seed failed.' });
     }
 });
 
