@@ -72,6 +72,152 @@ const generateOTP = () => {
     return otp;
 };
 
+const buildOtpEmailHtml = ({ userName, otp, logoMarkup }) => {
+    const safeName = userName || 'User';
+    const headerLogo = logoMarkup || '<div class="logo-box"><div class="logo-icon"></div></div>';
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #374151;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0;
+            background-color: #f3f4f6;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 16px;
+            margin: 40px 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+            padding: 36px 30px;
+            text-align: center;
+        }
+        .logo-box {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #2dad50 0%, #258a3f 100%);
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 24px rgba(45, 173, 80, 0.3);
+        }
+        .brand-logo {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            background: #ffffff;
+            padding: 6px;
+            box-shadow: 0 8px 24px rgba(45, 173, 80, 0.3);
+        }
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background-color: white;
+            -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 18c-3.86 0-7-3.14-7-7V8.3l7-3.11 7 3.11V13c0 3.86-3.14 7-7 7z"/></svg>') no-repeat center;
+            mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 18c-3.86 0-7-3.14-7-7V8.3l7-3.11 7 3.11V13c0 3.86-3.14 7-7 7z"/></svg>') no-repeat center;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .header p {
+            color: #cbd5f5;
+            margin: 6px 0 0 0;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .content {
+            padding: 36px 30px 40px;
+        }
+        .greeting {
+            color: #0f172a;
+            font-size: 16px;
+            margin-bottom: 14px;
+        }
+        .message {
+            color: #64748b;
+            font-size: 15px;
+            margin-bottom: 24px;
+            line-height: 1.7;
+        }
+        .otp-box {
+            background: linear-gradient(135deg, #2dad50 0%, #258a3f 100%);
+            color: #ffffff;
+            text-align: center;
+            padding: 26px;
+            border-radius: 12px;
+            margin: 20px 0 22px;
+            box-shadow: 0 12px 28px rgba(45, 173, 80, 0.25);
+        }
+        .otp-label {
+            font-size: 12px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .otp-code {
+            font-size: 38px;
+            font-weight: bold;
+            letter-spacing: 12px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0 0;
+        }
+        .otp-expiry {
+            margin-top: 16px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .footer {
+            margin-top: 26px;
+            font-size: 12px;
+            color: #94a3b8;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            ${headerLogo}
+            <h1>CICJ-SH-COMS Verification</h1>
+            <p>Secure access confirmation</p>
+        </div>
+        <div class="content">
+            <div class="greeting">Hi ${safeName},</div>
+            <div class="message">Use the code below to finish signing in. This code expires in ${OTP_EXPIRY_MINUTES} minute(s).</div>
+            <div class="otp-box">
+                <div class="otp-label">Verification Code</div>
+                <div class="otp-code">${otp}</div>
+            </div>
+            <div class="otp-expiry">If you did not request this, you can ignore this email.</div>
+        </div>
+    </div>
+    <div class="footer">CICJ-SH-COMS Security • Do not share this code.</div>
+</body>
+</html>
+    `.trim();
+};
+
 /**
  * Send OTP Email
  */
@@ -95,20 +241,8 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
                         email: senderEmail
                     },
                     to: [{ email, name: userName }],
-                    subject: 'Login Verification Code - CICJ-SH-COMS',
-                    htmlContent: `
-<html>
-  <body style="font-family:Arial,sans-serif;background:#f3f4f6;padding:20px;">
-    <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;padding:24px;">
-      <h2 style="margin:0 0 8px 0;">CICJ-SH-COMS Verification</h2>
-      <p style="margin:0 0 16px 0;">Hi ${userName},</p>
-      <p style="margin:0 0 16px 0;">Use this code to finish signing in:</p>
-      <div style="font-size:28px;font-weight:bold;letter-spacing:6px;background:#2dad50;color:#fff;padding:14px;border-radius:8px;text-align:center;">${otp}</div>
-      <p style="margin:16px 0 0 0;color:#6b7280;">This code expires in ${OTP_EXPIRY_MINUTES} minute(s).</p>
-    </div>
-  </body>
-</html>
-                    `.trim()
+                                        subject: 'Login Verification Code - CICJ-SH-COMS',
+                                        htmlContent: buildOtpEmailHtml({ userName, otp })
                 },
                 {
                     headers: {
@@ -171,146 +305,7 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
             margin: 0 auto;
             padding: 0;
             background-color: #f3f4f6;
-        }
-        .container {
-            background-color: #ffffff;
-            border-radius: 16px;
-            margin: 40px 20px;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-            padding: 40px 30px;
-            text-align: center;
-        }
-        .logo-box {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, #2dad50 0%, #258a3f 100%);
-            border-radius: 16px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
-            box-shadow: 0 8px 24px rgba(45, 173, 80, 0.3);
-        }
-        .brand-logo {
-            width: 64px;
-            height: 64px;
-            object-fit: contain;
-            border-radius: 12px;
-            margin-bottom: 16px;
-            background: #ffffff;
-            padding: 6px;
-            box-shadow: 0 8px 24px rgba(45, 173, 80, 0.3);
-        }
-        .logo-icon {
-            width: 32px;
-            height: 32px;
-            background-color: white;
-            -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 18c-3.86 0-7-3.14-7-7V8.3l7-3.11 7 3.11V13c0 3.86-3.14 7-7 7z"/></svg>') no-repeat center;
-            mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 18c-3.86 0-7-3.14-7-7V8.3l7-3.11 7 3.11V13c0 3.86-3.14 7-7 7z"/></svg>') no-repeat center;
-        }
-        .header h1 {
-            color: #ffffff;
-            margin: 0;
-            font-size: 24px;
-            font-weight: 700;
-        }
-        .header p {
-            color: #9ca3af;
-            margin: 8px 0 0 0;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .content {
-            padding: 40px 30px;
-        }
-        .greeting {
-            color: #111827;
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
-        .message {
-            color: #6b7280;
-            font-size: 15px;
-            margin-bottom: 30px;
-            line-height: 1.7;
-        }
-        .otp-box {
-            background: linear-gradient(135deg, #2dad50 0%, #258a3f 100%);
-            color: white;
-            text-align: center;
-            padding: 32px;
-            border-radius: 12px;
-            margin: 30px 0;
-            box-shadow: 0 8px 24px rgba(45, 173, 80, 0.25);
-        }
-        .otp-label {
-            font-size: 12px;
-            opacity: 0.9;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
-        .otp-code {
-            font-size: 42px;
-            font-weight: bold;
-            letter-spacing: 12px;
-            font-family: 'Courier New', monospace;
-            margin: 16px 0;
-        }
-        .otp-expiry {
-            font-size: 13px;
-            opacity: 0.85;
-            margin-top: 12px;
-        }
-        .notice-box {
-            background-color: #f9fafb;
-            border-left: 4px solid #2dad50;
-            padding: 20px;
-            margin: 24px 0;
-            border-radius: 8px;
-        }
-        .notice-title {
-            color: #111827;
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 12px;
-        }
-        .notice-list {
-            margin: 0;
-            padding-left: 20px;
-            color: #6b7280;
-            font-size: 14px;
-        }
-        .notice-list li {
-            margin: 8px 0;
-        }
-        .security-notice {
-            background-color: #fef2f2;
-            border-left-color: #ef4444;
-        }
-        .footer {
-            background-color: #f9fafb;
-            padding: 30px;
-            text-align: center;
-            border-top: 1px solid #e5e7eb;
-        }
-        .footer-title {
-            color: #111827;
-            font-weight: 700;
-            font-size: 15px;
-            margin-bottom: 4px;
-        }
-        .footer-subtitle {
-            color: #6b7280;
-            font-size: 13px;
-            margin-bottom: 16px;
-        }
-        .footer-legal {
+            html: buildOtpEmailHtml({ userName, otp, logoMarkup: headerLogoMarkup })
             color: #9ca3af;
             font-size: 12px;
             margin-top: 16px;
