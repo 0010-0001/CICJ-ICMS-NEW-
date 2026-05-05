@@ -104,6 +104,18 @@ const buildOtpEmailHtml = ({ userName, otp, logoMarkup }) => {
             padding: 36px 30px;
             text-align: center;
         }
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 14px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            color: #cbd5f5;
+            font-size: 12px;
+            letter-spacing: 0.4px;
+            margin: 6px 0 18px;
+        }
         .logo-box {
             width: 64px;
             height: 64px;
@@ -124,6 +136,13 @@ const buildOtpEmailHtml = ({ userName, otp, logoMarkup }) => {
             background: #ffffff;
             padding: 6px;
             box-shadow: 0 8px 24px rgba(45, 173, 80, 0.3);
+        }
+        .brand-name {
+            color: #e2e8f0;
+            font-size: 13px;
+            letter-spacing: 1.6px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
         }
         .logo-icon {
             width: 32px;
@@ -178,7 +197,7 @@ const buildOtpEmailHtml = ({ userName, otp, logoMarkup }) => {
         .otp-code {
             font-size: 38px;
             font-weight: bold;
-            letter-spacing: 12px;
+            letter-spacing: 10px;
             font-family: 'Courier New', monospace;
             margin: 10px 0 0;
         }
@@ -193,14 +212,28 @@ const buildOtpEmailHtml = ({ userName, otp, logoMarkup }) => {
             color: #94a3b8;
             text-align: center;
         }
+        @media (max-width: 560px) {
+            .container {
+                margin: 20px 12px;
+            }
+            .content {
+                padding: 28px 22px 32px;
+            }
+            .otp-code {
+                font-size: 30px;
+                letter-spacing: 6px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             ${headerLogo}
+            <div class="brand-name">CICJ Construction</div>
             <h1>CICJ-SH-COMS Verification</h1>
             <p>Secure access confirmation</p>
+            <div class="header-badge">Secure login • 2-step verification</div>
         </div>
         <div class="content">
             <div class="greeting">Hi ${safeName},</div>
@@ -224,6 +257,12 @@ const buildOtpEmailHtml = ({ userName, otp, logoMarkup }) => {
 const sendOTPEmail = async (email, otp, userName = 'User') => {
     // In dev mode, OTP can be printed in terminal when SMTP is not configured.
     try {
+        const logoPath = path.join(__dirname, '..', '..', 'Images', 'CICJ.png');
+        const logoExists = fs.existsSync(logoPath);
+        const logoDataUri = logoExists
+            ? `data:image/png;base64,${fs.readFileSync(logoPath).toString('base64')}`
+            : null;
+
         // Prefer Brevo HTTP API when configured (avoids SMTP blocks).
         if (process.env.BREVO_API_KEY) {
             const senderEmail = process.env.BREVO_SENDER_EMAIL || process.env.SMTP_USER;
@@ -233,6 +272,10 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
                 throw new Error('Brevo sender email missing');
             }
 
+            const headerLogoMarkup = logoDataUri
+                ? `<img src="${logoDataUri}" alt="CICJ Logo" class="brand-logo">`
+                : `<div class="logo-box"><div class="logo-icon"></div></div>`;
+
             await axios.post(
                 'https://api.brevo.com/v3/smtp/email',
                 {
@@ -241,8 +284,8 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
                         email: senderEmail
                     },
                     to: [{ email, name: userName }],
-                                        subject: 'Login Verification Code - CICJ-SH-COMS',
-                                        htmlContent: buildOtpEmailHtml({ userName, otp })
+                    subject: 'Login Verification Code - CICJ-SH-COMS',
+                    htmlContent: buildOtpEmailHtml({ userName, otp, logoMarkup: headerLogoMarkup })
                 },
                 {
                     headers: {
@@ -273,8 +316,6 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
         }
 
         const logoCid = 'cicj-logo';
-        const logoPath = path.join(__dirname, '..', '..', 'Images', 'CICJ.png');
-        const logoExists = fs.existsSync(logoPath);
         const headerLogoMarkup = logoExists
             ? `<img src="cid:${logoCid}" alt="CICJ Logo" class="brand-logo">`
             : `<div class="logo-box"><div class="logo-icon"></div></div>`;
@@ -290,87 +331,7 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
                     cid: logoCid
                 }]
                 : [],
-            html: `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #374151;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 0;
-            background-color: #f3f4f6;
-            html: buildOtpEmailHtml({ userName, otp, logoMarkup: headerLogoMarkup })
-            color: #9ca3af;
-            font-size: 12px;
-            margin-top: 16px;
-            line-height: 1.6;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            ${headerLogoMarkup}
-            <h1>CICJ-SH-COMS</h1>
-            <p>Secure Hybrid Construction Management System</p>
-        </div>
-
-        <div class="content">
-            <div class="greeting">
-                Hello <strong>${userName}</strong>,
-            </div>
-            
-            <div class="message">
-                We received a login attempt for your CICJ-SH-COMS account. To complete the authentication process, please use the verification code below.
-            </div>
-
-            <div class="otp-box">
-                <div class="otp-label">Verification Code</div>
-                <div class="otp-code">${otp}</div>
-                <div class="otp-expiry">Valid for ${OTP_EXPIRY_MINUTES} minutes</div>
-            </div>
-
-            <div class="notice-box">
-                <div class="notice-title">Instructions</div>
-                <ul class="notice-list">
-                    <li>Enter this code on the login verification page to continue</li>
-                    <li>This code will expire in ${OTP_EXPIRY_MINUTES} minutes</li>
-                    <li>Do not share this code with anyone</li>
-                </ul>
-            </div>
-
-            <div class="notice-box security-notice">
-                <div class="notice-title">Security Notice</div>
-                <ul class="notice-list">
-                    <li>If you did not attempt to log in, please disregard this email</li>
-                    <li>Contact your system administrator if you suspect unauthorized access</li>
-                    <li>Never share your credentials or verification codes with anyone</li>
-                </ul>
-            </div>
-
-            <div class="message">
-                If you have any questions or concerns, please contact your system administrator.
-            </div>
-        </div>
-
-        <div class="footer">
-            <div class="footer-title">CICJ-SH-COMS</div>
-            <div class="footer-subtitle">Construction Information & Client Journey</div>
-            <div class="footer-legal">
-                This is an automated message. Please do not reply to this email.<br>
-                &copy; ${new Date().getFullYear()} CICJ-SH-COMS. All rights reserved.
-            </div>
-        </div>
-    </div>
-</body>
-</html>
-            `,
+            html: buildOtpEmailHtml({ userName, otp, logoMarkup: headerLogoMarkup }),
             text: `
 CICJ-SH-COMS Login Verification
 ========================================
