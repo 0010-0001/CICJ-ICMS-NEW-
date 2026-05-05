@@ -8,6 +8,8 @@
 
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 // This module handles OTP generation, delivery, and verification state.
@@ -20,6 +22,16 @@ const otpStore = new Map();
 const OTP_LENGTH = 6;
 const OTP_EXPIRY_MINUTES = 5;
 const MAX_OTP_ATTEMPTS = 3;
+
+const logOTPToTerminal = (email, otp, note = 'MFA code generated') => {
+    console.log('\n' + '='.repeat(64));
+    console.log(`[MFA CODE] ${note}`);
+    console.log(`[MFA CODE] Email: ${email}`);
+    console.log(`[MFA CODE] OTP: ${otp}`);
+    console.log(`[MFA CODE] Expires in: ${OTP_EXPIRY_MINUTES} minute(s)`);
+    console.log('[MFA CODE] Enter this code on the OTP verification screen.');
+    console.log('='.repeat(64) + '\n');
+};
 
 /**
  * Email Transporter Configuration
@@ -70,10 +82,7 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
             console.warn('[MFA] Email not configured. OTP would be:', otp);
             // In development, just log the OTP
             if (process.env.NODE_ENV !== 'production') {
-                console.log(`\n${'='.repeat(50)}`);
-                console.log(`[MFA] OTP for ${email}: ${otp}`);
-                console.log(`[MFA] Valid for ${OTP_EXPIRY_MINUTES} minutes`);
-                console.log(`${'='.repeat(50)}\n`);
+                logOTPToTerminal(email, otp, 'Email not configured (development mode)');
                 return { success: true, devMode: true };
             }
             throw new Error('Email configuration missing');
@@ -84,10 +93,24 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
             initializeEmailTransporter();
         }
 
+        const logoCid = 'cicj-logo';
+        const logoPath = path.join(__dirname, '..', '..', 'Images', 'CICJ.png');
+        const logoExists = fs.existsSync(logoPath);
+        const headerLogoMarkup = logoExists
+            ? `<img src="cid:${logoCid}" alt="CICJ Logo" class="brand-logo">`
+            : `<div class="logo-box"><div class="logo-icon"></div></div>`;
+
         const mailOptions = {
             from: `"CICJ-SH-COMS Security" <${process.env.SMTP_USER}>`,
             to: email,
             subject: 'Login Verification Code - CICJ-SH-COMS',
+            attachments: logoExists
+                ? [{
+                    filename: 'CICJ.png',
+                    path: logoPath,
+                    cid: logoCid
+                }]
+                : [],
             html: `
 <!DOCTYPE html>
 <html>
@@ -125,6 +148,16 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
             align-items: center;
             justify-content: center;
             margin-bottom: 16px;
+            box-shadow: 0 8px 24px rgba(45, 173, 80, 0.3);
+        }
+        .brand-logo {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            background: #ffffff;
+            padding: 6px;
             box-shadow: 0 8px 24px rgba(45, 173, 80, 0.3);
         }
         .logo-icon {
@@ -243,9 +276,7 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo-box">
-                <div class="logo-icon"></div>
-            </div>
+            ${headerLogoMarkup}
             <h1>CICJ-SH-COMS</h1>
             <p>Secure Hybrid Construction Management System</p>
         </div>
@@ -334,12 +365,7 @@ This is an automated message. Please do not reply.
         const info = await transporter.sendMail(mailOptions);
         
         console.log(`[MFA] OTP email sent to ${email}: ${info.messageId}`);
-        
-        // Also print OTP to terminal for convenience
-        console.log(`\n${'='.repeat(50)}`);
-        console.log(`📧 OTP sent to ${email}: ${otp}`);
-        console.log(`   Valid for ${OTP_EXPIRY_MINUTES} minutes`);
-        console.log(`${'='.repeat(50)}\n`);
+        logOTPToTerminal(email, otp, 'Email sent successfully');
         
         return { success: true, messageId: info.messageId };
 
@@ -348,10 +374,7 @@ This is an automated message. Please do not reply.
         
         // In development, still show OTP in console
         if (process.env.NODE_ENV !== 'production') {
-            console.log(`\n${'='.repeat(50)}`);
-            console.log(`[MFA] OTP for ${email}: ${otp} (Email failed, dev mode)`);
-            console.log(`[MFA] Valid for ${OTP_EXPIRY_MINUTES} minutes`);
-            console.log(`${'='.repeat(50)}\n`);
+            logOTPToTerminal(email, otp, 'Email send failed (development fallback)');
             return { success: true, devMode: true, error: error.message };
         }
         

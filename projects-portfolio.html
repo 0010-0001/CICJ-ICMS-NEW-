@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CICJ Construction - Projects Portfolio</title>
+    <link rel="stylesheet" href="css/client.css?v=20260423a">
+    <link rel="stylesheet" href="css/portfolio.css?v=20260428a">
+    <link rel="stylesheet" href="css/bootstrap-icons/bootstrap-icons.min.css">
+</head>
+<body class="portfolio-page">
+    <nav class="navbar pcl-header is-solid">
+        <div class="navbar-container pcl-header-container">
+            <a href="client.html" class="pcl-logo-wrap" aria-label="CICJ Construction Home">
+                <img src="Images/CICJ.png" alt="CICJ Construction" class="pcl-logo-image">
+            </a>
+
+            <ul class="pcl-nav" id="pcl-nav">
+                <li><a href="client.html#home">Home</a></li>
+                <li><a href="client.html#who-highlight">Who We Are</a></li>
+                <li><a href="client.html#what-we-do">What We Do</a></li>
+                <li><a href="client.html#our-work">Our Work</a></li>
+                <li><a href="projects-portfolio.html">Portfolio</a></li>
+                <li><a href="about-us.html">About Us</a></li>
+                <li><a href="client.html#contact">Get In Touch</a></li>
+            </ul>
+
+            <button type="button" class="pcl-mobile-menu-btn" id="pcl-mobile-menu-btn" aria-label="Toggle navigation">
+                <i class="bi bi-list"></i>
+            </button>
+        </div>
+    </nav>
+
+    <main>
+        <section class="portfolio-section" id="portfolio">
+            <div class="container">
+                <h1 class="section-title">Our Portfolio</h1>
+                <p class="section-subtitle">Showcasing our finest completed projects</p>
+
+                <div class="portfolio-filters">
+                    <button class="filter-btn active" onclick="filterPortfolio('all')">All Projects</button>
+                    <button class="filter-btn" onclick="filterPortfolio('residential')">Residential</button>
+                    <button class="filter-btn" onclick="filterPortfolio('commercial')">Commercial</button>
+                    <button class="filter-btn" onclick="filterPortfolio('infrastructure')">Infrastructure</button>
+                </div>
+
+                <div class="portfolio-grid" id="portfolio-grid">
+                    <div class="portfolio-item" data-category="residential">
+                        <div class="portfolio-image">
+                            <img src="Images/Christmas residence.jpg" alt="Christmas Residence">
+                        </div>
+                        <div class="portfolio-info">
+                            <h4>Christmas Residence</h4>
+                            <p class="project-meta">Residential • 2025</p>
+                            <p class="project-desc">Warm, modern residence with an airy layout, bright finishes, and family-focused spaces.</p>
+                            <div class="project-stats">
+                                <span><i class="bi bi-house"></i> Private Home</span>
+                                <span><i class="bi bi-tree"></i> Residential</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="portfolio-item" data-category="residential">
+                        <div class="portfolio-image">
+                            <img src="Images/Suntrust Solana.jpg" alt="Suntrust Solana">
+                        </div>
+                        <div class="portfolio-info">
+                            <h4>Suntrust Solana Residences</h4>
+                            <p class="project-meta">Residential • 2024</p>
+                            <p class="project-desc">Mid-rise residential development with modern amenities, landscaping, and secure access.</p>
+                            <div class="project-stats">
+                                <span><i class="bi bi-building"></i> Residential</span>
+                                <span><i class="bi bi-shield-check"></i> Secure</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="portfolio-item" data-category="residential">
+                        <div class="portfolio-image">
+                            <img src="Images/Suntrust Solana Overview.avif" alt="Suntrust Solana Overview">
+                        </div>
+                        <div class="portfolio-info">
+                            <h4>Suntrust Solana Overview</h4>
+                            <p class="project-meta">Residential • 2024</p>
+                            <p class="project-desc">Master-planned community overview highlighting green spaces and site circulation.</p>
+                            <div class="project-stats">
+                                <span><i class="bi bi-map"></i> Master Plan</span>
+                                <span><i class="bi bi-tree"></i> Green Areas</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="portfolio-item" data-category="residential">
+                        <div class="portfolio-image">
+                            <img src="Images/house 1.jpg" alt="House 1 Residence">
+                        </div>
+                        <div class="portfolio-info">
+                            <h4>Mapleview Family Home</h4>
+                            <p class="project-meta">Residential • 2024</p>
+                            <p class="project-desc">Bright modern facade with an open-plan layout and flexible family-ready spaces.</p>
+                            <div class="project-stats">
+                                <span><i class="bi bi-house"></i> Private Home</span>
+                                <span><i class="bi bi-tree"></i> Residential</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="portfolio-item" data-category="residential">
+                        <div class="portfolio-image">
+                            <img src="Images/house 2.jpg" alt="House 2 Residence">
+                        </div>
+                        <div class="portfolio-info">
+                            <h4>Solara Garden Residence</h4>
+                            <p class="project-meta">Residential • 2024</p>
+                            <p class="project-desc">Contemporary home with warm finishes, landscaped frontage, and an easy indoor-outdoor flow.</p>
+                            <div class="project-stats">
+                                <span><i class="bi bi-house"></i> Private Home</span>
+                                <span><i class="bi bi-tree"></i> Residential</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="portfolio-item" data-category="residential">
+                        <div class="portfolio-image">
+                            <img src="Images/house 3.jpg" alt="House 3 Residence">
+                        </div>
+                        <div class="portfolio-info">
+                            <h4>Oakline Modern Villa</h4>
+                            <p class="project-meta">Residential • 2024</p>
+                            <p class="project-desc">Balanced massing with efficient layouts and a comfortable, light-filled interior.</p>
+                            <div class="project-stats">
+                                <span><i class="bi bi-house"></i> Private Home</span>
+                                <span><i class="bi bi-tree"></i> Residential</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="portfolio-item" data-category="infrastructure">
+                        <div class="portfolio-image">
+                            <img src="Images/infra1.jpg" alt="Infrastructure Project 1">
+                        </div>
+                        <div class="portfolio-info">
+                            <h4>Riverside Road Rehabilitation</h4>
+                            <p class="project-meta">Infrastructure • 2024</p>
+                            <p class="project-desc">Road rehabilitation focused on durability, safety, and long-term performance.</p>
+                            <div class="project-stats">
+                                <span><i class="bi bi-truck"></i> Field Works</span>
+                                <span><i class="bi bi-geo-alt"></i> Regional</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="portfolio-item" data-category="infrastructure">
+                        <div class="portfolio-image">
+                            <img src="Images/infra2.jpg" alt="Infrastructure Project 2">
+                        </div>
+                        <div class="portfolio-info">
+                            <h4>Northlink Roadworks</h4>
+                            <p class="project-meta">Infrastructure • 2023</p>
+                            <p class="project-desc">Large-scale roadworks with engineered systems to improve mobility and access.</p>
+                            <div class="project-stats">
+                                <span><i class="bi bi-pin-map"></i> Transport</span>
+                                <span><i class="bi bi-gear"></i> Engineered</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="portfolio-item" data-category="commercial">
+                        <div class="portfolio-image">
+                            <img src="Images/com.jpg" alt="Commercial Project">
+                        </div>
+                        <div class="portfolio-info">
+                            <h4>Greenstone Business Hub</h4>
+                            <p class="project-meta">Commercial • 2024</p>
+                            <p class="project-desc">Modern commercial space with flexible layouts, efficient services, and premium finishes.</p>
+                            <div class="project-stats">
+                                <span><i class="bi bi-building"></i> Commercial</span>
+                                <span><i class="bi bi-briefcase"></i> Business Use</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="portfolio-item" data-category="residential">
+                        <div class="portfolio-image">
+                            <img src="https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&h=400&fit=crop" alt="Modern Residential Complex">
+                        </div>
+                        <div class="portfolio-info">
+                            <h4>Sunrise Residential Complex</h4>
+                            <p class="project-meta">Residential • 2024</p>
+                            <p class="project-desc">120-unit luxury residential complex featuring modern amenities, sustainable design, and community spaces.</p>
+                            <div class="project-stats">
+                                <span><i class="bi bi-building"></i> 120 Units</span>
+                                <span><i class="bi bi-geo-alt"></i> Downtown</span>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="portfolio-item" data-category="residential">
+                        <div class="portfolio-image">
+                            <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&h=400&fit=crop" alt="Luxury Villas">
+                        </div>
+                        <div class="portfolio-info">
+                            <h4>Hillside Estates Luxury Villas</h4>
+                            <p class="project-meta">Residential • 2022</p>
+                            <p class="project-desc">45-unit gated community with landscape design, recreational facilities, and private amenities.</p>
+                            <div class="project-stats">
+                                <span><i class="bi bi-houses"></i> 45 Villas</span>
+                                <span><i class="bi bi-door-closed"></i> Gated</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="portfolio-item" data-category="commercial">
+                        <div class="portfolio-image">
+                            <img src="https://images.unsplash.com/photo-1567521464027-f127ff144326?w=600&h=400&fit=crop" alt="Shopping Complex">
+                        </div>
+                        <div class="portfolio-info">
+                            <h4>Plaza Shopping District</h4>
+                            <p class="project-meta">Commercial • 2022</p>
+                            <p class="project-desc">Modern retail and dining complex spanning 50,000 sqm with underground parking and entertainment venues.</p>
+                            <div class="project-stats">
+                                <span><i class="bi bi-shop"></i> 150+ Stores</span>
+                                <span><i class="bi bi-rulers"></i> 50,000 sqm</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="pcl-footer">
+        <section class="pcl-footer-bottom">
+            <div class="container">
+                <div class="pcl-footer-brand-row">
+                    <div class="pcl-footer-brand">
+                        <img src="Images/CICJ.png" alt="CICJ Construction" class="pcl-footer-logo">
+                        <span>CICJ General Construction and Building Maintenance</span>
+                    </div>
+                    <p class="pcl-footer-copyright">Copyright &copy; 2026 CICJ Constructors Inc. All rights reserved</p>
+                </div>
+            </div>
+        </section>
+    </footer>
+
+    <script src="js/client-landing.js?v=20260423a"></script>
+</body>
+</html>

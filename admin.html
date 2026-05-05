@@ -7,7 +7,8 @@
     <title>Admin Dashboard | CICJ-SHCOMS</title>
     <link rel="stylesheet" href="css/bootstrap-icons/bootstrap-icons.min.css">
     <link rel="stylesheet" href="css/global.css?v=20260402a">
-    <link rel="stylesheet" href="css/admin.css?v=20260409a">
+    <link rel="stylesheet" href="css/admin.css?v=20260505d">
+    <link rel="stylesheet" href="css/leaflet.css">
     <link rel="stylesheet" href="css/logout-modal.css?v=20260328a">
     <link rel="stylesheet" href="css/system-typography.css?v=20260329a">
     <link rel="stylesheet" href="css/button-hover-glow.css?v=20260328c">
@@ -94,122 +95,143 @@
                     <div class="overview-header-row">
                         <div>
                             <h2 class="overview-title">Admin Overview</h2>
-                            <p class="overview-subtitle">Monitor system health, active projects, and employee attendance.</p>
+                            <p class="overview-subtitle">Real-time operational snapshot &mdash; users, equipment, attendance, and inquiries.</p>
                         </div>
                         <div class="overview-actions">
                             <div class="overview-search-wrap">
                                 <i class="bi bi-search"></i>
-                                <input type="text" id="overview-search-input" class="overview-search-input" placeholder="Search records, ID, or users..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" name="overview-search-query">
+                                <input type="text" id="overview-search-input" class="overview-search-input" placeholder="Search users, equipment, inquiries..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" name="overview-search-query">
                             </div>
+                            <select id="overview-period-select" class="overview-filter-btn overview-period-select">
+                                <option value="this_week" selected>This Week</option>
+                                <option value="last_week">Last Week</option>
+                                <option value="this_month">This Month</option>
+                                <option value="last_month">Last Month</option>
+                            </select>
+                            <button type="button" id="overview-refresh-btn" class="overview-filter-btn overview-refresh-btn" title="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
                         </div>
                     </div>
 
-                    <div class="overview-kpi-grid">
-                        <div class="overview-kpi-card">
-                            <div class="overview-kpi-top">
-                                <h3>Active Employees</h3>
-                                <span class="overview-kpi-icon"><i class="bi bi-people"></i></span>
-                            </div>
-                            <p class="overview-kpi-number" id="active-employees-count">0</p>
-                            <p class="overview-kpi-trend trend-positive"><i class="bi bi-graph-up-arrow"></i> +4% <span>vs last week</span></p>
-                        </div>
+                    <div id="overview-search-results" class="overview-search-results hidden"></div>
 
-                        <div class="overview-kpi-card">
+                    <div class="overview-kpi-grid">
+                        <div class="overview-kpi-card overview-clickable" data-overview-target="attendance-tab">
+                            <div class="overview-kpi-top">
+                                <h3>Clocked In Today</h3>
+                                <span class="overview-kpi-icon"><i class="bi bi-person-check"></i></span>
+                            </div>
+                            <p class="overview-kpi-number" id="active-employees-count">&mdash;</p>
+                            <p class="overview-kpi-trend"><span>of </span><span id="total-users-count">&mdash;</span><span> total employees</span></p>
+                        </div>
+                        <div class="overview-kpi-card overview-clickable" data-overview-target="equipment-tab">
                             <div class="overview-kpi-top">
                                 <h3>Equipment Deployed</h3>
                                 <span class="overview-kpi-icon"><i class="bi bi-wrench-adjustable-circle"></i></span>
                             </div>
-                            <p class="overview-kpi-number" id="equipment-deployed-count">0</p>
-                            <p class="overview-kpi-trend trend-positive"><i class="bi bi-graph-up-arrow"></i> +12% <span>vs last week</span></p>
+                            <p class="overview-kpi-number" id="equipment-deployed-count">&mdash;</p>
+                            <p class="overview-kpi-trend"><span>of </span><span id="total-equipment-count">&mdash;</span><span> total items</span></p>
                         </div>
-
-                        <div class="overview-kpi-card">
-                            <div class="overview-kpi-top">
-                                <h3>Active Projects</h3>
-                                <span class="overview-kpi-icon"><i class="bi bi-briefcase"></i></span>
-                            </div>
-                            <p class="overview-kpi-number" id="active-projects-count">0</p>
-                            <p class="overview-kpi-trend trend-positive"><i class="bi bi-graph-up-arrow"></i> +2 <span>newly started</span></p>
-                        </div>
-
-                        <div class="overview-kpi-card">
+                        <div class="overview-kpi-card overview-clickable" data-overview-target="inquiry-tab">
                             <div class="overview-kpi-top">
                                 <h3>Pending Inquiries</h3>
-                                <span class="overview-kpi-icon warn"><i class="bi bi-chat-square"></i></span>
+                                <span class="overview-kpi-icon warn"><i class="bi bi-chat-square-dots"></i></span>
                             </div>
-                            <p class="overview-kpi-number" id="inquiries-pending-count">0</p>
-                            <p class="overview-kpi-trend trend-negative"><i class="bi bi-activity"></i> +2 <span>requires attention</span></p>
+                            <p class="overview-kpi-number" id="inquiries-pending-count">&mdash;</p>
+                            <p class="overview-kpi-trend"><span>of </span><span id="inquiries-total-count">&mdash;</span><span> total inquiries</span></p>
+                        </div>
+                        <div class="overview-kpi-card overview-clickable" data-overview-target="portfolio-tab">
+                            <div class="overview-kpi-top">
+                                <h3>Files &amp; Projects</h3>
+                                <span class="overview-kpi-icon"><i class="bi bi-folder2-open"></i></span>
+                            </div>
+                            <p class="overview-kpi-number" id="overview-files-count">&mdash;</p>
+                            <p class="overview-kpi-trend"><span id="active-projects-count">&mdash;</span><span> active projects</span></p>
                         </div>
                     </div>
 
+                    <!-- Row 2: Attendance Trend + Equipment Status -->
                     <div class="overview-panels-grid">
-                        <div class="overview-panel-card overview-attendance-card">
+                        <div class="overview-panel-card overview-attendance-card overview-clickable" data-overview-target="attendance-tab">
                             <div class="overview-panel-head">
-                                <h3>Weekly Attendance Log</h3>
-                                <select id="weekly-range-select" class="overview-panel-select">
-                                    <option value="this_week" selected>This Week</option>
-                                    <option value="last_week">Last Week</option>
-                                </select>
+                                <h3>Attendance Trend</h3>
+                                <span class="overview-panel-head-meta" id="overview-attendance-period-label">This Week</span>
                             </div>
                             <div class="weekly-attendance-chart">
                                 <div id="weekly-attendance-scale" class="weekly-attendance-scale">
-                                    <span>8</span>
-                                    <span>6</span>
-                                    <span>4</span>
-                                    <span>2</span>
-                                    <span>0</span>
+                                    <span>8</span><span>6</span><span>4</span><span>2</span><span>0</span>
                                 </div>
                                 <div id="weekly-attendance-bars" class="weekly-attendance-bars">
-                                    <div class="weekly-bar-col"><div class="weekly-bar" style="height:62%"></div><span>Mon</span></div>
-                                    <div class="weekly-bar-col"><div class="weekly-bar" style="height:68%"></div><span>Tue</span></div>
-                                    <div class="weekly-bar-col"><div class="weekly-bar" style="height:80%"></div><span>Wed</span></div>
-                                    <div class="weekly-bar-col"><div class="weekly-bar" style="height:72%"></div><span>Thu</span></div>
-                                    <div class="weekly-bar-col"><div class="weekly-bar" style="height:76%"></div><span>Fri</span></div>
-                                    <div class="weekly-bar-col"><div class="weekly-bar muted" style="height:28%"></div><span>Sat</span></div>
-                                    <div class="weekly-bar-col"><div class="weekly-bar muted" style="height:18%"></div><span>Sun</span></div>
+                                    <div class="weekly-bar-col"><div class="weekly-bar muted" style="height:10px"></div><span>&mdash;</span></div>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="overview-panel-card">
+                        <div class="overview-panel-card overview-clickable" data-overview-target="equipment-tab">
                             <div class="overview-panel-head">
                                 <h3>Equipment Status</h3>
                             </div>
                             <div class="equipment-status-wrap">
-                                <div id="equipment-status-chart" class="equipment-status-chart" style="--in-use:55; --maintenance:25; --out-order:10;">
+                                <div id="equipment-status-chart" class="equipment-status-chart" style="--in-use:0;--maintenance:0;--out-order:0;">
                                     <div class="equipment-status-center">
-                                        <div id="equipment-status-total" class="equipment-status-total">0</div>
+                                        <div id="equipment-status-total" class="equipment-status-total">&mdash;</div>
                                         <div class="equipment-status-caption">Total Items</div>
                                     </div>
                                 </div>
-                                <div id="equipment-status-legend" class="equipment-status-legend">
-                                    <div class="equipment-status-legend-row">
-                                        <div class="legend-label"><span class="legend-dot green"></span><span>In Use</span></div>
-                                        <strong>55%</strong>
-                                    </div>
-                                    <div class="equipment-status-legend-row">
-                                        <div class="legend-label"><span class="legend-dot amber"></span><span>Maintenance</span></div>
-                                        <strong>25%</strong>
-                                    </div>
-                                    <div class="equipment-status-legend-row">
-                                        <div class="legend-label"><span class="legend-dot red"></span><span>Out of Order</span></div>
-                                        <strong>10%</strong>
-                                    </div>
-                                </div>
+                                <div id="equipment-status-legend" class="equipment-status-legend"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Inquiry Breakdown + Daily Check-ins Line Chart -->
+                    <div class="overview-panels-grid overview-panels-uneven">
+                        <div class="overview-panel-card overview-clickable" data-overview-target="inquiry-tab">
+                            <div class="overview-panel-head">
+                                <h3>Inquiry Breakdown</h3>
+                            </div>
+                            <div id="inquiry-status-bars" class="inquiry-status-bars">
+                                <div style="padding:24px;color:#9ca3af;text-align:center">Loading...</div>
+                            </div>
+                        </div>
+                        <div class="overview-panel-card overview-clickable" data-overview-target="attendance-tab">
+                            <div class="overview-panel-head">
+                                <h3>Daily Check-ins</h3>
+                                <span class="overview-panel-head-meta" id="daily-activity-period-label">This Week</span>
+                            </div>
+                            <div id="daily-activity-chart" class="daily-activity-chart-wrap">
+                                <div style="padding:24px;color:#9ca3af;text-align:center">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Currently On Site + Recent Inquiries -->
+                    <div class="overview-panels-grid">
+                        <div class="overview-panel-card overview-clickable" data-overview-target="attendance-tab">
+                            <div class="overview-panel-head">
+                                <h3>Currently On Site</h3>
+                                <span class="badge success" id="clocked-in-badge">0</span>
+                            </div>
+                            <div class="overview-mini-table-wrap">
+                                <table class="overview-mini-table">
+                                    <thead><tr><th>Employee</th><th>Clock-In</th></tr></thead>
+                                    <tbody id="clocked-in-employees-body">
+                                        <tr><td colspan="2" style="text-align:center;padding:16px;color:#9ca3af">Loading...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="overview-panel-card overview-clickable" data-overview-target="inquiry-tab">
+                            <div class="overview-panel-head">
+                                <h3>Recent Inquiries</h3>
+                                <span class="badge warning" id="recent-inquiries-badge">0</span>
+                            </div>
+                            <div id="recent-inquiries-list" class="overview-recent-list">
+                                <div style="padding:16px;color:#9ca3af;text-align:center">Loading...</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="hidden-data-cache">
-                        <span id="total-users-count">0</span>
-                        <span id="total-equipment-count">0</span>
-                        <span id="inquiries-total-count">0</span>
-                        <span id="overview-files-count">0</span>
                         <span id="attendance-actions-today-count">0</span>
-                        <table>
-                            <tbody id="clocked-in-employees-body"></tbody>
-                            <tbody id="deployed-equipment-body"></tbody>
-                        </table>
+                        <table><tbody id="deployed-equipment-body"></tbody></table>
                     </div>
                 </div>
 
@@ -299,34 +321,6 @@
                         </div>
                     </div>
 
-                    <div id="inquiry-create-shell" class="table-container inquiry-create-shell">
-                        <h2>Submit New Inquiry</h2>
-                        <form id="admin-inquiry-form" class="admin-inquiry-form">
-                            <div class="admin-inquiry-grid">
-                                <div class="admin-inquiry-field">
-                                    <label for="admin-inquiry-client-name">Client Name</label>
-                                    <input type="text" id="admin-inquiry-client-name" class="modern-input" maxlength="120" placeholder="Client full name" required>
-                                </div>
-                                <div class="admin-inquiry-field">
-                                    <label for="admin-inquiry-client-email">Client Email</label>
-                                    <input type="email" id="admin-inquiry-client-email" class="modern-input" maxlength="120" placeholder="name@example.com" required>
-                                </div>
-                            </div>
-                            <div class="admin-inquiry-field">
-                                <label for="admin-inquiry-subject">Subject</label>
-                                <input type="text" id="admin-inquiry-subject" class="modern-input" maxlength="180" placeholder="Inquiry subject" required>
-                            </div>
-                            <div class="admin-inquiry-field">
-                                <label for="admin-inquiry-message">Message</label>
-                                <textarea id="admin-inquiry-message" class="modern-input" rows="4" maxlength="3000" placeholder="Write the client inquiry details..." required></textarea>
-                            </div>
-                            <div class="admin-inquiry-actions">
-                                <button type="submit" id="admin-inquiry-submit-btn" class="btn-primary">Submit Inquiry</button>
-                                <span id="admin-inquiry-form-message" class="admin-inquiry-form-message" aria-live="polite"></span>
-                            </div>
-                        </form>
-                    </div>
-
                     <div id="inquiry-stats-shell" class="stats-grid inquiry-stats-grid">
                         <div class="stat-card inquiry-stat-card">
                             <h3>Total Inquiries</h3>
@@ -346,7 +340,47 @@
                         </div>
                     </div>
 
-                    <div id="inquiry-management-shell" class="table-container inquiry-table-shell">
+                    <nav class="inquiry-subtabs" aria-label="Client inquiries sections" role="tablist">
+                        <button type="button" class="inquiry-subtab-btn active" id="inquiry-tab-btn-manage" data-inquiry-shell="inquiry-management-shell" role="tab" aria-selected="true" aria-controls="inquiry-management-shell" tabindex="0">Inquiry Records</button>
+                        <button type="button" class="inquiry-subtab-btn" id="inquiry-tab-btn-submit" data-inquiry-shell="inquiry-create-shell" role="tab" aria-selected="false" aria-controls="inquiry-create-shell" tabindex="-1">Submit New Inquiry</button>
+                    </nav>
+
+                    <div id="inquiry-create-shell" class="table-container inquiry-create-shell inquiry-subtab-shell inquiry-subtab-hidden" role="tabpanel" aria-labelledby="inquiry-tab-btn-submit" aria-hidden="true">
+                        <h2>Submit New Inquiry</h2>
+                        <form id="admin-inquiry-form" class="admin-inquiry-form">
+                            <div class="admin-inquiry-grid">
+                                <div class="admin-inquiry-field">
+                                    <label for="admin-inquiry-client-name">Client Name</label>
+                                    <input type="text" id="admin-inquiry-client-name" class="modern-input" maxlength="120" placeholder="Client full name" required>
+                                </div>
+                                <div class="admin-inquiry-field">
+                                    <label for="admin-inquiry-client-email">Client Email</label>
+                                    <input type="email" id="admin-inquiry-client-email" class="modern-input" maxlength="120" placeholder="name@example.com" required>
+                                </div>
+                            </div>
+                            <div class="admin-inquiry-field">
+                                <label for="admin-inquiry-subject">Inquiry Type</label>
+                                <select id="admin-inquiry-subject" class="modern-input" required>
+                                    <option value="">Select Inquiry Type</option>
+                                    <option value="residential">Residential Project</option>
+                                    <option value="commercial">Commercial Project</option>
+                                    <option value="infrastructure">Infrastructure</option>
+                                    <option value="renovation">Renovation/Restoration</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="admin-inquiry-field">
+                                <label for="admin-inquiry-message">Message</label>
+                                <textarea id="admin-inquiry-message" class="modern-input" rows="4" maxlength="3000" placeholder="Write the client inquiry details..." required></textarea>
+                            </div>
+                            <div class="admin-inquiry-actions">
+                                <button type="submit" id="admin-inquiry-submit-btn" class="btn-primary">Submit Inquiry</button>
+                                <span id="admin-inquiry-form-message" class="admin-inquiry-form-message" aria-live="polite"></span>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div id="inquiry-management-shell" class="table-container inquiry-table-shell inquiry-subtab-shell" role="tabpanel" aria-labelledby="inquiry-tab-btn-manage" aria-hidden="false">
                         <div class="inquiry-toolbar">
                             <div class="inquiry-filter-group">
                                 <label for="inquiry-status-filter">Status</label>
@@ -371,7 +405,7 @@
                                         <th>Submitted</th>
                                         <th>Client</th>
                                         <th>Email</th>
-                                        <th>Subject</th>
+                                        <th>Inquiry Type</th>
                                         <th>Message</th>
                                         <th>Status</th>
                                         <th>Assigned To</th>
@@ -395,7 +429,10 @@
                             <h2>Project Files & Media</h2>
                             <p class="tab-description">Manage uploads, storage usage, and project media records.</p>
                         </div>
-                        <button class="btn-primary" id="open-file-upload-btn"><i class="bi bi-cloud-arrow-up"></i> Upload File</button>
+                        <div class="tab-header-actions">
+                            <button class="btn-primary btn-sync-cloudinary" id="sync-cloudinary-btn"><i class="bi bi-arrow-repeat"></i> Sync Cloudinary</button>
+                            <button class="btn-primary" id="open-file-upload-btn"><i class="bi bi-cloud-arrow-up"></i> Upload File</button>
+                        </div>
                     </div>
 
                     <div id="files-stats-shell" class="stats-grid files-stats-grid files-stats-section">
@@ -514,8 +551,14 @@
                         </div>
                     </div>
 
+                    <nav class="health-subtabs" aria-label="System health sections" role="tablist">
+                        <button type="button" class="health-subtab-btn active" id="health-tab-btn-siem" data-health-shell="health-siem-shell" role="tab" aria-selected="true" aria-controls="health-siem-shell" tabindex="0">Security Event Monitoring (SIEM)</button>
+                        <button type="button" class="health-subtab-btn" id="health-tab-btn-backup" data-health-shell="health-backup-shell" role="tab" aria-selected="false" aria-controls="health-backup-shell" tabindex="-1">Database Backup History</button>
+                        <button type="button" class="health-subtab-btn" id="health-tab-btn-activity" data-health-shell="health-activity-shell" role="tab" aria-selected="false" aria-controls="health-activity-shell" tabindex="-1">Audit Logs</button>
+                    </nav>
+
                     <!-- Security Event Monitoring -->
-                    <div id="health-siem-shell" class="table-container section-gap-lg">
+                    <div id="health-siem-shell" class="table-container section-gap-lg health-subtab-shell" role="tabpanel" aria-labelledby="health-tab-btn-siem" aria-hidden="false">
                         <div class="tab-header">
                             <h2>Security Event Monitoring (SIEM)</h2>
                         </div>
@@ -566,7 +609,7 @@
                             <button type="button" id="siem-filter-reset-btn" class="btn-outline">Reset</button>
                         </div>
 
-                        <div class="health-logs-scroll">
+                        <div id="siem-logs-scroll" class="health-logs-scroll">
                             <table class="data-table">
                                 <thead>
                                     <tr>
@@ -584,15 +627,16 @@
                                 </tbody>
                             </table>
                         </div>
+                        <div id="siem-pagination" class="table-pagination"></div>
                     </div>
 
                     <!-- Database Backup Status -->
-                    <div id="health-backup-shell" class="table-container section-gap-lg">
+                    <div id="health-backup-shell" class="table-container section-gap-lg health-subtab-shell health-subtab-hidden" role="tabpanel" aria-labelledby="health-tab-btn-backup" aria-hidden="true">
                         <div class="tab-header">
                             <h2>Database Backup History</h2>
                             <button class="btn-primary" id="trigger-backup-btn"><i class="bi bi-arrow-repeat"></i> Trigger Backup</button>
                         </div>
-                        <div class="table-scroll-shell backup-table-scroll">
+                        <div id="backup-logs-scroll" class="table-scroll-shell backup-table-scroll">
                             <table class="data-table">
                                 <thead>
                                     <tr>
@@ -632,94 +676,73 @@
                                 </tbody>
                             </table>
                         </div>
+                        <div id="backup-pagination" class="table-pagination"></div>
                     </div>
 
-                    <!-- Network IP Logs -->
-                    <div id="health-audit-shell" class="table-container">
+
+                    <!-- Audit Logs -->
+                    <div id="health-activity-shell" class="table-container health-subtab-shell health-subtab-hidden" role="tabpanel" aria-labelledby="health-tab-btn-activity" aria-hidden="true">
                         <div class="tab-header">
-                            <h2>Network IP Logs & Audit Trail</h2>
+                            <h2>Audit Logs</h2>
                             <button class="btn-primary" id="export-logs-btn"><i class="bi bi-download"></i> Export Logs (CSV)</button>
                         </div>
                         <div class="health-toolbar">
                             <div class="health-toolbar-item">
-                                <label for="health-event-filter">Event Type</label>
-                                <select id="health-event-filter">
-                                    <option value="ALL">All Events</option>
+                                <label for="activity-event-filter">Event Type</label>
+                                <select id="activity-event-filter">
+                                    <option value="ALL">All Activities</option>
                                 </select>
                             </div>
                             <div class="health-toolbar-item">
-                                <label for="health-date-filter">Date</label>
-                                <input type="date" id="health-date-filter">
+                                <label for="activity-date-filter">Date</label>
+                                <input type="date" id="activity-date-filter">
                             </div>
                             <div class="health-toolbar-item health-toolbar-search">
-                                <label for="health-search-input">Search (IP/User/Description)</label>
-                                <input type="text" id="health-search-input" placeholder="e.g. 192.168, backup event, user" autocomplete="off">
+                                <label for="activity-search-input">Search (User/IP/Activity)</label>
+                                <input type="text" id="activity-search-input" placeholder="e.g. updated profile, 192.168, admin@cicj.com" autocomplete="off">
                             </div>
-                            <button type="button" id="health-filter-reset-btn" class="btn-outline">Reset</button>
+                            <button type="button" id="activity-filter-reset-btn" class="btn-outline">Reset</button>
                         </div>
 
-                        <div class="health-logs-scroll">
+                        <div id="activity-logs-scroll" class="health-logs-scroll">
                             <table class="data-table">
                                 <thead>
                                     <tr>
                                         <th>Timestamp</th>
                                         <th>Event Type</th>
-                                        <th>Description</th>
+                                        <th>Activity</th>
                                         <th>IP Address</th>
                                         <th>User</th>
                                     </tr>
                                 </thead>
-                                <tbody id="health-table-body">
-                                <tr>
-                                    <td>2026-03-08 09:15:23</td>
-                                    <td><span class="badge">LOGIN</span></td>
-                                    <td>Admin login successful</td>
-                                    <td>192.168.1.105</td>
-                                    <td>admin@cicj.com</td>
-                                </tr>
-                                <tr>
-                                    <td>2026-03-08 08:42:11</td>
-                                    <td><span class="badge warning">PERMISSION_CHANGE</span></td>
-                                    <td>Granted can_delete_files to User #45</td>
-                                    <td>192.168.1.105</td>
-                                    <td>admin@cicj.com</td>
-                                </tr>
-                                <tr>
-                                    <td>2026-03-08 08:30:05</td>
-                                    <td><span class="badge">FILE_UPLOAD</span></td>
-                                    <td>Blueprint uploaded (12.5 MB) to CLOUD</td>
-                                    <td>192.168.1.112</td>
-                                    <td>manager@cicj.com</td>
-                                </tr>
-                                <tr>
-                                    <td>2026-03-08 07:00:01</td>
-                                    <td><span class="badge success">BACKUP_CREATED</span></td>
-                                    <td>Automated database backup completed</td>
-                                    <td>localhost</td>
-                                    <td>System</td>
-                                </tr>
+                                <tbody id="activity-table-body">
+                                    <tr>
+                                        <td colspan="5" class="loading-cell muted-text">Open this tab to load audit activity logs...</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
+                        <div id="activity-pagination" class="table-pagination"></div>
                     </div>
                 </div>
 
                 <!-- Attendance Management Tab -->
                 <div id="attendance-tab" class="tab-section hidden">
-                    <div class="tab-header">
+                    <div class="tab-header tab-header-no-action">
                         <div class="tab-title-block">
                             <h2><i class="bi bi-calendar-check icon-mr-8"></i>Attendance Management</h2>
                             <p class="tab-description">Review logs, apply filters, and manage geo-fenced construction sites.</p>
                         </div>
-                        <button id="export-attendance-btn" class="btn-primary">
-                            <i class="bi bi-download"></i> Export CSV
-                        </button>
                     </div>
 
                     <div id="attendance-stats-shell" class="stats-grid section-gap-md">
-                        <div class="stat-card">
-                            <h3><i class="bi bi-person-check-fill icon-green icon-mr-6"></i>Clocked In Now</h3>
+                        <div class="stat-card attendance-stat-card" id="attendance-clocked-in-card" role="button" tabindex="0" aria-controls="attendance-clocked-in-panel" aria-expanded="false">
+                            <h3>
+                                <i class="bi bi-person-check-fill icon-green icon-mr-6"></i>
+                                Clocked In Now
+                            </h3>
                             <p class="stat-number text-success" id="attendance-clocked-in-count">0</p>
+                            <span class="attendance-click-hint"><i class="bi bi-eye"></i> View list</span>
                         </div>
                         <div class="stat-card">
                             <h3><i class="bi bi-calendar-day icon-green icon-mr-6"></i>Today's Logs</h3>
@@ -735,12 +758,22 @@
                         </div>
                     </div>
 
-                    <div id="attendance-logs-shell" class="table-container">
+                    <div id="attendance-clocked-in-panel" class="attendance-clocked-in-panel hidden" aria-live="polite">
+                        <div class="attendance-clocked-in-header">Currently Clocked In</div>
+                        <ul id="attendance-clocked-in-list" class="attendance-clocked-in-list"></ul>
+                    </div>
+
+                    <nav class="attendance-subtabs" aria-label="Attendance management sections" role="tablist">
+                        <button type="button" class="attendance-subtab-btn active" id="attendance-tab-btn-logs" data-attendance-shell="attendance-logs-shell" role="tab" aria-selected="true" aria-controls="attendance-logs-shell" tabindex="0">Attendance Logs</button>
+                        <button type="button" class="attendance-subtab-btn" id="attendance-tab-btn-sites" data-attendance-shell="attendance-sites-shell" role="tab" aria-selected="false" aria-controls="attendance-sites-shell" tabindex="-1">Construction Sites</button>
+                    </nav>
+
+                    <div id="attendance-logs-shell" class="table-container attendance-subtab-shell" role="tabpanel" aria-labelledby="attendance-tab-btn-logs" aria-hidden="false">
                         <div class="subheader-row">
                             <h3><i class="bi bi-list-check icon-mr-8 icon-green"></i>All Attendance Logs</h3>
                             <div class="attendance-filter-item attendance-search-inline">
                                 <i class="bi bi-search icon-muted"></i>
-                                <input type="text" id="attendance-search-input" class="modern-input attendance-search-input" autocomplete="off" placeholder="Search employee, email, action, location...">
+                                <input type="text" id="attendance-search-input" class="modern-input attendance-search-input" autocomplete="new-password" placeholder="Search employee, email, action, location...">
                             </div>
                         </div>
                         <div class="attendance-filters">
@@ -781,7 +814,7 @@
                         </div>
                     </div>
 
-                    <div id="attendance-sites-shell" class="table-container section-top-gap-xl">
+                    <div id="attendance-sites-shell" class="table-container section-top-gap-xl attendance-subtab-shell attendance-subtab-hidden" role="tabpanel" aria-labelledby="attendance-tab-btn-sites" aria-hidden="true">
                         <div class="subheader-row">
                             <h3><i class="bi bi-geo-fill icon-mr-8 icon-orange"></i>Construction Sites (Geo-Fencing)</h3>
                             <button id="add-site-btn" class="btn-primary">
@@ -822,7 +855,7 @@
                     </div>
 
                     <div id="reports-shell" class="table-container report-shell">
-                        <p class="report-intro">Generate exportable reports for attendance, equipment usage, and inquiry performance. Use CSV for spreadsheets and PDF for printable reports.</p>
+                        <p class="report-intro">Generate CSV or PDF exports across users, attendance, equipment, inquiries, files, system health, and archives. Apply date filters to time-based reports.</p>
 
                         <div class="report-filters">
                             <div class="report-filter-item">
@@ -840,45 +873,257 @@
                             </div>
                         </div>
 
-                        <div class="stats-grid report-stats-grid">
-                            <div class="stat-card report-card">
-                                <h3><span class="report-card-icon"><i class="bi bi-calendar-week"></i></span>Weekly Attendance Logs</h3>
-                                <p class="report-card-copy">Clock-in/out activity with employee and GPS information.</p>
-                                <div class="report-actions-row">
-                                    <button class="btn-primary report-download-btn" data-report-type="attendance" data-format="csv">
-                                        <i class="bi bi-filetype-csv"></i> Download CSV
-                                    </button>
-                                    <button class="btn-secondary report-download-btn" data-report-type="attendance" data-format="pdf">
-                                        <i class="bi bi-filetype-pdf"></i> Download PDF
-                                    </button>
+                        <!-- Accordion group: Operations -->
+                        <div class="report-accordion-group">
+                            <button type="button" class="report-accordion-header">
+                                <span class="report-accordion-icon"><i class="bi bi-briefcase"></i></span>
+                                <span class="report-accordion-title">Operations</span>
+                                <i class="bi bi-chevron-down report-accordion-chevron"></i>
+                            </button>
+                            <div class="report-accordion-body">
+                                <div class="report-row" data-report-type="attendance">
+                                    <span class="report-row-icon"><i class="bi bi-calendar-week"></i></span>
+                                    <div class="report-row-text">
+                                        <div class="report-row-name">Attendance Logs</div>
+                                        <div class="report-row-desc">Clock-in/out activity with employee and GPS information.</div>
+                                    </div>
+                                    <div class="report-row-actions">
+                                        <button class="report-dl-btn report-dl-csv report-download-btn" data-report-type="attendance" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</button>
+                                        <button class="report-dl-btn report-dl-pdf report-download-btn" data-report-type="attendance" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF</button>
+                                    </div>
+                                </div>
+                                <div class="report-row" data-report-type="attendance-sites">
+                                    <span class="report-row-icon"><i class="bi bi-geo-alt"></i></span>
+                                    <div class="report-row-text">
+                                        <div class="report-row-name">Attendance Sites</div>
+                                        <div class="report-row-desc">Geo-fenced construction sites and status.</div>
+                                    </div>
+                                    <div class="report-row-actions">
+                                        <button class="report-dl-btn report-dl-csv report-download-btn" data-report-type="attendance-sites" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</button>
+                                        <button class="report-dl-btn report-dl-pdf report-download-btn" data-report-type="attendance-sites" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF</button>
+                                    </div>
+                                </div>
+                                <div class="report-row" data-report-type="equipment-inventory">
+                                    <span class="report-row-icon"><i class="bi bi-box-seam"></i></span>
+                                    <div class="report-row-text">
+                                        <div class="report-row-name">Equipment Inventory</div>
+                                        <div class="report-row-desc">Inventory status, quantities, and locations.</div>
+                                    </div>
+                                    <div class="report-row-actions">
+                                        <button class="report-dl-btn report-dl-csv report-download-btn" data-report-type="equipment-inventory" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</button>
+                                        <button class="report-dl-btn report-dl-pdf report-download-btn" data-report-type="equipment-inventory" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF</button>
+                                    </div>
+                                </div>
+                                <div class="report-row" data-report-type="equipment-usage">
+                                    <span class="report-row-icon"><i class="bi bi-tools"></i></span>
+                                    <div class="report-row-text">
+                                        <div class="report-row-name">Equipment Usage History</div>
+                                        <div class="report-row-desc">Checkout/return trail with user, status, and notes.</div>
+                                    </div>
+                                    <div class="report-row-actions">
+                                        <button class="report-dl-btn report-dl-csv report-download-btn" data-report-type="equipment-usage" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</button>
+                                        <button class="report-dl-btn report-dl-pdf report-download-btn" data-report-type="equipment-usage" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF</button>
+                                    </div>
+                                </div>
+                                <div class="report-row" data-report-type="inquiries-detail">
+                                    <span class="report-row-icon"><i class="bi bi-chat-left-text"></i></span>
+                                    <div class="report-row-text">
+                                        <div class="report-row-name">Inquiry Details</div>
+                                        <div class="report-row-desc">Full inquiry records with status and assignee.</div>
+                                    </div>
+                                    <div class="report-row-actions">
+                                        <button class="report-dl-btn report-dl-csv report-download-btn" data-report-type="inquiries-detail" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</button>
+                                        <button class="report-dl-btn report-dl-pdf report-download-btn" data-report-type="inquiries-detail" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF</button>
+                                    </div>
+                                </div>
+                                <div class="report-row" data-report-type="inquiry-resolution">
+                                    <span class="report-row-icon"><i class="bi bi-chat-square-text"></i></span>
+                                    <div class="report-row-text">
+                                        <div class="report-row-name">Inquiry Resolution Statistics</div>
+                                        <div class="report-row-desc">Summary metrics for pending and resolved inquiries.</div>
+                                    </div>
+                                    <div class="report-row-actions">
+                                        <button class="report-dl-btn report-dl-csv report-download-btn" data-report-type="inquiry-resolution" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</button>
+                                        <button class="report-dl-btn report-dl-pdf report-download-btn" data-report-type="inquiry-resolution" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF</button>
+                                    </div>
+                                </div>
+                                <div class="report-row" data-report-type="files">
+                                    <span class="report-row-icon"><i class="bi bi-cloud-arrow-up"></i></span>
+                                    <div class="report-row-text">
+                                        <div class="report-row-name">Project Files</div>
+                                        <div class="report-row-desc">Uploads, storage location, and file metadata.</div>
+                                    </div>
+                                    <div class="report-row-actions">
+                                        <button class="report-dl-btn report-dl-csv report-download-btn" data-report-type="files" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</button>
+                                        <button class="report-dl-btn report-dl-pdf report-download-btn" data-report-type="files" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF</button>
+                                    </div>
+                                </div>
+                                <div class="report-row" data-report-type="users-directory">
+                                    <span class="report-row-icon"><i class="bi bi-people"></i></span>
+                                    <div class="report-row-text">
+                                        <div class="report-row-name">Users Directory</div>
+                                        <div class="report-row-desc">Active accounts, roles, and contact details.</div>
+                                    </div>
+                                    <div class="report-row-actions">
+                                        <button class="report-dl-btn report-dl-csv report-download-btn" data-report-type="users-directory" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</button>
+                                        <button class="report-dl-btn report-dl-pdf report-download-btn" data-report-type="users-directory" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF</button>
+                                    </div>
+                                </div>
+                                <div class="report-row" data-report-type="user-access">
+                                    <span class="report-row-icon"><i class="bi bi-shield-lock"></i></span>
+                                    <div class="report-row-text">
+                                        <div class="report-row-name">User Access Matrix</div>
+                                        <div class="report-row-desc">Permissions and access flags per account.</div>
+                                    </div>
+                                    <div class="report-row-actions">
+                                        <button class="report-dl-btn report-dl-csv report-download-btn" data-report-type="user-access" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</button>
+                                        <button class="report-dl-btn report-dl-pdf report-download-btn" data-report-type="user-access" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF</button>
+                                    </div>
+                                </div>
+                                <div class="report-row" data-report-type="archives">
+                                    <span class="report-row-icon"><i class="bi bi-archive"></i></span>
+                                    <div class="report-row-text">
+                                        <div class="report-row-name">Archives</div>
+                                        <div class="report-row-desc">Immutable deleted records and metadata.</div>
+                                    </div>
+                                    <div class="report-row-actions">
+                                        <button class="report-dl-btn report-dl-csv report-download-btn" data-report-type="archives" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</button>
+                                        <button class="report-dl-btn report-dl-pdf report-download-btn" data-report-type="archives" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF</button>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="stat-card report-card">
-                                <h3><span class="report-card-icon"><i class="bi bi-tools"></i></span>Equipment Usage History</h3>
-                                <p class="report-card-copy">Checkout/return trail with user, status, and notes.</p>
-                                <div class="report-actions-row">
-                                    <button class="btn-primary report-download-btn" data-report-type="equipment-usage" data-format="csv">
-                                        <i class="bi bi-filetype-csv"></i> Download CSV
-                                    </button>
-                                    <button class="btn-secondary report-download-btn" data-report-type="equipment-usage" data-format="pdf">
-                                        <i class="bi bi-filetype-pdf"></i> Download PDF
-                                    </button>
+                        <!-- Accordion group: System Health & Audit -->
+                        <div class="report-accordion-group">
+                            <button type="button" class="report-accordion-header">
+                                <span class="report-accordion-icon"><i class="bi bi-shield-check"></i></span>
+                                <span class="report-accordion-title">System Health &amp; Audit</span>
+                                <i class="bi bi-chevron-down report-accordion-chevron"></i>
+                            </button>
+                            <div class="report-accordion-body">
+                                <div class="report-row" data-report-type="health-siem">
+                                    <span class="report-row-icon"><i class="bi bi-shield-exclamation"></i></span>
+                                    <div class="report-row-text">
+                                        <div class="report-row-name">SIEM Alerts</div>
+                                        <div class="report-row-desc">Security events, anomalies, and access violations.</div>
+                                    </div>
+                                    <div class="report-row-actions">
+                                        <button class="report-dl-btn report-dl-csv report-download-btn" data-report-type="health-siem" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</button>
+                                        <button class="report-dl-btn report-dl-pdf report-download-btn" data-report-type="health-siem" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF</button>
+                                    </div>
+                                </div>
+                                <div class="report-row" data-report-type="health-backups">
+                                    <span class="report-row-icon"><i class="bi bi-database-check"></i></span>
+                                    <div class="report-row-text">
+                                        <div class="report-row-name">Backup History</div>
+                                        <div class="report-row-desc">Database backup events and storage details.</div>
+                                    </div>
+                                    <div class="report-row-actions">
+                                        <button class="report-dl-btn report-dl-csv report-download-btn" data-report-type="health-backups" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</button>
+                                        <button class="report-dl-btn report-dl-pdf report-download-btn" data-report-type="health-backups" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF</button>
+                                    </div>
+                                </div>
+                                <div class="report-row" data-report-type="health-audit">
+                                    <span class="report-row-icon"><i class="bi bi-diagram-3"></i></span>
+                                    <div class="report-row-text">
+                                        <div class="report-row-name">Network Audit Trail</div>
+                                        <div class="report-row-desc">System health logs with IP and event details.</div>
+                                    </div>
+                                    <div class="report-row-actions">
+                                        <button class="report-dl-btn report-dl-csv report-download-btn" data-report-type="health-audit" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</button>
+                                        <button class="report-dl-btn report-dl-pdf report-download-btn" data-report-type="health-audit" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF</button>
+                                    </div>
+                                </div>
+                                <div class="report-row" data-report-type="health-activity">
+                                    <span class="report-row-icon"><i class="bi bi-activity"></i></span>
+                                    <div class="report-row-text">
+                                        <div class="report-row-name">Activity Logs</div>
+                                        <div class="report-row-desc">Operational events excluding SIEM and backups.</div>
+                                    </div>
+                                    <div class="report-row-actions">
+                                        <button class="report-dl-btn report-dl-csv report-download-btn" data-report-type="health-activity" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</button>
+                                        <button class="report-dl-btn report-dl-pdf report-download-btn" data-report-type="health-activity" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF</button>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
 
-                            <div class="stat-card report-card">
-                                <h3><span class="report-card-icon"><i class="bi bi-chat-square-text"></i></span>Inquiry Resolution Statistics</h3>
-                                <p class="report-card-copy">Summary metrics for pending and resolved inquiries.</p>
-                                <div class="report-actions-row">
-                                    <button class="btn-primary report-download-btn" data-report-type="inquiry-resolution" data-format="csv">
-                                        <i class="bi bi-filetype-csv"></i> Download CSV
-                                    </button>
-                                    <button class="btn-secondary report-download-btn" data-report-type="inquiry-resolution" data-format="pdf">
-                                        <i class="bi bi-filetype-pdf"></i> Download PDF
-                                    </button>
-                                </div>
+                <!-- Archives Tab -->
+                <div id="archives-tab" class="tab-section hidden">
+                    <div class="tab-header tab-header-no-action">
+                        <div class="tab-title-block">
+                            <h2>Archives</h2>
+                            <p class="tab-description">Immutable records of deleted system data across users, equipment, files, attendance, inquiries, and sites.</p>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid files-stats-grid archives-stats-grid">
+                        <div class="stat-card">
+                            <h3>Total Archived Records</h3>
+                            <p class="stat-number" id="archives-total-records">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Unique Entity Types</h3>
+                            <p class="stat-number text-success" id="archives-unique-entities">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Last Archive Entry</h3>
+                            <p class="stat-number archives-last-archived" id="archives-last-archived">-</p>
+                        </div>
+                    </div>
+
+                    <div id="archives-shell" class="table-container">
+                        <div class="health-toolbar">
+                            <div class="health-toolbar-item">
+                                <label for="archives-entity-filter">Entity Type</label>
+                                <select id="archives-entity-filter">
+                                    <option value="ALL">All Entities</option>
+                                </select>
                             </div>
+                            <div class="health-toolbar-item">
+                                <label for="archives-actor-filter">Deleted By</label>
+                                <select id="archives-actor-filter">
+                                    <option value="ALL">All Actors</option>
+                                    <option value="ADMIN">Admin</option>
+                                    <option value="EMPLOYEE">Employee</option>
+                                    <option value="SYSTEM">System</option>
+                                </select>
+                            </div>
+                            <div class="health-toolbar-item health-toolbar-search">
+                                <label for="archives-search-input">Search</label>
+                                <input type="text" id="archives-search-input" placeholder="Search record ID, actor, table, or archived payload" autocomplete="off">
+                            </div>
+                            <button type="button" id="archives-filter-reset-btn" class="btn-outline">Reset</button>
+                        </div>
+
+                        <div class="archives-immutability-note">
+                            <i class="bi bi-lock-fill"></i>
+                            Archived data is immutable and cannot be edited or deleted by any account.
+                        </div>
+
+                        <div class="table-scroll-shell archives-table-scroll">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Archived At</th>
+                                        <th>Entity</th>
+                                        <th>Record ID</th>
+                                        <th>Source Table</th>
+                                        <th>Deleted By</th>
+                                        <th>Role</th>
+                                        <th>IP Address</th>
+                                        <th>Snapshot</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="archives-table-body">
+                                    <tr>
+                                        <td colspan="8" class="loading-cell muted-text">Open the tab to load archive records...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -888,7 +1133,7 @@
 
     <!-- Modal for Adding Construction Site -->
     <div id="site-modal" class="modal-overlay hidden">
-        <div class="modal-content modern-modal modal-compact">
+        <div class="modal-content modern-modal modal-medium">
             <div class="modal-header">
                 <div class="modal-header-content">
                     <div class="modal-icon"><i class="bi bi-geo-alt-fill"></i></div>
@@ -932,17 +1177,22 @@
                     </div>
                     
                     <button type="button" id="get-my-location-btn" class="btn-secondary btn-block section-mt-12 section-mb-16">
-                        <i class="bi bi-geo-alt-fill"></i> Get My Location (Auto-fill)
+                        <i class="bi bi-geo-alt-fill"></i> Use My Current Location
                     </button>
-                    <small class="muted-note centered-text section-mt-negative-8 section-mb-16">
-                        <i class="bi bi-info-circle"></i> Click to use your current GPS coordinates, or enter manually above
-                    </small>
                     
                     <div class="input-group">
                         <label class="modern-label"><i class="bi bi-circle icon-mr-6"></i>Geo-Fence Radius (meters) *</label>
                         <input type="number" id="site-radius" class="modern-input" min="10" max="10000" value="100" required>
-                        <small class="muted-note"><i class="bi bi-info-circle"></i> Range: 10-10,000 meters (default: 100m perimeter)</small>
+                        <small class="muted-note"><i class="bi bi-info-circle"></i> Range: 10–10,000 m. The circle on the map updates live.</small>
                     </div>
+
+                    <div class="section-divider section-divider-spaced">
+                        <h4 class="section-divider-title">
+                            <i class="bi bi-map icon-green icon-mr-6"></i>Location Preview
+                        </h4>
+                    </div>
+                    <div id="site-location-map" class="site-location-map"></div>
+                    <small class="muted-note"><i class="bi bi-info-circle"></i> Map updates as you type coordinates. Click the map to reposition the pin.</small>
                 </div>
                 <div class="modal-actions modal-actions-between">
                     <div id="site-danger-actions" class="hidden danger-actions-row">
@@ -976,13 +1226,13 @@
                 </div>
                 <span class="close-modal" id="close-modal-btn">&times;</span>
             </div>
-            <form id="add-equipment-form" class="form-scroll-body">
+            <form id="add-equipment-form" class="form-scroll-body" autocomplete="off">
                 <input type="hidden" id="equip-id">
                 <div class="form-section">
                     <div class="form-grid">
                         <div class="input-group">
                             <label class="modern-label">Equipment Name</label>
-                            <input type="text" id="equip-name" class="modern-input" required placeholder="e.g., Excavator, Safety Helmet">
+                            <input type="text" id="equip-name" class="modern-input" required placeholder="e.g., Excavator, Safety Helmet" autocomplete="off">
                         </div>
                         <div class="input-group">
                             <label class="modern-label">Quantity</label>
@@ -1017,7 +1267,7 @@
 
                     <div class="input-group">
                         <label class="modern-label">Location</label>
-                        <input type="text" id="equip-location" class="modern-input" placeholder="e.g., Warehouse A, Site 3">
+                        <input type="text" id="equip-location" class="modern-input" placeholder="e.g., Warehouse A, Site 3" autocomplete="off">
                     </div>
                 </div>
                 
@@ -1142,7 +1392,7 @@
                             </button>
                             <button type="button" class="preset-btn" id="preset-super-admin">
                                 <span class="preset-icon"><i class="bi bi-key-fill"></i></span>
-                                <span>Super Admin</span>
+                                <span>Select All</span>
                             </button>
                             <button type="button" class="preset-btn preset-btn-clear" id="preset-clear-all">
                                 <span class="preset-icon"><i class="bi bi-x-circle-fill"></i></span>
@@ -1200,10 +1450,6 @@
                                 <label class="checkbox-label">
                                     <input type="checkbox" name="permission" value="can_delete_attendance">
                                     <span>Delete Logs</span>
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox" name="permission" value="can_export_attendance">
-                                    <span>Export Reports</span>
                                 </label>
                             </div>
                         </div>
@@ -1302,12 +1548,43 @@
                                     <span>Export Logs (SAM)</span>
                                 </label>
                                 <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_manage_permissions">
+                                    <span>Manage Permissions</span>
+                                </label>
+                                <label class="checkbox-label">
                                     <input type="checkbox" name="permission" value="can_view_audit_trail">
                                     <span>View Audit Trail</span>
                                 </label>
                                 <label class="checkbox-label">
                                     <input type="checkbox" name="permission" value="can_backup_database">
                                     <span>Database Backups</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Reports Permissions -->
+                        <div class="permission-category">
+                            <h4 class="category-title"><i class="bi bi-file-earmark-bar-graph"></i> Reports</h4>
+                            <div class="permission-checkboxes">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_view_reports">
+                                    <span>Access Reports Tab</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_export_attendance_report">
+                                    <span>Attendance Reports</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_export_equipment_report">
+                                    <span>Equipment Reports</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_export_inquiry_report">
+                                    <span>Inquiry Reports</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="permission" value="can_export_files_report">
+                                    <span>Files Reports</span>
                                 </label>
                             </div>
                         </div>
@@ -1435,13 +1712,13 @@
                             <div class="danger-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
                             <div>
                                 <h3 class="danger-title">Danger Zone</h3>
-                                <p class="danger-description">Permanent actions that cannot be undone</p>
+                                <p class="danger-description">Sensitive actions that move records to immutable archives</p>
                             </div>
                         </div>
                         <div class="danger-action">
                             <div class="danger-info">
                                 <strong>Delete User Account</strong>
-                                <p>Permanently remove this user and all associated data. This action cannot be reversed.</p>
+                                <p>Remove this user from active records. The deleted profile is preserved in immutable archives.</p>
                             </div>
                             <button type="button" class="btn-danger" id="delete-user-btn">
                                 <span><i class="bi bi-trash"></i> Delete User</span>
@@ -1478,7 +1755,7 @@
             <div class="delete-confirm-body">
                 <p class="warning-text">
                     <strong>Warning: This cannot be undone</strong><br>
-                    You are about to permanently delete:
+                    You are about to archive-delete:
                 </p>
                 
                 <div class="user-info-card">
@@ -1510,7 +1787,7 @@
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" id="cancel-delete-btn">Cancel</button>
                     <button type="button" class="btn-delete" id="confirm-delete-btn">
-                        <i class="bi bi-trash"></i> Delete Permanently
+                        <i class="bi bi-archive"></i> Move To Archive
                     </button>
                 </div>
             </div>
@@ -1660,7 +1937,8 @@
     <script src="js/modal-utils.js?v=20260402a"></script>
     <script src="js/validation.js?v=20260315b"></script>
     <script src="js/permissions-map.js?v=20260315b"></script>
-    <script src="js/admin.js?v=20260403f"></script>
-    <script src="js/admin-attendance.js?v=20260402f"></script>
+    <script src="js/admin.js?v=20260505a"></script>
+    <script src="js/leaflet.js"></script>
+    <script src="js/admin-attendance.js?v=20260505c"></script>
 </body>
 </html>

@@ -1,0 +1,99 @@
+/* About page adjustments to align with client page styling without affecting other pages. */
+
+.about-page .section-title,
+.about-page .section-subtitle {
+    text-align: left;
+}
+
+.about-page .services-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px;
+}
+
+.about-section-divider {
+    max-width: 1200px;
+    height: 1px;
+    margin: 0 auto;
+    background: linear-gradient(90deg, rgba(45, 173, 80, 0) 0%, rgba(45, 173, 80, 0.3) 50%, rgba(45, 173, 80, 0) 100%);
+}
+
+.about-page .service-card {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 320px;
+    padding: 28px 26px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.about-page .service-icon {
+    width: 52px;
+    height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: #ecfdf5;
+    color: #0f7648;
+    font-size: 24px;
+}
+
+.about-page .service-card h3 {
+    margin: 4px 0 0;
+    color: #1f2937;
+}
+
+.about-page .service-card p {
+    color: #475569;
+    line-height: 1.7;
+}
+
+.about-page .service-card::before,
+.about-page .service-card::after {
+    opacity: 0;
+    display: none;
+}
+
+.about-page .service-card:hover {
+    transform: scale(1.02);
+}
+
+.about-page .service-card:hover .service-icon {
+    transform: none;
+    color: var(--accent);
+}
+
+@media (max-width: 768px) {
+    .about-section-divider {
+        margin: 0 20px;
+    }
+
+    .about-page .services-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .about-page .service-card {
+        min-height: auto;
+        padding: 22px 20px;
+    }
+}
+
+@media (max-width: 520px) {
+    .about-page .services-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .about-page .core-values-section .services-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .about-page .services-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

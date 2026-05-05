@@ -2,8 +2,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('[Scanner Modal] Initializing...');
 
-    const token = localStorage.getItem('token');
-    if (!token) return;
+    function getAuthToken() {
+        return localStorage.getItem('token');
+    }
 
     let html5QrCode = null;
     let isScanning = false;
@@ -28,10 +29,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Open Modal Function (called from employee.js)
     window.openScannerModal = function() {
+        if (!getAuthToken()) {
+            showAlert('Your session has expired. Please sign in again.');
+            window.location.href = 'index.html';
+            return;
+        }
         console.log('[Scanner Modal] Opening scanner modal');
         scannerModal.classList.remove('hidden');
         resetScanner();
     };
+
+    // Secondary binding: keep scanner opening functional even if dashboard script fails before wiring.
+    const scanEquipmentBtn = document.getElementById('scan-equipment-btn');
+    if (scanEquipmentBtn) {
+        scanEquipmentBtn.addEventListener('click', () => {
+            window.openScannerModal();
+        });
+    }
 
     // Close Modal
     function closeModal() {
@@ -146,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // First, lookup the equipment to check its status
             const lookupResponse = await fetch(`http://localhost:5000/api/equipment/qr/${qrNumber}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${getAuthToken()}` }
             });
 
             if (!lookupResponse.ok) {
@@ -215,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${getAuthToken()}`
                 },
                 body: JSON.stringify(requestBody)
             });
@@ -274,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${getAuthToken()}`
                 },
                 body: JSON.stringify(requestBody)
             });

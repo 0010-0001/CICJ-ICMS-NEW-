@@ -1,186 +1,573 @@
 <!DOCTYPE html>
-<!-- Public client page: marketing sections, services, and contact entry points. -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CICJ Construction</title>
+    <title>CICJ Construction - Building Tomorrow's Vision</title>
+    <link rel="stylesheet" href="css/client.css?v=20260423a">
     <link rel="stylesheet" href="css/bootstrap-icons/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="css/global.css?v=20260402a">
-    <link rel="stylesheet" href="css/client.css?v=20260403a">
-    <link rel="stylesheet" href="css/system-typography.css?v=20260329a">
-    <link rel="stylesheet" href="css/button-hover-glow.css?v=20260328c">
 </head>
 <body>
-    <!-- Public header: top brand strip + main navigation row. -->
-    <header class="client-header">
-        <div class="client-top-strip">
-            <div class="nav-container top-strip-grid">
-                <a class="client-corp-brand" href="#home" aria-label="CICJ Home">
-                    <img src="Images/CICJ.png" alt="CICJ Construction Corporation logo" class="client-top-logo">
-                    <span class="client-brand-text">
-                        <span class="client-brand-title">CICJ</span>
-                        <span class="client-brand-subtitle">Construction Corporation</span>
-                    </span>
-                </a>
-            </div>
+    <!-- Navigation -->
+    <nav class="navbar pcl-header">
+        <div class="navbar-container pcl-header-container">
+            <a href="client.html" class="pcl-logo-wrap" aria-label="CICJ Construction Home">
+                <img src="Images/CICJ.png" alt="CICJ Construction" class="pcl-logo-image">
+            </a>
+
+            <ul class="pcl-nav" id="pcl-nav">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#who-highlight">Who We Are</a></li>
+                <li><a href="#what-we-do">What We Do</a></li>
+                <li><a href="#our-work">Our Work</a></li>
+                <li><a href="projects-portfolio.html">Portfolio</a></li>
+                <li><a href="about-us.html">About Us</a></li>
+                <li><a href="#contact">Get In Touch</a></li>
+            </ul>
+
+            <button type="button" class="pcl-mobile-menu-btn" id="pcl-mobile-menu-btn" aria-label="Toggle navigation">
+                <i class="bi bi-list"></i>
+            </button>
         </div>
+    </nav>
 
-        <div class="client-nav-bar">
-            <div class="nav-container nav-layout">
-                <nav>
-                    <ul class="nav-menu">
-                        <li><a href="#home">Home</a></li>
-                        <li><a href="#about">About</a></li>
-                        <li><a href="#services">Services</a></li>
-                        <li><a href="#portfolio">Projects</a></li>
-                        <li><a href="#contact">Careers</a></li>
-                        <li><a href="#contact" class="btn-request"><span>Contact Us</span> <i class="bi bi-calendar3"></i></a></li>
-                    </ul>
-                </nav>
-
-                <button class="hamburger" aria-label="Toggle navigation">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <video class="hero-video" autoplay muted loop playsinline preload="metadata" aria-hidden="true">
+            <source src="Images/landing_vid.mp4" type="video/mp4">
+        </video>
+        <div class="hero-video-overlay" aria-hidden="true"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">Building Tomorrow's Vision</h1>
+            <p class="hero-subtitle">CICJ General Construction and Building Maintenance</p>
         </div>
-    </header>
-
-    <!-- Hero: short value statement and quick call-to-action buttons. -->
-    <section id="home" class="hero-section">
-        <div class="container hero-grid">
-            <div class="hero-copy">
-                <h1>Building Excellence,<br><span>Restoring Trust.</span></h1>
-                <p>
-                    CICJ General Construction provides premier general construction and
-                    building maintenance services. We deliver high-end, reliable solutions
-                    tailored to your specific project needs.
-                </p>
-                <div class="hero-actions">
-                    <a href="#contact" class="btn-primary">Request a Quote <i class="bi bi-arrow-right-short"></i></a>
-                    <a href="#portfolio" class="btn-ghost">View Our Portfolio</a>
-                </div>
+        <div class="hero-stats">
+            <div class="stat">
+                <h3>85+</h3>
+                <p>Projects Completed</p>
             </div>
-            <div class="hero-media">
-                <img src="https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=1200&q=80" alt="Modern construction site">
+            <div class="stat">
+                <h3>12+</h3>
+                <p>Years of Excellence</p>
+            </div>
+            <div class="stat">
+                <h3>98%</h3>
+                <p>Client Satisfaction</p>
+            </div>
+            <div class="stat">
+                <h3>45+</h3>
+                <p>Expert Team</p>
             </div>
         </div>
     </section>
 
-    <!-- Portfolio: sample projects that show build quality and scope. -->
-    <section id="portfolio" class="portfolio-section">
-        <div class="container">
-            <h2 class="section-title">Successful Projects</h2>
-            <p class="section-subtitle">Explore our portfolio of recent high-end construction and comprehensive building maintenance projects across the region.</p>
-            <div class="projects-grid">
-                <div class="project-card">
-                    <img src="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1200&q=80" alt="Commercial build">
-                    <div class="project-info">
-                        <span class="project-type">Commercial Build</span>
-                        <h3>Apex Business Center</h3>
-                    </div>
+    <!-- Who We Are Highlight (Under Hero) -->
+    <section class="who-highlight" id="who-highlight" aria-labelledby="who-highlight-title">
+        <div class="container who-highlight-container">
+            <div class="who-highlight-top">
+                <span class="who-highlight-kicker">Who We Are</span>
+                <h2 id="who-highlight-title">We build stronger communities through quality, trust, and long-term partnerships.</h2>
+            </div>
+
+            <div class="who-highlight-grid">
+                <div class="who-highlight-copy">
+                    <p>CICJ General Construction and Building Maintenance brings the right people together to deliver practical, high-value solutions with safety, quality, and reliability at the center of every build.</p>
+                    <p>We collaborate closely with our clients and partners to solve real project challenges, protect schedules, and keep performance standards high from planning through turnover.</p>
+                    <p>Across residential, commercial, and infrastructure work, CICJ remains focused on dependable execution, transparent communication, and long-term results that communities can rely on.</p>
+                    <a href="about-us.html" class="who-highlight-btn">About Us</a>
                 </div>
-                <div class="project-card">
-                    <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80" alt="Residential complex">
-                    <div class="project-info">
-                        <span class="project-type">Residential Complex</span>
-                        <h3>Verde Residences</h3>
-                    </div>
-                </div>
-                <div class="project-card">
-                    <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80" alt="Building maintenance project">
-                    <div class="project-info">
-                        <span class="project-type">Building Maintenance</span>
-                        <h3>Metro Logistics Hub</h3>
-                    </div>
+
+                <div class="who-highlight-stats" aria-label="CICJ key facts">
+                    <article class="who-highlight-stat">
+                        <h3>12+</h3>
+                        <p>Years in Operation</p>
+                    </article>
+                    <article class="who-highlight-stat">
+                        <h3>85+</h3>
+                        <p>Projects Completed</p>
+                    </article>
+                    <article class="who-highlight-stat">
+                        <h3>98%</h3>
+                        <p>Client Satisfaction</p>
+                    </article>
                 </div>
             </div>
         </div>
+        <span class="who-highlight-corner" aria-hidden="true"></span>
     </section>
 
-    <section id="services" class="services-strip" aria-label="Services"></section>
+    <!-- Tab Content -->
+    <div class="tabs-container">
+        <!-- Tab 1: Who We Are -->
+        <div id="who-we-are" class="tab-content active">
+            <!-- What We Do Showcase -->
+            <section class="what-we-do-showcase" id="what-we-do" aria-labelledby="what-we-do-title">
+                <div class="container what-we-do-container">
+                    <div class="what-we-do-head">
+                        <span class="what-we-do-kicker">What We Do</span>
+                        <h2 id="what-we-do-title">We have a vision for the future of construction.</h2>
+                    </div>
 
-    <section id="contact" class="contact-section">
-        <div class="container">
-            <div class="contact-card" id="about">
-                <div class="contact-left">
-                    <h2>Get in Touch</h2>
-                    <p>Ready to start your next project or need professional building maintenance? Contact our team today for a comprehensive consultation.</p>
+                    <nav class="what-we-do-nav" aria-label="Construction sectors">
+                        <button type="button" class="what-we-do-tab active" data-sector="buildings" aria-current="true">Buildings</button>
+                        <button type="button" class="what-we-do-tab" data-sector="civil-infrastructure">Civil Infrastructure</button>
+                        <button type="button" class="what-we-do-tab" data-sector="houses">Houses</button>
+                        <button type="button" class="what-we-do-tab" data-sector="building-maintenance">Building Maintenance</button>
+                    </nav>
 
-                    <div class="contact-meta-list">
-                        <div class="contact-meta-item">
-                            <span class="meta-icon"><i class="bi bi-geo-alt"></i></span>
-                            <div>
-                                <h4>Office Address</h4>
-                                <p>29M Lozada, Sto. Rosario<br>Silangan, Pateros, Metro Manila</p>
+                    <div class="what-we-do-feature">
+                        <div class="what-we-do-media">
+                            <img id="what-we-do-image" src="Images/buildings.jpg" alt="Modern buildings construction project">
+                        </div>
+                        <article class="what-we-do-copy">
+                            <h3 id="what-we-do-heading">Stunning structures, sustainably built</h3>
+                            <p id="what-we-do-description">PCL's network of construction professionals rise to the challenges associated with a diverse buildings portfolio, adding added value to every educational, institutional, residential and commercial construction project. PCL offers substantial construction experience, competitive pricing, financial strength, integrity and a commitment to your project that is supported by a foundation of quality and workplace safety.</p>
+                            <a href="#capabilities" class="what-we-do-link">Learn More</a>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Our Work Section -->
+            <section class="our-work-section" id="our-work" aria-labelledby="our-work-title">
+                <div class="container">
+                    <div class="our-work-header">
+                        <span class="our-work-kicker">Our Work</span>
+                        <h2 id="our-work-title">Projects that reflect our commitment to quality</h2>
+                        <p>From building developments to infrastructure systems and long-term facility care, our work is built around reliability, safety, and lasting value.</p>
+                    </div>
+
+                    <div class="our-work-grid">
+                        <article class="our-work-card">
+                            <div class="our-work-image">
+                                <img src="Images/buildings.jpg" alt="Completed building development project">
+                            </div>
+                            <div class="our-work-content">
+                                <h3>Buildings</h3>
+                                <p>Residential and commercial projects delivered with strong design coordination and quality craftsmanship.</p>
+                            </div>
+                        </article>
+
+                        <article class="our-work-card">
+                            <div class="our-work-image">
+                                <img src="Images/civil_infrastructure.jpg" alt="Civil infrastructure execution project">
+                            </div>
+                            <div class="our-work-content">
+                                <h3>Civil Infrastructure</h3>
+                                <p>Essential public and private infrastructure works engineered for resilience, performance, and long-term service.</p>
+                            </div>
+                        </article>
+
+                        <article class="our-work-card">
+                            <div class="our-work-image">
+                                <img src="Images/building_maintenance.jpg" alt="Building maintenance service work">
+                            </div>
+                            <div class="our-work-content">
+                                <h3>Building Maintenance</h3>
+                                <p>Preventive maintenance, responsive repairs, and system improvements that keep properties operating efficiently.</p>
+                            </div>
+                        </article>
+                    </div>
+
+                    <div class="our-work-actions">
+                        <a href="projects-portfolio.html" class="our-work-link">View Full Portfolio</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contact Section -->
+            <section class="contact-section" id="contact">
+                <div class="container">
+                    <div class="contact-intro">
+                        <span class="contact-kicker">Get In Touch</span>
+                        <h2 class="contact-hero-title">Ready to work together?</h2>
+                        <p>Ready to work together? Whether you have a project in mind and are looking for a reliable construction partner, or you are looking to take the next step in your career, we want to hear from you!</p>
+                        <a href="#contactFormCard" class="contact-cta-btn" id="contactProjectBtn" aria-controls="contactFormCard" aria-expanded="false">Build a Project With Us</a>
+                    </div>
+
+                    <div class="contact-grid">
+                        <div class="contact-item">
+                            <i class="bi bi-telephone-fill"></i>
+                            <h4>Phone</h4>
+                            <p>+1 (555) 123-4567</p>
+                            <p>+1 (555) 987-6543</p>
+                        </div>
+
+                        <div class="contact-item">
+                            <i class="bi bi-envelope-fill"></i>
+                            <h4>Email</h4>
+                            <p>info@cicjconstruction.com</p>
+                            <p>projects@cicjconstruction.com</p>
+                        </div>
+
+                        <div class="contact-item">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            <h4>Headquarters</h4>
+                            <p>29M Lozada</p>
+                            <p>Sto. Rosario Silangan, Pateros, Metro Manila</p>
+                        </div>
+
+                        <div class="contact-item">
+                            <i class="bi bi-clock-fill"></i>
+                            <h4>Business Hours</h4>
+                            <p>Monday - Friday: 8:00 AM - 6:00 PM</p>
+                            <p>Saturday: 9:00 AM - 1:00 PM</p>
+                        </div>
+                    </div>
+
+                    <div class="contact-form-container" id="contactFormCard" hidden>
+                        <h3>Send Us a Message</h3>
+                        <form class="contact-form" id="contactForm" novalidate>
+                            <div class="form-row">
+                                <input type="text" id="cf-name" placeholder="Your Name" autocomplete="name" required>
+                                <input type="email" id="cf-email" placeholder="Your Email" autocomplete="email" required>
+                            </div>
+                            <div class="form-row">
+                                <input type="tel" id="cf-phone" placeholder="Phone Number (optional)" autocomplete="tel">
+                                <select id="cf-type" required>
+                                    <option value="">Select Inquiry Type</option>
+                                    <option value="residential">Residential Project</option>
+                                    <option value="commercial">Commercial Project</option>
+                                    <option value="infrastructure">Infrastructure</option>
+                                    <option value="renovation">Renovation/Restoration</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <textarea id="cf-message" placeholder="Tell us about your project..." rows="6" required></textarea>
+                            <div class="form-row">
+                                <div class="g-recaptcha" id="cf-recaptcha" data-sitekey="6LfM8tksAAAAAH3jsi-eCiqk4OVN0ez6A4ACscGl"></div>
+                            </div>
+                            <div id="cf-error" class="cf-error-msg" hidden></div>
+                            <button type="submit" class="btn btn-primary" id="cf-submit-btn">
+                                <span id="cf-btn-text">Send Message</span>
+                                <span id="cf-btn-spinner" class="cf-spinner" hidden></span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Tab 2: Capabilities -->
+        <div id="capabilities" class="tab-content">
+            <!-- Services Section -->
+            <section class="services-section" id="services">
+                <div class="container">
+                    <h2 class="section-title">Our Services</h2>
+                    <p class="section-subtitle">Comprehensive construction solutions tailored to your needs</p>
+
+                    <div class="services-grid">
+                        <div class="service-card">
+                            <div class="service-icon">
+                                <i class="bi bi-house-fill"></i>
+                            </div>
+                            <h3>Residential Construction</h3>
+                            <p>From single-family homes to luxury apartment complexes, we build residential spaces that combine comfort, style, and sustainability. Our expertise includes modern designs, energy-efficient systems, and premium finishes.</p>
+                            <ul class="service-features">
+                                <li><i class="bi bi-check-circle"></i> Single-family homes</li>
+                                <li><i class="bi bi-check-circle"></i> Multi-unit apartments</li>
+                                <li><i class="bi bi-check-circle"></i> Luxury condominiums</li>
+                                <li><i class="bi bi-check-circle"></i> Gated communities</li>
+                            </ul>
+                        </div>
+
+                        <div class="service-card">
+                            <div class="service-icon">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <h3>Commercial Construction</h3>
+                            <p>We build commercial spaces that are functional, aesthetically pleasing, and designed for growth. Our projects include office buildings, retail centers, hospitality venues, and specialized commercial facilities.</p>
+                            <ul class="service-features">
+                                <li><i class="bi bi-check-circle"></i> Office buildings</li>
+                                <li><i class="bi bi-check-circle"></i> Retail centers</li>
+                                <li><i class="bi bi-check-circle"></i> Hotels & resorts</li>
+                                <li><i class="bi bi-check-circle"></i> Data centers</li>
+                            </ul>
+                        </div>
+
+                        <div class="service-card">
+                            <div class="service-icon">
+                                <i class="bi bi-diagram-3"></i>
+                            </div>
+                            <h3>Infrastructure Development</h3>
+                            <p>Large-scale infrastructure projects built to serve communities. Our experience includes roadways, bridges, water systems, utilities, and public facilities designed for durability and public benefit.</p>
+                            <ul class="service-features">
+                                <li><i class="bi bi-check-circle"></i> Roads & highways</li>
+                                <li><i class="bi bi-check-circle"></i> Bridges & overpasses</li>
+                                <li><i class="bi bi-check-circle"></i> Water treatment plants</li>
+                                <li><i class="bi bi-check-circle"></i> Public facilities</li>
+                            </ul>
+                        </div>
+
+                        <div class="service-card">
+                            <div class="service-icon">
+                                <i class="bi bi-hammer-fill"></i>
+                            </div>
+                            <h3>Renovation & Restoration</h3>
+                            <p>Breathe new life into existing structures while preserving their character. We specialize in modernizing older buildings, historic preservation, and complete renovations that add value and functionality.</p>
+                            <ul class="service-features">
+                                <li><i class="bi bi-check-circle"></i> Historic restoration</li>
+                                <li><i class="bi bi-check-circle"></i> Modern upgrades</li>
+                                <li><i class="bi bi-check-circle"></i> Space reconfiguration</li>
+                                <li><i class="bi bi-check-circle"></i> Compliance updates</li>
+                            </ul>
+                        </div>
+
+                        <div class="service-card">
+                            <div class="service-icon">
+                                <i class="bi bi-kanban"></i>
+                            </div>
+                            <h3>Project Management</h3>
+                            <p>End-to-end project oversight ensuring seamless execution. Our project managers coordinate all aspects from planning through completion, managing budgets, timelines, and quality standards with precision.</p>
+                            <ul class="service-features">
+                                <li><i class="bi bi-check-circle"></i> Planning & scheduling</li>
+                                <li><i class="bi bi-check-circle"></i> Budget management</li>
+                                <li><i class="bi bi-check-circle"></i> Quality assurance</li>
+                                <li><i class="bi bi-check-circle"></i> Risk mitigation</li>
+                            </ul>
+                        </div>
+
+                        <div class="service-card">
+                            <div class="service-icon">
+                                <i class="bi bi-palette-fill"></i>
+                            </div>
+                            <h3>Design & Engineering</h3>
+                            <p>Innovative design solutions combined with cutting-edge engineering. Our team of architects and engineers create structures that are beautiful, functional, and structurally sound, using the latest CAD and BIM technologies.</p>
+                            <ul class="service-features">
+                                <li><i class="bi bi-check-circle"></i> Architectural design</li>
+                                <li><i class="bi bi-check-circle"></i> Structural engineering</li>
+                                <li><i class="bi bi-check-circle"></i> BIM modeling</li>
+                                <li><i class="bi bi-check-circle"></i> Feasibility studies</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Portfolio Section -->
+            <section class="portfolio-section" id="portfolio">
+                <div class="container">
+                    <h2 class="section-title">Our Portfolio</h2>
+                    <p class="section-subtitle">Showcasing our finest completed projects</p>
+
+                    <div class="portfolio-filters">
+                        <button class="filter-btn active" onclick="filterPortfolio('all')">All Projects</button>
+                        <button class="filter-btn" onclick="filterPortfolio('residential')">Residential</button>
+                        <button class="filter-btn" onclick="filterPortfolio('commercial')">Commercial</button>
+                        <button class="filter-btn" onclick="filterPortfolio('infrastructure')">Infrastructure</button>
+                    </div>
+
+                    <div class="portfolio-grid" id="portfolio-grid">
+                        <!-- Project 1: Residential -->
+                        <div class="portfolio-item" data-category="residential">
+                            <div class="portfolio-image">
+                                <img src="https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&h=400&fit=crop" alt="Modern Residential Complex">
+                            </div>
+                            <div class="portfolio-info">
+                                <h4>Sunrise Residential Complex</h4>
+                                <p class="project-meta">Residential • 2024</p>
+                                <p class="project-desc">120-unit luxury residential complex featuring modern amenities, sustainable design, and community spaces.</p>
+                                <div class="project-stats">
+                                    <span><i class="bi bi-building"></i> 120 Units</span>
+                                    <span><i class="bi bi-geo-alt"></i> Downtown</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="contact-meta-item">
-                            <span class="meta-icon"><i class="bi bi-telephone"></i></span>
-                            <div>
-                                <h4>Phone</h4>
-                                <p>+63 (2) 8123 4567<br>Mon-Fri 7:00 AM - 5:00 PM</p>
+
+                        <!-- Project 2: Commercial -->
+                        <div class="portfolio-item" data-category="commercial">
+                            <div class="portfolio-image">
+                                <img src="https://images.unsplash.com/photo-1486425271892-c0ead50c8b58?w=600&h=400&fit=crop" alt="Modern Office Building">
+                            </div>
+                            <div class="portfolio-info">
+                                <h4>Downtown Business Center</h4>
+                                <p class="project-meta">Commercial • 2023</p>
+                                <p class="project-desc">18-story commercial office building featuring smart building technology, green spaces, and premium amenities.</p>
+                                <div class="project-stats">
+                                    <span><i class="bi bi-diagram-2"></i> 18 Floors</span>
+                                    <span><i class="bi bi-rulers"></i> 250,000 sqm</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="contact-meta-item">
-                            <span class="meta-icon"><i class="bi bi-envelope"></i></span>
-                            <div>
-                                <h4>Email</h4>
-                                <p>cicjconstruction@gmail.com</p>
+
+                        <!-- Project 3: Infrastructure -->
+                        <div class="portfolio-item" data-category="infrastructure">
+                            <div class="portfolio-image">
+                                <img src="https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=600&h=400&fit=crop" alt="Modern Bridge">
+                            </div>
+                            <div class="portfolio-info">
+                                <h4>Metro Bridge Extension</h4>
+                                <p class="project-meta">Infrastructure • 2023</p>
+                                <p class="project-desc">3.5 km bridge construction connecting two major districts with enhanced traffic flow and safety features.</p>
+                                <div class="project-stats">
+                                    <span><i class="bi bi-pin-map"></i> 3.5 km</span>
+                                    <span><i class="bi bi-truck"></i> Major Artery</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Project 4: Residential -->
+                        <div class="portfolio-item" data-category="residential">
+                            <div class="portfolio-image">
+                                <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&h=400&fit=crop" alt="Luxury Villas">
+                            </div>
+                            <div class="portfolio-info">
+                                <h4>Hillside Estates Luxury Villas</h4>
+                                <p class="project-meta">Residential • 2022</p>
+                                <p class="project-desc">45-unit gated community with landscape design, recreational facilities, and private amenities.</p>
+                                <div class="project-stats">
+                                    <span><i class="bi bi-houses"></i> 45 Villas</span>
+                                    <span><i class="bi bi-door-closed"></i> Gated</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Project 5: Commercial -->
+                        <div class="portfolio-item" data-category="commercial">
+                            <div class="portfolio-image">
+                                <img src="https://images.unsplash.com/photo-1567521464027-f127ff144326?w=600&h=400&fit=crop" alt="Shopping Complex">
+                            </div>
+                            <div class="portfolio-info">
+                                <h4>Plaza Shopping District</h4>
+                                <p class="project-meta">Commercial • 2022</p>
+                                <p class="project-desc">Modern retail and dining complex spanning 50,000 sqm with underground parking and entertainment venues.</p>
+                                <div class="project-stats">
+                                    <span><i class="bi bi-shop"></i> 150+ Stores</span>
+                                    <span><i class="bi bi-rulers"></i> 50,000 sqm</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Project 6: Infrastructure -->
+                        <div class="portfolio-item" data-category="infrastructure">
+                            <div class="portfolio-image">
+                                <img src="https://images.unsplash.com/photo-1581092162562-40038aaadccc?w=600&h=400&fit=crop" alt="Water Treatment Facility">
+                            </div>
+                            <div class="portfolio-info">
+                                <h4>Water Treatment Facility</h4>
+                                <p class="project-meta">Infrastructure • 2021</p>
+                                <p class="project-desc">Advanced water treatment facility with eco-friendly operations serving 500,000+ residents.</p>
+                                <div class="project-stats">
+                                    <span><i class="bi bi-droplet"></i> Advanced Tech</span>
+                                    <span><i class="bi bi-leaf"></i> Eco-Friendly</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </section>
 
-                <div class="contact-right">
-                    <form id="inquiry-form">
-                        <div class="form-group">
-                            <label for="client_name">Full Name</label>
-                            <input type="text" id="client_name" required>
+            <!-- Why Choose Us Section -->
+            <section class="why-choose-us" id="why-choose-us">
+                <div class="container">
+                    <div class="section-header">
+                        <h2>Why Choose CICJ Construction?</h2>
+                        <p>What sets us apart from the rest</p>
+                    </div>
+
+                    <div class="reasons-grid">
+                        <div class="reason-card">
+                            <div class="reason-icon">
+                                <i class="bi bi-clock-history"></i>
+                            </div>
+                            <h4>12+ Years Experience</h4>
+                            <p>Over a decade of proven expertise in construction excellence and innovation.</p>
                         </div>
-                        <div class="form-group">
-                            <label for="client_email">Email Address</label>
-                            <input type="email" id="client_email" required>
+
+                        <div class="reason-card">
+                            <div class="reason-icon">
+                                <i class="bi bi-mortarboard-fill"></i>
+                            </div>
+                            <h4>Expert Team</h4>
+                            <p>45+ skilled professionals including engineers, architects, and master craftsmen.</p>
                         </div>
-                        <div class="form-group">
-                            <label for="contact_number">Subject</label>
-                            <input type="tel" id="contact_number" placeholder="General Inquiry">
+
+                        <div class="reason-card">
+                            <div class="reason-icon">
+                                <i class="bi bi-award-fill"></i>
+                            </div>
+                            <h4>Award-Winning</h4>
+                            <p>Multiple industry awards for quality, design innovation, and sustainability.</p>
                         </div>
-                        <div class="form-group">
-                            <label for="message_body">Message</label>
-                            <textarea id="message_body" rows="5" required placeholder="Tell us about your project requirements..."></textarea>
+
+                        <div class="reason-card">
+                            <div class="reason-icon">
+                                <i class="bi bi-check-all"></i>
+                            </div>
+                            <h4>Quality Guaranteed</h4>
+                            <p>Rigorous quality control at every stage, from design through completion.</p>
                         </div>
-                        <button type="submit" class="btn-submit">Send Message</button>
-                    </form>
-                    <div id="form-message" class="hidden"></div>
+
+                        <div class="reason-card">
+                            <div class="reason-icon">
+                                <i class="bi bi-tree-fill"></i>
+                            </div>
+                            <h4>Sustainable Practices</h4>
+                            <p>LEED-certified projects with eco-friendly materials and energy-efficient systems.</p>
+                        </div>
+
+                        <div class="reason-card">
+                            <div class="reason-icon">
+                                <i class="bi bi-graph-up"></i>
+                            </div>
+                            <h4>On-Time Delivery</h4>
+                            <p>98% on-time project completion rate with transparent timelines and milestones.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="pcl-footer">
+        <section class="pcl-footer-bottom">
+            <div class="container">
+                <div class="pcl-footer-links-row">
+                    <a href="#who-we-are">Sectors</a>
+                    <a href="#capabilities">Services</a>
+                    <a href="#our-work">Our Work</a>
+                    <a href="#contact">Locations</a>
+                    <a href="about-us.html">Who We Are</a>
+                    <div class="pcl-footer-socials" aria-label="Social links">
+                        <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                        <a href="#" aria-label="X"><i class="bi bi-twitter-x"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                        <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                    </div>
+                </div>
+
+                <div class="pcl-footer-brand-row">
+                    <div class="pcl-footer-brand">
+                        <img src="Images/CICJ.png" alt="CICJ Construction" class="pcl-footer-logo">
+                        <span>CICJ General Construction and Building Maintenance</span>
+                    </div>
+                    <p class="pcl-footer-copyright">Copyright &copy; 2026 CICJ Constructors Inc. All rights reserved</p>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <footer class="client-footer">
-        <div class="container">
-            <div class="footer-top">
-                <h3>CICJ Construction</h3>
-                <ul>
-                    <li><a href="#home">Home</a></li>
-                    <li><a href="#services">Services</a></li>
-                    <li><a href="#portfolio">Portfolio</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 CICJ General Construction. All rights reserved.</p>
-                <div class="footer-links">
-                    <a href="#">Privacy Policy</a>
-                    <a href="#">Terms of Service</a>
-                </div>
-            </div>
-        </div>
+        </section>
     </footer>
 
-    <script src="js/client.js"></script>
+    <!-- Inquiry Success Modal -->
+    <div id="inquiry-success-modal" class="inq-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="inq-modal-title" aria-hidden="true">
+        <div class="inq-modal">
+            <div class="inq-modal-header">
+                <div class="inq-modal-icon">
+                    <i class="bi bi-check-lg"></i>
+                </div>
+                <h2 class="inq-modal-title" id="inq-modal-title">Message Sent!</h2>
+                <p class="inq-modal-subtitle">We've received your inquiry</p>
+            </div>
+            <div class="inq-modal-body">
+                <p class="inq-modal-message">Thank you for reaching out to CICJ Construction. Our team will review your inquiry and get back to you within <strong>1&ndash;2 business days</strong>.</p>
+                <div class="inq-modal-summary" id="inq-modal-summary"></div>
+                <button type="button" class="inq-modal-btn" id="inq-modal-close-btn">Got it, thanks!</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/client-landing.js?v=20260503a"></script>
+    <script src="https://www.google.com/recaptcha/api.js?onload=onInquiryRecaptchaLoad&render=explicit" async defer></script>
 </body>
 </html>

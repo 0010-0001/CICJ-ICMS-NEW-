@@ -57,6 +57,15 @@ function hasPermission(permissionKey) {
     if (user?.role === 'ADMIN') return true;
     return Boolean(user?.[permissionKey]);
 }
+
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
     
 // --- ATTENDANCE TAB FUNCTIONALITY ---
 
@@ -142,6 +151,75 @@ async function ensureAttendanceSitesLoaded() {
     }
 }
 
+// --- Leaflet Map for Site Location Preview ---
+let siteMap = null;
+let siteMapMarker = null;
+let siteMapCircle = null;
+
+function destroySiteMap() {
+    if (siteMap) {
+        siteMap.remove();
+        siteMap = null;
+        siteMapMarker = null;
+        siteMapCircle = null;
+    }
+}
+
+function initSiteMap(lat, lng, radius) {
+    const mapEl = document.getElementById('site-location-map');
+    if (!mapEl || typeof L === 'undefined') return;
+    destroySiteMap();
+
+    const hasCoords = (lat != null && isFinite(lat) && lng != null && isFinite(lng));
+    const centerLat = hasCoords ? lat : 14.5995;
+    const centerLng = hasCoords ? lng : 120.9842;
+    const r = (radius > 0) ? radius : 100;
+
+    siteMap = L.map('site-location-map', { zoomControl: true }).setView([centerLat, centerLng], hasCoords ? 16 : 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '\u00a9 <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19
+    }).addTo(siteMap);
+
+    if (hasCoords) {
+        siteMapMarker = L.marker([lat, lng]).addTo(siteMap);
+        siteMapCircle = L.circle([lat, lng], {
+            radius: r, color: '#2dad50', fillColor: '#2dad50', fillOpacity: 0.18, weight: 2
+        }).addTo(siteMap);
+    }
+
+    setTimeout(() => { if (siteMap) { siteMap.invalidateSize(); } }, 400);
+    setTimeout(() => { if (siteMap) { siteMap.invalidateSize(); } }, 900);
+}
+
+function updateSiteMap() {
+    const lat = parseFloat(document.getElementById('site-lat')?.value);
+    const lng = parseFloat(document.getElementById('site-lng')?.value);
+    const radius = parseInt(document.getElementById('site-radius')?.value) || 100;
+    if (!siteMap || !isFinite(lat) || !isFinite(lng)) return;
+
+    const ll = [lat, lng];
+    if (siteMapMarker) {
+        siteMapMarker.setLatLng(ll);
+    } else {
+        siteMapMarker = L.marker(ll).addTo(siteMap);
+    }
+    if (siteMapCircle) {
+        siteMapCircle.setLatLng(ll);
+        siteMapCircle.setRadius(radius);
+    } else {
+        siteMapCircle = L.circle(ll, {
+            radius, color: '#2dad50', fillColor: '#2dad50', fillOpacity: 0.18, weight: 2
+        }).addTo(siteMap);
+    }
+    siteMap.setView(ll, siteMap.getZoom());
+}
+
+['site-lat', 'site-lng', 'site-radius'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateSiteMap);
+});
+
 // Open site modal for adding
 if (addSiteBtn) {
     addSiteBtn.addEventListener('click', () => {
@@ -156,6 +234,7 @@ if (addSiteBtn) {
         document.getElementById('site-danger-actions').classList.add('hidden');
         addSiteForm.reset();
         siteModal.classList.remove('hidden');
+        setTimeout(() => initSiteMap(null, null, 100), 120);
     });
 }
 
@@ -163,6 +242,7 @@ if (addSiteBtn) {
 if (closeSiteModalBtn) {
     closeSiteModalBtn.addEventListener('click', () => {
         siteModal.classList.add('hidden');
+        destroySiteMap();
         editingSiteId = null;
     });
 }
@@ -170,6 +250,7 @@ if (closeSiteModalBtn) {
 if (cancelSiteBtn) {
     cancelSiteBtn.addEventListener('click', () => {
         siteModal.classList.add('hidden');
+        destroySiteMap();
         editingSiteId = null;
     });
 }
@@ -179,6 +260,7 @@ if (siteModal) {
     siteModal.addEventListener('click', (e) => {
         if (e.target === siteModal) {
             siteModal.classList.add('hidden');
+            destroySiteMap();
             editingSiteId = null;
         }
     });
@@ -206,11 +288,12 @@ if (getLocationBtn) {
             
             showAlert(message);
             
-            getLocationBtn.innerHTML = '<i class="bi bi-geo-alt-fill"></i> Get My Location (Auto-fill)';
+            updateSiteMap();
+            getLocationBtn.innerHTML = '<i class="bi bi-geo-alt-fill"></i> Use My Current Location';
             getLocationBtn.disabled = false;
         } catch (error) {
             showAlert(`ERROR: ${error.message}\n\nPlease enter coordinates manually.`);
-            getLocationBtn.innerHTML = '<i class="bi bi-geo-alt-fill"></i> Get My Location (Auto-fill)';
+            getLocationBtn.innerHTML = '<i class="bi bi-geo-alt-fill"></i> Use My Current Location';
             getLocationBtn.disabled = false;
         }
     });
@@ -234,10 +317,23 @@ async function loadAttendanceStats() {
             const data = await response.json();
             const logs = data.attendance || [];
             
-            // Count currently clocked in
-            const clockedIn = logs.filter(log => log.action === 'clock_in').length;
-            const clockedOut = logs.filter(log => log.action === 'clock_out').length;
-            const currentlyIn = clockedIn - clockedOut;
+            const clockedInList = document.getElementById('attendance-clocked-in-list');
+            const latestByUserToday = new Map();
+            const todayKey = new Date().toDateString();
+
+            logs.forEach(log => {
+                if (!log?.user_id) return;
+                if (new Date(log.timestamp).toDateString() !== todayKey) return;
+                const prior = latestByUserToday.get(log.user_id);
+                if (!prior || new Date(log.timestamp) > new Date(prior.timestamp)) {
+                    latestByUserToday.set(log.user_id, log);
+                }
+            });
+
+            const clockedInUsers = Array.from(latestByUserToday.values())
+                .filter(entry => entry.action === 'clock_in')
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            const currentlyIn = clockedInUsers.length;
             
             // Count today's attendance
             const today = new Date().toDateString();
@@ -256,10 +352,51 @@ async function loadAttendanceStats() {
             document.getElementById('attendance-clocked-in-count').textContent = Math.max(0, currentlyIn);
             document.getElementById('attendance-today-count').textContent = todayLogs.length;
             document.getElementById('attendance-month-count').textContent = monthLogs.length;
+
+            if (clockedInList) {
+                if (!clockedInUsers.length) {
+                    clockedInList.innerHTML = '<li class="attendance-clocked-in-empty">No one is currently clocked in today.</li>';
+                } else {
+                    clockedInList.innerHTML = clockedInUsers.map(entry => {
+                        const name = entry.user?.full_name || 'Unknown';
+                        const time = new Date(entry.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                        return `
+                            <li>
+                                <span>${escapeHtml(name)}</span>
+                                <span class="attendance-clocked-in-time">${escapeHtml(time)}</span>
+                            </li>
+                        `;
+                    }).join('');
+                }
+            }
         }
     } catch (error) {
         console.error('Failed to load attendance stats:', error);
     }
+}
+
+const clockedInCard = document.getElementById('attendance-clocked-in-card');
+const clockedInPanel = document.getElementById('attendance-clocked-in-panel');
+
+function toggleClockedInPanel(forceState) {
+    if (!clockedInCard || !clockedInPanel) return;
+    const willOpen = forceState !== undefined
+        ? Boolean(forceState)
+        : clockedInPanel.classList.contains('hidden');
+    clockedInPanel.classList.toggle('hidden', !willOpen);
+    clockedInCard.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    if (willOpen) {
+        clockedInPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+if (clockedInCard) {
+    clockedInCard.addEventListener('click', () => toggleClockedInPanel());
+    clockedInCard.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        toggleClockedInPanel();
+    });
 }
 
 // Load All Attendance Logs
@@ -388,6 +525,13 @@ const userFilter = document.getElementById('attendance-user-filter');
 const attendanceSearchInput = document.getElementById('attendance-search-input');
 const clearFilterBtn = document.getElementById('clear-attendance-filter');
 
+if (attendanceSearchInput) {
+    attendanceSearchInput.value = '';
+}
+window.addEventListener('pageshow', () => {
+    if (attendanceSearchInput) attendanceSearchInput.value = '';
+});
+
 function enforceAttendancePermissionUi() {
     const canViewAttendance = hasPermission('can_view_all_attendance');
     const canExportAttendance = hasPermission('can_export_attendance');
@@ -395,10 +539,6 @@ function enforceAttendancePermissionUi() {
 
     if (addSiteBtn) {
         addSiteBtn.classList.toggle('hidden', !canEditAttendance);
-    }
-
-    if (exportBtn) {
-        exportBtn.classList.toggle('hidden', !canExportAttendance);
     }
 
     if (dateFilter) dateFilter.disabled = !canViewAttendance;
@@ -439,8 +579,8 @@ if (attendanceSearchInput) {
 
 if (clearFilterBtn) {
     clearFilterBtn.addEventListener('click', () => {
-        dateFilter.value = '';
-        userFilter.value = '';
+        if (dateFilter) dateFilter.value = '';
+        if (userFilter) userFilter.value = '';
         if (attendanceSearchInput) attendanceSearchInput.value = '';
         loadAttendanceLogs();
     });
@@ -481,21 +621,23 @@ async function loadConstructionSites() {
         
         tbody.innerHTML = sites.map(site => {
             const coords = `${parseFloat(site.center_lat).toFixed(6)}, ${parseFloat(site.center_lng).toFixed(6)}`;
-            const status = site.is_active 
-                ? '<span class="badge success">Active</span>' 
+            const status = site.is_active
+                ? '<span class="badge success">Active</span>'
                 : '<span class="badge">Inactive</span>';
-            
+
             return `<tr>
                 <td>${site.site_name}</td>
-                <td>${site.site_address || '<span style="color: #9ca3af;">N/A</span>'}</td>
-                <td>${coords}</td>
-                <td>${site.geo_fence_radius_meters}m</td>
+                <td>${site.site_address || '<span style="color:#9ca3af">N/A</span>'}</td>
+                <td><span class="mono-text">${coords}</span></td>
+                <td>${site.geo_fence_radius_meters} m</td>
                 <td>${status}</td>
                 <td>
-                    <button class="btn-small btn-edit-site" data-site-id="${site.site_id}">Edit</button>
-                    <button class="btn-small btn-toggle-site" data-site-id="${site.site_id}" data-active="${site.is_active}" style="background: ${site.is_active ? '#ef4444' : '#10b981'}">
-                        ${site.is_active ? 'Deactivate' : 'Activate'}
-                    </button>
+                    <div style="display:flex;gap:6px;">
+                        <button class="btn-small btn-edit-site" data-site-id="${site.site_id}" title="Edit Site"><i class="bi bi-pencil"></i></button>
+                        <button class="btn-small btn-toggle-site" data-site-id="${site.site_id}" data-active="${site.is_active}" title="${site.is_active ? 'Deactivate' : 'Activate'}" style="background:${site.is_active ? '#ef4444' : '#2dad50'};color:#fff;">
+                            <i class="bi bi-${site.is_active ? 'pause-circle' : 'play-circle'}"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>`;
         }).join('');
@@ -553,58 +695,6 @@ if (addSiteForm) {
         } catch (error) {
             console.error('Site save error:', error);
             showAlert('ERROR: Failed to save construction site');
-        }
-    });
-}
-
-// Export Attendance to CSV
-const exportBtn = document.getElementById('export-attendance-btn');
-if (exportBtn) {
-    exportBtn.addEventListener('click', async () => {
-        if (!hasPermission('can_export_attendance')) {
-            showAlert('You do not have permission to export attendance.');
-            return;
-        }
-
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/attendance', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                const logs = data.attendance || [];
-                
-                // Create CSV content
-                const headers = ['Employee', 'Action', 'Timestamp', 'Latitude', 'Longitude'];
-                const rows = logs.map(log => [
-                    log.user?.full_name || 'Unknown',
-                    log.action,
-                    new Date(log.timestamp).toLocaleString(),
-                    log.location_lat || '',
-                    log.location_lng || ''
-                ]);
-                
-                const csvContent = [
-                    headers.join(','),
-                    ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-                ].join('\n');
-                
-                // Download CSV
-                const blob = new Blob([csvContent], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `attendance_${new Date().toISOString().split('T')[0]}.csv`;
-                a.click();
-                window.URL.revokeObjectURL(url);
-                
-                showAlert('SUCCESS: Attendance exported successfully!');
-            }
-        } catch (error) {
-            console.error('Export failed:', error);
-            showAlert('ERROR: Failed to export attendance data');
         }
     });
 }
@@ -892,6 +982,7 @@ async function editSite(siteId) {
                 }
                 
                 siteModal.classList.remove('hidden');
+                setTimeout(() => initSiteMap(site.center_lat, site.center_lng, site.geo_fence_radius_meters), 120);
             }
         }
     } catch (error) {

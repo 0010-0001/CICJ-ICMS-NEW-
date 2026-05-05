@@ -719,11 +719,60 @@
 .data-table tbody tr:nth-child(even) > td { background-color: #f1f5f9; }
 .data-table tbody tr:hover > td { background-color: #e8eef6; }
 
+/* Map health subtab shell rules to #system-tab (employee uses #system-tab, admin uses #health-tab). */
+#system-tab .health-subtab-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+#system-tab .health-subtab-shell.health-subtab-hidden {
+    display: none;
+}
+
 /* Keep audit trail rows readable: fixed columns + wrapped description text. */
 #health-audit-shell .health-logs-scroll .data-table {
     table-layout: fixed;
     width: 100%;
 }
+
+#system-tab .health-logs-scroll .data-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#system-tab #siem-logs-scroll .data-table th:nth-child(1),
+#system-tab #siem-logs-scroll .data-table td:nth-child(1) { width: 170px; }
+#system-tab #siem-logs-scroll .data-table th:nth-child(2),
+#system-tab #siem-logs-scroll .data-table td:nth-child(2) { width: 120px; }
+#system-tab #siem-logs-scroll .data-table th:nth-child(3),
+#system-tab #siem-logs-scroll .data-table td:nth-child(3) { width: 200px; }
+#system-tab #siem-logs-scroll .data-table th:nth-child(5),
+#system-tab #siem-logs-scroll .data-table td:nth-child(5) { width: 140px; }
+#system-tab #siem-logs-scroll .data-table td:nth-child(4) {
+    white-space: normal;
+    word-break: break-word;
+}
+
+#system-tab #backup-logs-scroll .data-table th:nth-child(1),
+#system-tab #backup-logs-scroll .data-table td:nth-child(1) { width: 120px; }
+#system-tab #backup-logs-scroll .data-table th:nth-child(2),
+#system-tab #backup-logs-scroll .data-table td:nth-child(2) { width: 170px; }
+#system-tab #backup-logs-scroll .data-table th:nth-child(3),
+#system-tab #backup-logs-scroll .data-table td:nth-child(3) { width: 120px; }
+#system-tab #backup-logs-scroll .data-table th:nth-child(4),
+#system-tab #backup-logs-scroll .data-table td:nth-child(4) { width: 110px; }
+#system-tab #backup-logs-scroll .data-table th:nth-child(5),
+#system-tab #backup-logs-scroll .data-table td:nth-child(5) { width: 130px; }
+
+#system-tab #activity-logs-scroll .data-table th:nth-child(1),
+#system-tab #activity-logs-scroll .data-table td:nth-child(1) { width: 170px; }
+#system-tab #activity-logs-scroll .data-table th:nth-child(2),
+#system-tab #activity-logs-scroll .data-table td:nth-child(2) { width: 170px; }
+#system-tab #activity-logs-scroll .data-table th:nth-child(4),
+#system-tab #activity-logs-scroll .data-table td:nth-child(4) { width: 140px; }
+#system-tab #activity-logs-scroll .data-table th:nth-child(5),
+#system-tab #activity-logs-scroll .data-table td:nth-child(5) { width: 170px; }
 
 #health-audit-shell .health-logs-scroll .data-table th:nth-child(1),
 #health-audit-shell .health-logs-scroll .data-table td:nth-child(1) {
@@ -748,15 +797,16 @@
 }
 
 #health-audit-shell .health-logs-scroll .data-table td:nth-child(3) {
+    width: 170px;
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#health-audit-shell .health-logs-scroll .data-table td:nth-child(4) {
     white-space: normal;
     word-break: break-word;
     line-height: 1.45;
-}
-
-#health-audit-shell .health-logs-scroll .data-table th:nth-child(4),
-#health-audit-shell .health-logs-scroll .data-table td:nth-child(4) {
-    width: 110px;
-    white-space: nowrap !important;
 }
 
 #health-audit-shell .health-logs-scroll .data-table th:nth-child(5),
@@ -1145,6 +1195,270 @@
     to { opacity: 0; transform: translateX(100px); }
 }
 .tab-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.tab-header-actions { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.notification-detail-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px 22px 10px;
+}
+
+.notification-detail-message {
+    margin: 0;
+    font-size: 14px;
+    color: #111827;
+}
+
+.notification-detail-meta {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.notification-detail-list {
+    display: grid;
+    gap: 8px;
+}
+
+.notification-detail-inquiry {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.notification-detail-inquiry-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+}
+
+.notification-detail-toggle {
+    border: none;
+    background: transparent;
+    color: #166534;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+}
+
+.notification-detail-toggle:hover {
+    color: #14532d;
+}
+
+.notification-detail-inquiry-text {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #111827;
+    white-space: pre-wrap;
+    position: relative;
+}
+
+.notification-detail-inquiry.is-collapsed .notification-detail-inquiry-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.notification-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+.notification-detail-row span {
+    color: #6b7280;
+}
+
+body.theme-dark .notification-detail-message {
+    color: #e5e7eb;
+}
+
+body.theme-dark .notification-detail-meta,
+body.theme-dark .notification-detail-row span {
+    color: #9ca3af;
+}
+
+body.theme-dark .notification-detail-row {
+    background: #1b1b1b;
+    border-color: #2a2a2a;
+}
+
+body.theme-dark .notification-detail-inquiry {
+    background: #1b1b1b;
+    border-color: #2a2a2a;
+}
+
+body.theme-dark .notification-detail-inquiry-header {
+    color: #9ca3af;
+}
+
+body.theme-dark .notification-detail-toggle {
+    color: #86efac;
+}
+
+body.theme-dark .notification-detail-toggle:hover {
+    color: #bbf7d0;
+}
+
+body.theme-dark .notification-detail-inquiry-text {
+    color: #ffffff;
+}
+
+#notification-detail-modal.modal-overlay {
+    background: rgba(15, 23, 42, 0.6);
+}
+
+#notification-detail-modal .modal-content {
+    max-width: 760px;
+    padding: 0;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+}
+
+#notification-detail-modal .modal-header {
+    background: #2dad50;
+    border-bottom: none;
+    padding: 18px 22px;
+}
+
+#notification-detail-modal .modal-header-content {
+    gap: 14px;
+}
+
+#notification-detail-modal .modal-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+}
+
+#notification-detail-modal .modal-title {
+    color: #ffffff;
+}
+
+#notification-detail-modal .modal-subtitle {
+    color: rgba(255, 255, 255, 0.82);
+}
+
+#notification-detail-modal .close-modal {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+#notification-detail-modal .close-modal:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+}
+
+#notification-detail-modal .notification-detail-message {
+    color: #111827;
+}
+
+#notification-detail-modal .notification-detail-row strong {
+    color: #111827;
+    font-weight: 600;
+}
+
+#notification-detail-modal .modal-actions {
+    padding: 14px 22px 18px;
+    border-top: 1px solid #e5e7eb;
+    background: #ffffff;
+    margin-top: 0;
+}
+
+#notification-detail-modal .btn-secondary {
+    background: #1f1f1f;
+    color: #ffffff;
+    border: 1px solid #1f1f1f;
+    box-shadow: none;
+}
+
+#notification-detail-modal .btn-secondary:hover {
+    background: #0f0f0f;
+    border-color: #0f0f0f;
+    transform: translateY(-1px);
+}
+
+body.theme-dark #notification-detail-modal .modal-content {
+    background: #141414;
+    border-color: #2a2a2a;
+}
+
+body.theme-dark #notification-detail-modal .modal-header {
+    background: #166534;
+}
+
+body.theme-dark #notification-detail-modal .notification-detail-message,
+body.theme-dark #notification-detail-modal .notification-detail-row strong {
+    color: #ffffff;
+}
+
+body.theme-dark #notification-detail-modal .notification-detail-row {
+    background: #1b1b1b;
+    border-color: #2a2a2a;
+}
+
+body.theme-dark #notification-detail-modal .modal-actions {
+    background: #141414;
+    border-top-color: #2a2a2a;
+}
+
+body.theme-dark #notification-detail-modal .btn-secondary {
+    background: #303030;
+    border-color: #303030;
+    color: #f9fafb;
+}
+
+body.theme-dark #notification-detail-modal .btn-secondary:hover {
+    background: #3d3d3d;
+    border-color: #3d3d3d;
+}
+#reports-tab .report-group-panel {
+    max-height: none;
+    overflow: visible;
+}
+
+#reports-tab .report-group-card.open .report-group-panel {
+    max-height: none;
+}
+
+#reports-tab .report-group-header,
+#reports-tab .report-group-row,
+#reports-tab .report-group-row-actions {
+    position: relative;
+    z-index: 2;
+}
+
+#reports-tab .report-group-row-actions {
+    pointer-events: auto;
+}
 .btn-success { background-color: #2dad50; color: white; border: none; border-radius: 6px; padding: 10px 16px; font-weight: bold; cursor: pointer; }
 .btn-success:hover { background-color: #258a3f; }
 .btn-secondary { background-color: #6b7280; color: white; border: none; border-radius: 6px; padding: 10px 16px; font-weight: bold; cursor: pointer; }
@@ -3385,6 +3699,20 @@ body.theme-dark .password-field .help-text {
     transform: translateY(0);
 }
 
+.btn-sync-cloudinary {
+    background: #ef4444;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-sync-cloudinary:hover {
+    background: #dc2626;
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.35);
+}
+
+.btn-sync-cloudinary:active {
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
 /* Equipment inventory table: tighten right-side spacing and keep sticky titles */
 #equipment-inventory-shell .data-table {
     table-layout: fixed;
@@ -3517,6 +3845,527 @@ body.theme-dark #equipment-inventory-shell .data-table thead th {
     .stat-card h3 { font-size: 12px; }
     .stat-number { font-size: 24px; }
     .tab-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .tab-header-actions { width: 100%; }
     /* Larger touch targets for field workers */
     .btn-success, .btn-secondary { min-height: 44px; font-size: 16px; }
 }
+
+/* ── Employee Dashboard tab (uses admin .overview-* classes for the shell) ── */
+/* Force a 2-column panels grid for the employee dashboard (admin uses 1.4fr 1fr). */
+.emp-dashboard-panels {
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)) !important;
+}
+/* Slot icons inline with overview panel headings */
+.overview-panel-head h3 .bi {
+    color: #2dad50;
+    margin-right: 6px;
+    font-size: 18px;
+}
+.emp-dashboard-card-link {
+    color: #2dad50;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+.emp-dashboard-card-link:hover { color: #239240; text-decoration: underline; }
+
+#dashboard-tab [data-emp-dashboard-goto] {
+    cursor: pointer;
+}
+
+.emp-dashboard-list { display: flex; flex-direction: column; gap: 10px; }
+.emp-dashboard-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+.emp-dashboard-list-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+.emp-dashboard-list-item-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.emp-dashboard-list-item-sub {
+    font-size: 12px;
+    color: #6b7280;
+}
+.emp-dashboard-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.emp-dashboard-badge.pending  { background: #fef3c7; color: #92400e; }
+.emp-dashboard-badge.progress { background: #ffedd5; color: #9a3412; }
+.emp-dashboard-badge.resolved { background: #dcfce7; color: #166534; }
+.emp-dashboard-badge.closed   { background: #e5e7eb; color: #374151; }
+.emp-dashboard-badge.active   { background: #dcfce7; color: #166534; }
+.emp-dashboard-badge.idle     { background: #fee2e2; color: #991b1b; }
+
+.emp-dashboard-empty {
+    color: #9ca3af;
+    font-style: italic;
+    font-size: 13px;
+    margin: 4px 0;
+    text-align: center;
+    padding: 14px 0;
+}
+
+.emp-dashboard-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+}
+.emp-dashboard-quick-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 18px 12px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    color: #111827;
+    font-weight: 600;
+    font-size: 13px;
+}
+.emp-dashboard-quick-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    border-color: #2dad50;
+}
+.emp-dashboard-quick-action .bi {
+    font-size: 24px;
+    color: #2dad50;
+}
+.emp-dashboard-quick-action[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.emp-dashboard-team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+}
+.emp-dashboard-team-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    text-align: center;
+}
+.emp-dashboard-team-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #6b7280;
+    font-weight: 600;
+}
+.emp-dashboard-team-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.emp-dashboard-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px 20px;
+    color: #6b7280;
+}
+.emp-dashboard-empty-state .bi {
+    font-size: 36px;
+    color: #9ca3af;
+    margin-bottom: 12px;
+}
+.emp-dashboard-empty-state h3 {
+    font-size: 16px;
+    color: #374151;
+    margin: 0 0 6px;
+}
+.emp-dashboard-empty-state p {
+    margin: 0;
+    font-size: 13px;
+    max-width: 420px;
+}
+
+@media (max-width: 768px) {
+    .emp-dashboard-grid { grid-template-columns: 1fr; }
+    .emp-dashboard-card-header { flex-direction: column; align-items: flex-start; }
+}
+
+/* ── Employee Dashboard: dark-mode overrides (no blue accents) ── */
+
+/* KPI + panel cards: dark surface */
+body.theme-dark #dashboard-tab .overview-kpi-card,
+body.theme-dark #dashboard-tab .overview-panel-card {
+    background: #141414 !important;
+    border-color: #2a2a2a !important;
+    color: #e5e7eb !important;
+}
+
+/* KPI typography */
+body.theme-dark #dashboard-tab .overview-kpi-top h3,
+body.theme-dark #dashboard-tab .overview-panel-head h3 {
+    color: #f3f4f6 !important;
+}
+body.theme-dark #dashboard-tab .overview-kpi-number {
+    color: #ffffff !important;
+}
+body.theme-dark #dashboard-tab .overview-kpi-trend,
+body.theme-dark #dashboard-tab .overview-kpi-trend span,
+body.theme-dark #dashboard-tab .overview-subtitle {
+    color: #9ca3af !important;
+}
+body.theme-dark #dashboard-tab .overview-title {
+    color: #ffffff !important;
+}
+
+/* KPI icon chip - neutral graphite, not navy/blue */
+body.theme-dark #dashboard-tab .overview-kpi-icon {
+    background: #1f1f1f !important;
+    border: 1px solid #333333 !important;
+    color: #d1d5db !important;
+}
+body.theme-dark #dashboard-tab .overview-kpi-icon.warn {
+    background: #3a2a10 !important;
+    border-color: #6b4423 !important;
+    color: #fbbf24 !important;
+}
+
+/* Refresh button (uses .overview-filter-btn) */
+body.theme-dark #dashboard-tab .overview-filter-btn {
+    background-color: #1a1a1a !important;
+    border: 1px solid #2f2f2f !important;
+    color: #e5e7eb !important;
+}
+body.theme-dark #dashboard-tab .overview-filter-btn:hover {
+    background: #232323 !important;
+    border-color: #2dad50 !important;
+    color: #ffffff !important;
+}
+
+/* Quick action tiles */
+body.theme-dark #dashboard-tab .emp-dashboard-quick-action {
+    background: #1a1a1a !important;
+    border-color: #2a2a2a !important;
+    color: #e5e7eb !important;
+}
+body.theme-dark #dashboard-tab .emp-dashboard-quick-action:hover {
+    background: #1f1f1f !important;
+    border-color: #2dad50 !important;
+}
+
+/* List item rows (My Tasks, Equipment, Attendance) */
+body.theme-dark #dashboard-tab .emp-dashboard-list-item {
+    background: #1a1a1a !important;
+    border-color: #2a2a2a !important;
+}
+body.theme-dark #dashboard-tab .emp-dashboard-list-item-title {
+    color: #f3f4f6 !important;
+}
+body.theme-dark #dashboard-tab .emp-dashboard-list-item-sub {
+    color: #9ca3af !important;
+}
+
+/* Status badges - non-blue, dark-friendly */
+body.theme-dark #dashboard-tab .emp-dashboard-badge.pending  { background: #3a2a10 !important; color: #fbbf24 !important; }
+body.theme-dark #dashboard-tab .emp-dashboard-badge.progress { background: #3a2510 !important; color: #fb923c !important; }
+body.theme-dark #dashboard-tab .emp-dashboard-badge.resolved { background: #16301f !important; color: #86efac !important; }
+body.theme-dark #dashboard-tab .emp-dashboard-badge.active   { background: #16301f !important; color: #86efac !important; }
+body.theme-dark #dashboard-tab .emp-dashboard-badge.closed   { background: #2a2a2a !important; color: #d1d5db !important; }
+body.theme-dark #dashboard-tab .emp-dashboard-badge.idle     { background: #3a1a1a !important; color: #fca5a5 !important; }
+
+/* Empty / loading text */
+body.theme-dark #dashboard-tab .emp-dashboard-empty {
+    color: #6b7280 !important;
+}
+body.theme-dark #dashboard-tab .emp-dashboard-empty-state h3 {
+    color: #f3f4f6 !important;
+}
+body.theme-dark #dashboard-tab .emp-dashboard-empty-state p,
+body.theme-dark #dashboard-tab .emp-dashboard-empty-state {
+    color: #9ca3af !important;
+}
+
+/* Card link "Manage all" / "Open inventory" / "View full log" */
+body.theme-dark #dashboard-tab .emp-dashboard-card-link {
+    color: #4ade80 !important;
+}
+body.theme-dark #dashboard-tab .emp-dashboard-card-link:hover {
+    color: #86efac !important;
+}
+
+/* ── Reports tab: panel collapse (mirrors admin.css; repeated here as cache backstop) ── */
+.report-group-panel {
+    max-height: 0 !important;
+    overflow: hidden !important;
+    transition: max-height 0.35s ease;
+}
+.report-group-card.open .report-group-panel {
+    max-height: 900px !important;
+    overflow: hidden !important;
+}
+
+/* ================================================================
+   EMPLOYEE DASHBOARD – NEW CHART & LAYOUT ELEMENTS
+   ================================================================ */
+
+/* Hide the data-cache container */
+.hidden-data-cache { display: none; }
+
+/* Period select inside header row */
+.overview-period-select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 7px 32px 7px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background-color: #ffffff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7280'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 10px;
+    font-size: 13px;
+    color: #374151;
+    cursor: pointer;
+    min-width: 130px;
+}
+.overview-period-select:focus { outline: none; border-color: #2dad50; }
+
+/* Refresh icon-only button */
+.overview-refresh-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* Panel head meta label */
+.overview-panel-head-meta {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-left: auto;
+    font-weight: 400;
+}
+
+/* Tasks badge in panel head */
+#emp-recent-inquiries-card .overview-panel-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+#emp-tasks-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #fef3c7;
+    color: #d97706;
+    font-weight: 600;
+    margin-left: auto;
+}
+
+/* Quick action buttons */
+.emp-dashboard-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    padding: 4px 0;
+}
+.emp-dashboard-quick-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f9fafb;
+    cursor: pointer;
+    font-size: 13px;
+    color: #374151;
+    transition: all 0.15s;
+    text-align: center;
+}
+.emp-dashboard-quick-action i { font-size: 22px; color: #2dad50; }
+.emp-dashboard-quick-action:hover { background: #f0fdf4; border-color: #2dad50; color: #166534; }
+
+/* Empty state (icon-centered) */
+.emp-dashboard-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 48px 24px;
+    text-align: center;
+    color: #6b7280;
+}
+.emp-dashboard-empty-state i { font-size: 48px; color: #d1d5db; }
+.emp-dashboard-empty-state h3 { font-size: 16px; font-weight: 600; color: #374151; margin: 0; }
+.emp-dashboard-empty-state p  { font-size: 13px; margin: 0; }
+
+/* Overview recent list */
+.overview-recent-list {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    max-height: 320px;
+}
+
+/* SVG chart containers */
+.daily-activity-chart-wrap {
+    padding: 4px 0 0;
+    min-height: 100px;
+    overflow: hidden;
+}
+
+/* Reports tab date controls */
+.report-date-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.report-date-input {
+    height: 36px;
+    min-width: 130px;
+    font-size: 13px;
+}
+.reports-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+}
+
+/* ================================================================
+   EMPLOYEE DASHBOARD – DARK MODE (chart & new elements)
+   ================================================================ */
+
+/* Period select in dark */
+body.theme-dark #dashboard-tab .overview-period-select {
+    background-color: #0f0f0f !important;
+    border-color: #2f2f2f !important;
+    color: #d1d5db !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7280'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 10px center !important;
+    background-size: 10px !important;
+}
+
+/* Panel head meta */
+body.theme-dark #dashboard-tab .overview-panel-head-meta {
+    color: #6b7280 !important;
+}
+
+/* Tasks badge */
+body.theme-dark #emp-tasks-badge {
+    background: #3a2a10 !important;
+    color: #fbbf24 !important;
+}
+
+/* Attendance bars (dark) */
+body.theme-dark #dashboard-tab .weekly-attendance-bars {
+    background-image: repeating-linear-gradient(
+        to top, transparent 0, transparent calc(25% - 1px),
+        #2a2a2a calc(25% - 1px), #2a2a2a 25%
+    ) !important;
+}
+body.theme-dark #dashboard-tab .weekly-bar { background: #2dad50 !important; }
+body.theme-dark #dashboard-tab .weekly-bar.muted { background: #2a2a2a !important; }
+body.theme-dark #dashboard-tab .weekly-bar-col span,
+body.theme-dark #dashboard-tab .weekly-attendance-scale { color: #9ca3af !important; }
+
+/* Equipment donut (dark) */
+body.theme-dark #dashboard-tab .equipment-status-chart {
+    background: conic-gradient(
+        #2dad50 0 calc(var(--in-use) * 1%),
+        #f59e0b calc(var(--in-use) * 1%) calc((var(--in-use) + var(--maintenance)) * 1%),
+        #ef4444 calc((var(--in-use) + var(--maintenance)) * 1%) calc((var(--in-use) + var(--maintenance) + var(--out-order)) * 1%),
+        #1f2937 calc((var(--in-use) + var(--maintenance) + var(--out-order)) * 1%) 100%
+    ) !important;
+}
+body.theme-dark #dashboard-tab .equipment-status-chart::after {
+    background: #141414 !important;
+    border: 1px solid #2f2f2f;
+}
+body.theme-dark #dashboard-tab .equipment-status-total { color: #ffffff !important; }
+body.theme-dark #dashboard-tab .equipment-status-caption { color: #9ca3af !important; }
+body.theme-dark #dashboard-tab .equipment-status-legend-row { color: #d1d5db !important; }
+body.theme-dark #dashboard-tab .equipment-status-legend-row strong { color: #ffffff !important; }
+body.theme-dark #dashboard-tab .legend-label span { color: #d1d5db !important; }
+
+/* Inquiry breakdown (dark) */
+body.theme-dark #dashboard-tab .inquiry-bar-label { color: #d1d5db !important; }
+body.theme-dark #dashboard-tab .inquiry-bar-count { color: #f3f4f6 !important; }
+body.theme-dark #dashboard-tab .inquiry-bar-pct   { color: #6b7280 !important; }
+body.theme-dark #dashboard-tab .inquiry-bar-track  { background: #2a2a2a !important; }
+body.theme-dark #dashboard-tab .inquiry-bar-total  { color: #6b7280 !important; }
+body.theme-dark #dashboard-tab .inquiry-bar-total strong { color: #d1d5db !important; }
+body.theme-dark #dashboard-tab .overview-empty-state { color: #6b7280 !important; }
+
+/* SVG line chart (dark) */
+body.theme-dark #dashboard-tab .daily-activity-chart-wrap svg line { stroke: #2a2a2a !important; }
+body.theme-dark #dashboard-tab .daily-activity-chart-wrap svg text { fill: #6b7280 !important; }
+
+/* Recent list items (dark) */
+body.theme-dark #dashboard-tab .overview-recent-item { border-bottom-color: #1f1f1f !important; }
+body.theme-dark #dashboard-tab .overview-recent-item:hover { background: #1a1a1a !important; }
+body.theme-dark #dashboard-tab .overview-recent-item-title { color: #f3f4f6 !important; }
+body.theme-dark #dashboard-tab .overview-recent-item-meta { color: #6b7280 !important; }
+
+/* Reports tab date controls (dark) */
+body.theme-dark #reports-tab .report-date-input {
+    background: #0f0f0f !important;
+    border-color: #2f2f2f !important;
+    color: #d1d5db !important;
+}
+body.theme-dark #reports-tab .overview-filter-btn {
+    background-color: #141414 !important;
+    border-color: #2f2f2f !important;
+    color: #d1d5db !important;
+}
+body.theme-dark #reports-tab .overview-filter-btn:hover {
+    background: #1f1f1f !important;
+    border-color: #2dad50 !important;
+    color: #ffffff !important;
+}
+body.theme-dark #reports-tab .tab-description { color: #9ca3af !important; }

@@ -87,8 +87,69 @@
     box-shadow: 0 0 0 4px rgba(45, 173, 80, 0.1);
 }
 
+.password-input-wrap {
+    position: relative;
+}
+
+.password-input-wrap input {
+    padding-right: 52px;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.password-toggle:hover {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.password-toggle:focus-visible {
+    outline: 2px solid #2dad50;
+    outline-offset: 2px;
+}
+
+.password-toggle i {
+    font-size: 18px;
+    line-height: 1;
+}
+
 .w-full { 
     width: 100%; 
+}
+
+#login-form .btn-primary.is-loading {
+    opacity: 0.95;
+    cursor: wait;
+}
+
+#login-form .btn-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    display: inline-block;
+    animation: loginBtnSpin 0.7s linear infinite;
+}
+
+@keyframes loginBtnSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 .error-box { 
@@ -133,7 +194,9 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.75);
+    background:
+        linear-gradient(135deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.58) 100%),
+        url('../Images/loginbg.png') center center / cover no-repeat;
     display: flex;
     justify-content: center;
     align-items: center;

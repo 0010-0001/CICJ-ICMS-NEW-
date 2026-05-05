@@ -67,14 +67,30 @@ const DASHBOARD_FEATURES = [
         id: 'reports-tab',
         name: 'Reports',
         icon: 'bi-file-earmark-bar-graph-fill',
-        requiredPermissions: ['can_export_attendance', 'can_view_equipment', 'can_view_inquiries'],
+        requiredPermissions: ['can_view_reports'],
         anyPermission: true,
         order: 8
+    },
+    {
+        id: 'archives-tab',
+        name: 'Archives',
+        icon: 'bi-archive-fill',
+        requiredPermissions: ['can_view_audit_trail'],
+        anyPermission: true,
+        order: 9
     }
 ];
 
 // ===== EMPLOYEE DASHBOARD FEATURES =====
 const EMPLOYEE_FEATURES = [
+    {
+        id: 'dashboard-tab',
+        name: 'Dashboard Overview',
+        icon: 'bi-speedometer2',
+        requiredPermissions: [],
+        anyPermission: true,
+        order: 0
+    },
     {
         id: 'user-tab',
         name: 'User Management',
@@ -122,6 +138,14 @@ const EMPLOYEE_FEATURES = [
         requiredPermissions: ['can_view_health_logs', 'can_export_health_logs', 'can_view_audit_trail', 'can_backup_database'],
         anyPermission: true,
         order: 6
+    },
+    {
+        id: 'reports-tab',
+        name: 'Reports',
+        icon: 'bi-file-earmark-bar-graph-fill',
+        requiredPermissions: ['can_view_reports', 'can_export_attendance_report', 'can_export_equipment_report', 'can_export_inquiry_report', 'can_export_files_report'],
+        anyPermission: true,
+        order: 7
     }
 ];
 
@@ -132,6 +156,9 @@ const EMPLOYEE_FEATURES = [
  * @returns {boolean}
  */
 function hasFeatureAccess(user, feature) {
+    // ADMIN role bypasses all permission checks — always full access
+    if (user?.role === 'ADMIN') return true;
+
     // If no permissions required, always grant access
     if (!feature.requiredPermissions || feature.requiredPermissions.length === 0) {
         return true;
@@ -194,7 +221,7 @@ function renderDynamicNavigation(user, navContainer, isAdminDashboard = true) {
         },
         {
             title: 'System',
-            featureIds: ['reports-tab', 'health-tab']
+            featureIds: ['reports-tab', 'health-tab', 'archives-tab']
         }
     ];
 
@@ -223,12 +250,34 @@ function renderDynamicNavigation(user, navContainer, isAdminDashboard = true) {
 
         navContainer.innerHTML = sectionsHtml.join('');
     } else {
-        navContainer.innerHTML = availableFeatures.map((feature, index) => {
-            const isActive = index === 0 ? 'class="active"' : '';
-            return `<a href="#" ${isActive} data-target="${feature.id}">
+        const employeeSections = [
+            {
+                title: 'Menu',
+                featureIds: ['dashboard-tab', 'user-tab', 'attendance-tab', 'equipment-tab', 'files-tab', 'inquiry-tab']
+            },
+            {
+                title: 'System',
+                featureIds: ['reports-tab', 'system-tab']
+            }
+        ];
+        const availableById = new Map(availableFeatures.map(f => [f.id, f]));
+        let isFirstEmpLink = true;
+        const empSectionsHtml = [];
+        employeeSections.forEach(section => {
+            const sectionFeatures = section.featureIds
+                .map(id => availableById.get(id))
+                .filter(Boolean);
+            if (sectionFeatures.length === 0) return;
+            empSectionsHtml.push(`<div class="nav-section-title">${section.title}</div>`);
+            sectionFeatures.forEach(feature => {
+                const isActive = isFirstEmpLink ? 'class="active"' : '';
+                empSectionsHtml.push(`<a href="#" ${isActive} data-target="${feature.id}">
             <i class="${feature.icon}"></i> ${feature.name}
-        </a>`;
-        }).join('');
+        </a>`);
+                isFirstEmpLink = false;
+            });
+        });
+        navContainer.innerHTML = empSectionsHtml.join('');
     }
 
     // Hide all tabs first

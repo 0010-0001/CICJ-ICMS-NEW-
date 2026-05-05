@@ -33,7 +33,7 @@ services:
     container_name: cicj_backend_dev
     restart: unless-stopped
     environment:
-      DATABASE_URL: "mysql://root:@mysql:3306/cicj_shcoms"
+      DATABASE_URL: "mysql://root:root@mysql:3306/cicj_shcoms"
       JWT_SECRET: "cicj_super_secret_key_2026"
       PORT: 5000
       NODE_ENV: development

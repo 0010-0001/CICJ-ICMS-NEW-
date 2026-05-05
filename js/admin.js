@@ -285,6 +285,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const canExportHealthLogs = hasPermission('can_export_health_logs');
         const canViewHealthLogs = hasPermission('can_view_health_logs');
         const canViewAuditTrail = hasPermission('can_view_audit_trail');
+        const canManagePermissions = hasPermission('can_manage_permissions');
+        const canViewReports = hasPermission('can_view_reports');
+        const canViewArchives = canViewAuditTrail;
 
         const openUserModalBtn = document.getElementById('open-add-user-modal-btn');
         const userSearchInput = document.getElementById('user-search-input');
@@ -292,6 +295,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const dangerZoneSection = document.querySelector('#edit-user-form .danger-zone-section');
         const openEquipmentModalBtn = document.getElementById('open-modal-btn');
         const equipmentSearchInput = document.getElementById('equipment-search-input');
+        const syncCloudinaryBtn = document.getElementById('sync-cloudinary-btn');
         const openFileUploadBtn = document.getElementById('open-file-upload-btn');
         const filesSearchInput = document.getElementById('files-search-input');
         const filesStorageFilter = document.getElementById('files-storage-filter');
@@ -302,7 +306,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const inquiryEmailInput = document.getElementById('admin-inquiry-client-email');
         const inquirySubjectInput = document.getElementById('admin-inquiry-subject');
         const inquiryMessageInput = document.getElementById('admin-inquiry-message');
-        const exportAttendanceBtn = document.getElementById('export-attendance-btn');
         const addSiteBtn = document.getElementById('add-site-btn');
         const triggerBackupBtn = document.getElementById('trigger-backup-btn');
         const exportLogsBtn = document.getElementById('export-logs-btn');
@@ -336,6 +339,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             openFileUploadBtn.classList.toggle('hidden', !canUploadFiles);
         }
 
+        if (syncCloudinaryBtn) {
+            syncCloudinaryBtn.classList.toggle('hidden', !canUploadFiles);
+            syncCloudinaryBtn.disabled = !canUploadFiles;
+        }
+
         if (filesSearchInput) {
             filesSearchInput.disabled = !canViewFiles;
         }
@@ -361,10 +369,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (inquirySubjectInput) inquirySubjectInput.disabled = !canAddInquiries;
         if (inquiryMessageInput) inquiryMessageInput.disabled = !canAddInquiries;
 
-        if (exportAttendanceBtn) {
-            exportAttendanceBtn.classList.toggle('hidden', !canExportAttendance);
-        }
-
         if (addSiteBtn) {
             addSiteBtn.classList.toggle('hidden', !canEditAttendance);
         }
@@ -377,17 +381,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             exportLogsBtn.classList.toggle('hidden', !canExportHealthLogs);
         }
 
+        const reportPermissionMap = {
+            attendance: canExportAttendance,
+            'attendance-sites': canViewAttendance || canEditAttendance,
+            'equipment-usage': canViewEquipment,
+            'equipment-inventory': canViewEquipment,
+            'inquiry-resolution': canViewInquiries,
+            'inquiries-detail': canViewInquiries,
+            files: canViewFiles,
+            'users-directory': canViewUsers,
+            'user-access': canManagePermissions,
+            'health-siem': canViewHealthLogs || canExportHealthLogs,
+            'health-backups': canViewHealthLogs || canBackupDatabase || canExportHealthLogs,
+            'health-audit': canViewAuditTrail || canViewHealthLogs,
+            'health-activity': canViewAuditTrail || canViewHealthLogs,
+            archives: canViewArchives
+        };
+
         reportButtons.forEach(btn => {
             const reportType = btn.getAttribute('data-report-type');
-            let allowed = false;
-            if (reportType === 'attendance') {
-                allowed = canExportAttendance;
-            } else if (reportType === 'equipment-usage') {
-                allowed = canViewEquipment;
-            } else if (reportType === 'inquiry-resolution') {
-                allowed = canViewInquiries;
-            }
+            const allowed = Boolean(reportPermissionMap[reportType]);
             btn.classList.toggle('hidden', !allowed);
+        });
+
+        document.querySelectorAll('.report-row[data-report-type]').forEach(row => {
+            const reportType = row.getAttribute('data-report-type');
+            const allowed = Boolean(reportPermissionMap[reportType]);
+            row.classList.toggle('hidden', !allowed);
         });
 
         // Section-level gating: hide entire subsection blocks if permission is missing.
@@ -406,16 +426,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         setSectionVisibility('attendance-logs-shell', canViewAttendance);
         setSectionVisibility('attendance-sites-shell', canViewAttendance || canEditAttendance);
 
+        syncInquirySubtabsWithPermissions();
+        syncAttendanceSubtabsWithPermissions();
+
         setSectionVisibility('health-overview-shell', canViewHealthLogs);
         setSectionVisibility('health-siem-shell', canViewHealthLogs);
         setSectionVisibility('health-backup-shell', canViewHealthLogs || canBackupDatabase);
-        setSectionVisibility('health-audit-shell', canViewAuditTrail);
+        setSectionVisibility('health-activity-shell', canViewAuditTrail);
+        setSectionVisibility('archives-shell', canViewArchives);
 
-        const canDownloadAttendanceReport = canExportAttendance;
-        const canDownloadEquipmentReport = canViewEquipment;
-        const canDownloadInquiryReport = canViewInquiries;
-        const anyReportVisible = canDownloadAttendanceReport || canDownloadEquipmentReport || canDownloadInquiryReport;
-        setSectionVisibility('reports-shell', anyReportVisible);
+        const anyReportVisible = canViewReports && Object.values(reportPermissionMap).some(Boolean);
+        setSectionVisibility('reports-shell', canViewReports);
 
         setTabPermissionNotice('user-tab', !canViewUsers, 'You do not have permission to view user records.');
         setTabPermissionNotice('equipment-tab', !canViewEquipment, 'You do not have permission to view equipment records.');
@@ -423,7 +444,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTabPermissionNotice('portfolio-tab', !canViewFiles && !canUploadFiles, 'You do not have permission to view or upload project files.');
         setTabPermissionNotice('attendance-tab', !canViewAttendance && !canExportAttendance && !canEditAttendance, 'You do not have permission to access attendance sections.');
         setTabPermissionNotice('health-tab', !canViewHealthLogs && !canViewAuditTrail && !canBackupDatabase && !canExportHealthLogs, 'You do not have permission to access system health sections.');
-        setTabPermissionNotice('reports-tab', !anyReportVisible, 'No report types are available for your account.');
+        setTabPermissionNotice('reports-tab', !canViewReports, 'You do not have permission to access reports.');
+        setTabPermissionNotice('archives-tab', !canViewArchives, 'You do not have permission to view immutable archive records.');
     }
 
     applyThemeMode(localStorage.getItem(THEME_STORAGE_KEY) || 'neutral', false);
@@ -882,6 +904,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (targetTab === 'portfolio-tab') return 'Project Files';
         if (targetTab === 'equipment-tab') return 'Equipment';
         if (targetTab === 'health-tab') return 'System Health';
+        if (targetTab === 'archives-tab') return 'Archives';
         if (targetTab === 'reports-tab') return 'Reports';
         if (targetTab === 'user-tab') return 'Users';
         return 'Dashboard';
@@ -993,6 +1016,389 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    function setActiveInquirySubtab(targetShellId) {
+        if (!targetShellId) return;
+
+        const buttons = document.querySelectorAll('.inquiry-subtab-btn');
+        const shells = document.querySelectorAll('.inquiry-subtab-shell');
+        if (buttons.length === 0 || shells.length === 0) return;
+
+        buttons.forEach((button) => {
+            const isActive = button.dataset.inquiryShell === targetShellId;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            button.setAttribute('tabindex', isActive ? '0' : '-1');
+        });
+
+        shells.forEach((shell) => {
+            const shouldShow = shell.id === targetShellId;
+            shell.classList.toggle('inquiry-subtab-hidden', !shouldShow);
+            shell.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+        });
+    }
+
+    function syncInquirySubtabsWithPermissions() {
+        const buttons = Array.from(document.querySelectorAll('.inquiry-subtab-btn'));
+        if (buttons.length === 0) return;
+
+        const visibleButtons = [];
+        buttons.forEach((button) => {
+            const shellId = button.dataset.inquiryShell || '';
+            const shell = document.getElementById(shellId);
+            const allowed = !!shell && !shell.classList.contains('hidden');
+            button.classList.toggle('hidden', !allowed);
+            if (allowed) visibleButtons.push(button);
+        });
+
+        if (visibleButtons.length === 0) return;
+
+        const activeVisible = visibleButtons.find((button) => button.classList.contains('active'));
+        const target = activeVisible || visibleButtons[0];
+        setActiveInquirySubtab(target.dataset.inquiryShell || '');
+    }
+
+    function setActiveAttendanceSubtab(targetShellId) {
+        if (!targetShellId) return;
+
+        const buttons = document.querySelectorAll('.attendance-subtab-btn');
+        const shells = document.querySelectorAll('.attendance-subtab-shell');
+        if (buttons.length === 0 || shells.length === 0) return;
+
+        buttons.forEach((button) => {
+            const isActive = button.dataset.attendanceShell === targetShellId;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            button.setAttribute('tabindex', isActive ? '0' : '-1');
+        });
+
+        shells.forEach((shell) => {
+            const shouldShow = shell.id === targetShellId;
+            shell.classList.toggle('attendance-subtab-hidden', !shouldShow);
+            shell.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+        });
+    }
+
+    function syncAttendanceSubtabsWithPermissions() {
+        const buttons = Array.from(document.querySelectorAll('.attendance-subtab-btn'));
+        if (buttons.length === 0) return;
+
+        const visibleButtons = [];
+        buttons.forEach((button) => {
+            const shellId = button.dataset.attendanceShell || '';
+            const shell = document.getElementById(shellId);
+            const allowed = !!shell && !shell.classList.contains('hidden');
+            button.classList.toggle('hidden', !allowed);
+            if (allowed) visibleButtons.push(button);
+        });
+
+        if (visibleButtons.length === 0) return;
+
+        const activeVisible = visibleButtons.find((button) => button.classList.contains('active'));
+        const target = activeVisible || visibleButtons[0];
+        setActiveAttendanceSubtab(target.dataset.attendanceShell || '');
+    }
+
+    const GENERIC_TABLE_PAGINATION_MIN_ROWS = 8;
+    const genericPaginationState = new WeakMap();
+    const genericPaginationExcludedBodyIds = new Set([
+        'siem-alerts-body',
+        'backup-table-body',
+        'health-table-body',
+        'activity-table-body'
+    ]);
+    let isApplyingGenericPagination = false;
+    let genericPaginationResizeTimer = null;
+
+    function getGenericPaginationState(tbody) {
+        if (!genericPaginationState.has(tbody)) {
+            genericPaginationState.set(tbody, {
+                sourceRowsHtml: [],
+                currentPage: 1,
+                observer: null,
+                suppressObserver: false,
+                refreshTimer: null
+            });
+        }
+        return genericPaginationState.get(tbody);
+    }
+
+    function getGenericPaginationKey(tbody) {
+        if (tbody.dataset.paginationKey) return tbody.dataset.paginationKey;
+        const key = tbody.id || `table-body-${Math.random().toString(36).slice(2, 10)}`;
+        tbody.dataset.paginationKey = key;
+        return key;
+    }
+
+    function getGenericTableScrollShell(tbody) {
+        return tbody.closest('.table-scroll-shell, .inquiry-table-scroll, .health-logs-scroll');
+    }
+
+    function ensureGenericPaginationContainer(tbody) {
+        const key = getGenericPaginationKey(tbody);
+        const existing = document.querySelector(`.generic-table-pagination[data-pagination-for="${key}"]`);
+        if (existing) return existing;
+
+        const shell = getGenericTableScrollShell(tbody);
+        const table = tbody.closest('table');
+        const container = document.createElement('div');
+        container.className = 'table-pagination hidden generic-table-pagination';
+        container.dataset.paginationFor = key;
+
+        if (shell && shell.parentNode) {
+            shell.parentNode.insertBefore(container, shell.nextSibling);
+        } else if (table && table.parentNode) {
+            table.parentNode.insertBefore(container, table.nextSibling);
+        }
+
+        return container;
+    }
+
+    function stripHtml(html) {
+        return String(html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    function isPlaceholderRows(rowsHtml) {
+        if (!Array.isArray(rowsHtml) || rowsHtml.length !== 1) return false;
+        const rowHtml = String(rowsHtml[0] || '');
+        const text = stripHtml(rowHtml).toLowerCase();
+        if (!/colspan\s*=/.test(rowHtml)) return false;
+        return /(loading|open the tab|no\s+\w+|failed|permission|unable|connection error|not found)/i.test(text);
+    }
+
+    function toggleShellScrollable(shell, shouldScroll) {
+        if (!shell) return;
+        shell.classList.toggle('is-scrollable', !!shouldScroll);
+    }
+
+    function lockGenericTableColumnWidths(table) {
+        if (!table) return;
+
+        const thead = table.querySelector('thead');
+        if (!thead) return;
+
+        const headerCells = Array.from(thead.querySelectorAll('th'));
+        if (!headerCells.length) return;
+
+        const columnCount = headerCells.length;
+        const tableWidth = Math.round(table.getBoundingClientRect().width);
+        const lockedWidth = Number(table.dataset.lockedTableWidth || 0);
+        const lockedColumns = Number(table.dataset.lockedColumnCount || 0);
+
+        if (table.dataset.lockedColumns === 'true' && lockedWidth === tableWidth && lockedColumns === columnCount) {
+            return;
+        }
+
+        headerCells.forEach((cell) => {
+            cell.style.width = '';
+        });
+
+        // Measure current rendered widths, then lock them.
+        table.style.tableLayout = 'auto';
+        const widths = headerCells.map((cell) => Math.max(44, Math.round(cell.getBoundingClientRect().width)));
+        widths.forEach((width, index) => {
+            headerCells[index].style.width = `${width}px`;
+        });
+
+        table.style.tableLayout = 'fixed';
+        table.dataset.lockedColumns = 'true';
+        table.dataset.lockedTableWidth = String(tableWidth);
+        table.dataset.lockedColumnCount = String(columnCount);
+    }
+
+    function renderGenericRows(tbody, rowsHtml) {
+        const state = getGenericPaginationState(tbody);
+        state.suppressObserver = true;
+        isApplyingGenericPagination = true;
+        tbody.innerHTML = rowsHtml.join('');
+        isApplyingGenericPagination = false;
+        setTimeout(() => {
+            state.suppressObserver = false;
+        }, 0);
+    }
+
+    function getPaginationTokens(totalPages, currentPage) {
+        const tokens = [];
+        if (totalPages <= 7) {
+            for (let page = 1; page <= totalPages; page += 1) tokens.push(page);
+            return tokens;
+        }
+
+        tokens.push(1);
+        const start = Math.max(2, currentPage - 1);
+        const end = Math.min(totalPages - 1, currentPage + 1);
+
+        if (start > 2) tokens.push('ellipsis-start');
+        for (let page = start; page <= end; page += 1) tokens.push(page);
+        if (end < totalPages - 1) tokens.push('ellipsis-end');
+        tokens.push(totalPages);
+        return tokens;
+    }
+
+    function shouldSkipGenericPagination(tbody) {
+        if (!tbody) return true;
+        if (genericPaginationExcludedBodyIds.has(tbody.id)) return true;
+        if (tbody.closest('#health-tab')) return true;
+        return false;
+    }
+
+    function refreshGenericPaginationForBody(tbody, options = {}) {
+        if (!tbody || shouldSkipGenericPagination(tbody)) return;
+
+        const { captureFromDom = false } = options;
+        const hostTab = tbody.closest('.tab-section');
+        const isHiddenTab = !!hostTab && hostTab.classList.contains('hidden');
+        const hiddenSubtabShell = tbody.closest('.health-subtab-hidden, .inquiry-subtab-hidden, .attendance-subtab-hidden');
+        const state = getGenericPaginationState(tbody);
+
+        if (captureFromDom) {
+            const domRows = Array.from(tbody.querySelectorAll('tr'));
+            state.sourceRowsHtml = domRows.map((row) => row.outerHTML);
+            state.currentPage = 1;
+        } else if (!state.sourceRowsHtml.length) {
+            const domRows = Array.from(tbody.querySelectorAll('tr'));
+            state.sourceRowsHtml = domRows.map((row) => row.outerHTML);
+        }
+
+        if (isHiddenTab || hiddenSubtabShell) return;
+
+        const sourceRows = Array.isArray(state.sourceRowsHtml) ? state.sourceRowsHtml : [];
+        const shell = getGenericTableScrollShell(tbody);
+        const paginationContainer = ensureGenericPaginationContainer(tbody);
+
+        if (!sourceRows.length || isPlaceholderRows(sourceRows)) {
+            toggleShellScrollable(shell, false);
+            if (paginationContainer) {
+                paginationContainer.innerHTML = '';
+                paginationContainer.classList.add('hidden');
+            }
+            if (sourceRows.length) {
+                renderGenericRows(tbody, sourceRows);
+            }
+            return;
+        }
+
+        const table = tbody.closest('table');
+        const tableTop = (shell || table || tbody).getBoundingClientRect().top;
+        const headerHeight = table?.querySelector('thead')?.getBoundingClientRect().height || 42;
+        const sampleRows = Array.from(tbody.querySelectorAll('tr')).slice(0, 6);
+        const measuredHeight = sampleRows.length
+            ? sampleRows.reduce((sum, row) => sum + row.getBoundingClientRect().height, 0) / sampleRows.length
+            : 46;
+        const rowHeight = measuredHeight > 0 ? measuredHeight : 46;
+        const viewportRoom = Math.max(220, window.innerHeight - tableTop - 120);
+        const estimatedHeight = headerHeight + sourceRows.length * rowHeight;
+        const shouldPaginate = estimatedHeight > viewportRoom + 12;
+
+        if (!shouldPaginate) {
+            renderGenericRows(tbody, sourceRows);
+            toggleShellScrollable(shell, false);
+            if (paginationContainer) {
+                paginationContainer.innerHTML = '';
+                paginationContainer.classList.add('hidden');
+            }
+            return;
+        }
+
+        const pageSize = Math.max(
+            GENERIC_TABLE_PAGINATION_MIN_ROWS,
+            Math.floor((viewportRoom - headerHeight) / Math.max(rowHeight, 32))
+        );
+        const totalItems = sourceRows.length;
+        const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+        const currentPage = Math.min(Math.max(state.currentPage || 1, 1), totalPages);
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = Math.min(startIndex + pageSize, totalItems);
+        const pageRows = sourceRows.slice(startIndex, endIndex);
+        state.currentPage = currentPage;
+
+        lockGenericTableColumnWidths(table);
+        renderGenericRows(tbody, pageRows);
+        toggleShellScrollable(shell, true);
+
+        if (!paginationContainer) return;
+        const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+        const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
+        const tokens = getPaginationTokens(totalPages, currentPage);
+        const numberButtons = tokens.map((token) => {
+            if (typeof token !== 'number') {
+                return '<span class="table-page-ellipsis">...</span>';
+            }
+            const activeClass = token === currentPage ? 'active-page' : '';
+            return `<button type="button" class="table-page-btn table-page-num ${activeClass}" data-generic-page="${token}" aria-label="Go to page ${token}">${token}</button>`;
+        }).join('');
+
+        paginationContainer.classList.remove('hidden');
+        paginationContainer.innerHTML = `
+            <div class="table-pagination-meta">Showing ${startIndex + 1}-${endIndex} of ${totalItems}</div>
+            <div class="table-pagination-controls">
+                <button type="button" class="table-page-btn" data-generic-action="prev" ${prevDisabled}>Previous</button>
+                <div class="table-page-numbers">${numberButtons}</div>
+                <span class="table-page-indicator">Page ${currentPage} of ${totalPages}</span>
+                <button type="button" class="table-page-btn" data-generic-action="next" ${nextDisabled}>Next</button>
+            </div>
+        `;
+
+        paginationContainer.querySelectorAll('[data-generic-action]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const action = button.getAttribute('data-generic-action');
+                if (action === 'prev' && state.currentPage > 1) {
+                    state.currentPage -= 1;
+                    refreshGenericPaginationForBody(tbody, { captureFromDom: false });
+                }
+                if (action === 'next' && state.currentPage < totalPages) {
+                    state.currentPage += 1;
+                    refreshGenericPaginationForBody(tbody, { captureFromDom: false });
+                }
+            });
+        });
+
+        paginationContainer.querySelectorAll('[data-generic-page]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const page = Number(button.getAttribute('data-generic-page') || 1);
+                if (!Number.isFinite(page) || page === state.currentPage) return;
+                state.currentPage = page;
+                refreshGenericPaginationForBody(tbody, { captureFromDom: false });
+            });
+        });
+    }
+
+    function refreshAllTablePaginations(options = {}) {
+        const { captureFromDom = false, onlyVisible = false } = options;
+        const bodies = document.querySelectorAll('.tab-section .data-table tbody');
+        bodies.forEach((tbody) => {
+            if (onlyVisible) {
+                const hostTab = tbody.closest('.tab-section');
+                if (hostTab?.classList.contains('hidden')) return;
+
+                const hiddenSubtabShell = tbody.closest('.health-subtab-hidden, .inquiry-subtab-hidden, .attendance-subtab-hidden');
+                if (hiddenSubtabShell) return;
+            }
+            refreshGenericPaginationForBody(tbody, { captureFromDom });
+        });
+    }
+
+    function initializeGenericTablePaginationObservers() {
+        const bodies = document.querySelectorAll('.tab-section .data-table tbody');
+        bodies.forEach((tbody) => {
+            if (shouldSkipGenericPagination(tbody)) return;
+            const state = getGenericPaginationState(tbody);
+            if (state.observer) return;
+
+            state.observer = new MutationObserver(() => {
+                if (isApplyingGenericPagination) return;
+                if (state.suppressObserver) return;
+
+                if (state.refreshTimer) {
+                    clearTimeout(state.refreshTimer);
+                }
+                state.refreshTimer = setTimeout(() => {
+                    refreshGenericPaginationForBody(tbody, { captureFromDom: true });
+                }, 60);
+            });
+            state.observer.observe(tbody, { childList: true });
+        });
+    }
+
     function activateTabByTarget(targetId) {
         if (!targetId) return;
 
@@ -1021,7 +1427,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             resetProjectFilesSearch();
             loadProjectFiles();
         } else if (targetId === 'inquiry-tab') {
+            syncInquirySubtabsWithPermissions();
             loadInquiries();
+        } else if (targetId === 'attendance-tab') {
+            syncAttendanceSubtabsWithPermissions();
         } else if (targetId === 'reports-tab') {
             initializeReportDateRange();
         } else if (targetId === 'health-tab') {
@@ -1031,7 +1440,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 healthSearch.defaultValue = '';
             }
             loadSystemHealthTab();
+        } else if (targetId === 'archives-tab') {
+            loadArchivesTab();
         }
+
+        setTimeout(() => {
+            refreshAllTablePaginations({ captureFromDom: false, onlyVisible: true });
+        }, 0);
     }
 
     function getTabTargetForNotification(eventType) {
@@ -1041,6 +1456,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (type.includes('INQUIRY')) return 'inquiry-tab';
         if (type.includes('FILE')) return 'portfolio-tab';
         if (type.includes('INVENTORY') || type.includes('EQUIPMENT')) return 'equipment-tab';
+        if (type.includes('ARCHIVE')) return 'archives-tab';
         if (type.includes('PASSWORD') || type.includes('SECURITY')) return 'health-tab';
 
         return 'health-tab';
@@ -1124,18 +1540,61 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- 3. TAB SWITCHING LOGIC (using event delegation for dynamic links) ---
     const pageTitle = document.getElementById('page-title');
     const overviewSearchInput = document.getElementById('overview-search-input');
-    const weeklyRangeSelect = document.getElementById('weekly-range-select');
+    const overviewPeriodSelect = document.getElementById('overview-period-select');
+    const overviewRefreshBtn = document.getElementById('overview-refresh-btn');
     if (overviewSearchInput) {
-        // Clear browser autofill values so the field is empty by default.
         overviewSearchInput.value = '';
         overviewSearchInput.defaultValue = '';
-        setTimeout(() => {
-            overviewSearchInput.value = '';
-        }, 0);
+        setTimeout(() => { overviewSearchInput.value = ''; }, 0);
     }
-    if (weeklyRangeSelect) {
-        weeklyRangeSelect.addEventListener('change', () => {
-            loadOverview();
+    if (overviewPeriodSelect) {
+        overviewPeriodSelect.addEventListener('change', () => loadOverview());
+    }
+    if (overviewRefreshBtn) {
+        overviewRefreshBtn.addEventListener('click', () => {
+            const icon = overviewRefreshBtn.querySelector('i');
+            if (icon) icon.style.animation = 'overviewSpin 0.6s linear';
+            loadOverview().finally(() => {
+                setTimeout(() => { if (icon) icon.style.animation = ''; }, 680);
+            });
+        });
+    }
+    setupOverviewSearch();
+
+    const overviewTab = document.getElementById('overview-tab');
+    if (overviewTab) {
+        const clickableCards = overviewTab.querySelectorAll('[data-overview-target]');
+        clickableCards.forEach(card => {
+            card.classList.add('overview-clickable');
+            card.setAttribute('role', 'button');
+            card.setAttribute('tabindex', '0');
+        });
+
+        const handleOverviewShortcut = (targetId) => {
+            if (!targetId) return;
+            const navLink = sidebarNav.querySelector(`a[data-target="${targetId}"]`);
+            if (!navLink) {
+                if (typeof showAlert === 'function') {
+                    showAlert('You do not have access to that section.');
+                }
+                return;
+            }
+            activateTabByTarget(targetId);
+        };
+
+        overviewTab.addEventListener('click', (event) => {
+            if (event.target.closest('button, a, input, select, textarea, label')) return;
+            const card = event.target.closest('[data-overview-target]');
+            if (!card) return;
+            handleOverviewShortcut(card.getAttribute('data-overview-target'));
+        });
+
+        overviewTab.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            const card = event.target.closest('[data-overview-target]');
+            if (!card) return;
+            event.preventDefault();
+            handleOverviewShortcut(card.getAttribute('data-overview-target'));
         });
     }
 
@@ -1265,7 +1724,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const equipmentId = document.getElementById('equip-id').value;
         if (!equipmentId) return;
 
-        if (!await showConfirm('Are you sure you want to delete this equipment? This action cannot be undone.', 'Confirm Deletion')) {
+        if (!await showConfirm('Archive this equipment record? It will be removed from active inventory and preserved in Archives.', 'Archive Equipment')) {
             return;
         }
 
@@ -1438,29 +1897,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     const PERMISSION_PRESETS = {
         'field-worker': {
             description: 'Field Worker (Minimal Access)',
-            permissions: ['can_view_own_attendance', 'can_view_equipment', 'can_view_files', 'can_download_files']
+            permissions: [
+                'can_view_own_attendance',
+                'can_view_equipment',
+                'can_view_files', 'can_download_files',
+                'can_view_reports', 'can_export_attendance_report'
+            ]
         },
         'supervisor': {
             description: 'Field Supervisor (Team Management)',
-            permissions: ['can_view_own_attendance', 'can_view_all_attendance', 'can_export_attendance', 'can_view_equipment', 'can_assign_equipment', 'can_view_files', 'can_upload_files', 'can_download_files']
+            permissions: [
+                'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance', 'can_export_attendance',
+                'can_view_equipment', 'can_add_equipment', 'can_assign_equipment',
+                'can_view_files', 'can_upload_files', 'can_download_files',
+                'can_view_inquiries',
+                'can_view_reports', 'can_export_attendance_report', 'can_export_equipment_report'
+            ]
         },
         'hr-admin': {
             description: 'HR Admin (People Operations)',
-            permissions: ['can_view_users', 'can_add_users', 'can_edit_users', 'can_activate_users', 'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance', 'can_export_attendance', 'can_view_equipment', 'can_view_files', 'can_download_files']
+            permissions: [
+                'can_view_users', 'can_add_users', 'can_edit_users', 'can_activate_users',
+                'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance', 'can_delete_attendance', 'can_export_attendance',
+                'can_view_equipment',
+                'can_view_files', 'can_download_files',
+                'can_view_audit_trail',
+                'can_view_reports', 'can_export_attendance_report', 'can_export_equipment_report'
+            ]
         },
         'sales-manager': {
             description: 'Sales Manager (Customer Relations)',
-            permissions: ['can_view_inquiries', 'can_add_inquiries', 'can_update_inquiries', 'can_assign_inquiries', 'can_view_files', 'can_upload_files', 'can_download_files']
+            permissions: [
+                'can_view_own_attendance',
+                'can_view_inquiries', 'can_add_inquiries', 'can_update_inquiries', 'can_delete_inquiries', 'can_assign_inquiries',
+                'can_view_files', 'can_upload_files', 'can_edit_files', 'can_download_files',
+                'can_view_reports', 'can_export_inquiry_report', 'can_export_files_report'
+            ]
         },
         'super-admin': {
-            description: 'Super Admin (Full Access)',
+            description: 'Select All (Full Access)',
             permissions: [
                 'can_view_users', 'can_add_users', 'can_edit_users', 'can_delete_users', 'can_activate_users',
                 'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance', 'can_delete_attendance', 'can_export_attendance',
                 'can_view_equipment', 'can_add_equipment', 'can_edit_equipment', 'can_delete_equipment', 'can_assign_equipment',
                 'can_view_files', 'can_upload_files', 'can_edit_files', 'can_delete_files', 'can_download_files',
                 'can_view_inquiries', 'can_add_inquiries', 'can_update_inquiries', 'can_delete_inquiries', 'can_assign_inquiries',
-                'can_view_health_logs', 'can_export_health_logs', 'can_view_audit_trail', 'can_backup_database'
+                'can_view_health_logs', 'can_export_health_logs', 'can_manage_permissions', 'can_view_audit_trail', 'can_backup_database',
+                'can_view_reports', 'can_export_attendance_report', 'can_export_equipment_report', 'can_export_inquiry_report', 'can_export_files_report'
             ]
         }
     };
@@ -2016,54 +2499,62 @@ document.addEventListener('DOMContentLoaded', async () => {
             `;
         }).join('');
 
-        document.querySelectorAll('.qr-code-img').forEach(img => {
-            img.addEventListener('click', function() {
-                const qrCode = this.dataset.qrCode;
-                const qrNumber = this.dataset.qrNumber;
-                const equipName = this.dataset.equipName;
-                downloadQRCode(qrCode, qrNumber, equipName);
-            });
-        });
+        // Delegation is set up once on the tbody; it survives every pagination
+        // re-render because the tbody element itself is never replaced.
+        if (!equipmentTableBody.dataset.delegationBound) {
+            equipmentTableBody.dataset.delegationBound = 'true';
 
-        if (hasPermission('can_edit_equipment')) {
-            document.querySelectorAll('.edit-equipment-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const equipmentId = parseInt(this.dataset.equipmentId);
-                    editEquipment(equipmentId);
-                });
-            });
-        }
+            equipmentTableBody.addEventListener('click', async function(e) {
+                // QR code image click (view/download)
+                const qrImg = e.target.closest('.qr-code-img');
+                if (qrImg) {
+                    downloadQRCode(qrImg.dataset.qrCode, qrImg.dataset.qrNumber, qrImg.dataset.equipName);
+                    return;
+                }
 
-        if (hasPermission('can_assign_equipment')) {
-            document.querySelectorAll('.assign-equipment-btn').forEach(btn => {
-                btn.addEventListener('click', async function() {
-                    const equipmentId = parseInt(this.dataset.equipmentId, 10);
+                // Download QR button
+                const dlBtn = e.target.closest('.download-qr-btn');
+                if (dlBtn) {
+                    downloadQRCode(dlBtn.dataset.qrCode, dlBtn.dataset.qrNumber, dlBtn.dataset.equipName);
+                    return;
+                }
+
+                // Edit button
+                const editBtn = e.target.closest('.edit-equipment-btn');
+                if (editBtn) {
+                    if (!hasPermission('can_edit_equipment')) {
+                        showAlert('You do not have permission to edit equipment.');
+                        return;
+                    }
+                    const equipmentId = parseInt(editBtn.dataset.equipmentId, 10);
+                    if (equipmentId) editEquipment(equipmentId);
+                    return;
+                }
+
+                // Assign button
+                const assignBtn = e.target.closest('.assign-equipment-btn');
+                if (assignBtn) {
+                    if (!hasPermission('can_assign_equipment')) {
+                        showAlert('You do not have permission to assign equipment.');
+                        return;
+                    }
+                    const equipmentId = parseInt(assignBtn.dataset.equipmentId, 10);
                     if (!equipmentId) return;
-
                     const selectedItem = equipmentCache.find(item => Number(item.equipment_id) === equipmentId);
                     if (!selectedItem) {
                         showAlert('Equipment record not found. Please refresh and try again.');
                         return;
                     }
-
                     try {
                         await assignEquipmentFromAdminRow(selectedItem);
                     } catch (error) {
                         console.error('Assign equipment error:', error);
                         showNotification(error.message || 'Failed to assign equipment.', 'error');
                     }
-                });
+                    return;
+                }
             });
         }
-
-        document.querySelectorAll('.download-qr-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const qrCode = this.dataset.qrCode;
-                const qrNumber = this.dataset.qrNumber;
-                const equipName = this.dataset.equipName;
-                downloadQRCode(qrCode, qrNumber, equipName);
-            });
-        });
     }
 
     function applyEquipmentFilters() {
@@ -2154,6 +2645,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- PROJECT FILES TAB FUNCTIONS ---
     const filesTableBody = document.getElementById('files-table-body');
+    const syncCloudinaryBtn = document.getElementById('sync-cloudinary-btn');
     const openFileUploadBtn = document.getElementById('open-file-upload-btn');
     const cancelFileUploadBtn = document.getElementById('cancel-file-upload-btn');
     const fileUploadPanel = document.getElementById('file-upload-panel');
@@ -2264,6 +2756,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 : '-';
 
             const canDownloadFiles = hasPermission('can_download_files');
+            const canViewFiles = hasPermission('can_view_files');
             const canEditFiles = hasPermission('can_edit_files');
             const canDeleteFiles = hasPermission('can_delete_files');
 
@@ -2287,6 +2780,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                             ${canEditFiles ? `
                                 <button class="btn-small btn-edit-file" data-file-id="${file.file_id}" data-file-name="${escapeHtml(file.file_name || '')}" title="Edit File Name">
                                     <i class="bi bi-pencil-square"></i>
+                                </button>
+                            ` : ''}
+                            ${viewUrl && canViewFiles ? `
+                                <button class="btn-small btn-view-file" data-file-url="${escapeHtml(viewUrl)}" title="View File">
+                                    <i class="bi bi-eye"></i>
                                 </button>
                             ` : ''}
                             ${viewUrl && canDownloadFiles ? `
@@ -2382,6 +2880,49 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    if (syncCloudinaryBtn) {
+        syncCloudinaryBtn.addEventListener('click', async () => {
+            if (!hasPermission('can_upload_files')) {
+                showAlert('You do not have permission to sync Cloudinary files.');
+                return;
+            }
+
+            const originalHtml = syncCloudinaryBtn.innerHTML;
+            syncCloudinaryBtn.disabled = true;
+            syncCloudinaryBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Syncing...';
+
+            try {
+                const response = await fetch('http://localhost:5000/api/files/sync-cloudinary', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(data.error || 'Cloudinary sync failed');
+                }
+
+                const imported = Number(data?.stats?.imported || 0);
+                const scanned = Number(data?.stats?.scanned || 0);
+                showAlert(imported > 0
+                    ? `Cloudinary sync complete: imported ${imported} of ${scanned} files.`
+                    : (data.message || 'No new Cloudinary files found to import.'));
+
+                if (filesStorageFilter) filesStorageFilter.value = 'ALL';
+                if (filesSearchInput) filesSearchInput.value = '';
+                await loadProjectFiles();
+            } catch (error) {
+                console.error('Cloudinary sync error:', error);
+                showAlert(`Cloudinary sync failed: ${error.message}`);
+            } finally {
+                syncCloudinaryBtn.disabled = !hasPermission('can_upload_files');
+                syncCloudinaryBtn.innerHTML = originalHtml;
+            }
+        });
+    }
+
     if (cancelFileUploadBtn && fileUploadPanel && projectFileUploadForm) {
         cancelFileUploadBtn.addEventListener('click', () => {
             projectFileUploadForm.reset();
@@ -2465,6 +3006,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (filesTableBody) {
         filesTableBody.addEventListener('click', async (event) => {
             const editBtn = event.target.closest('.btn-edit-file');
+            const viewBtn = event.target.closest('.btn-view-file');
             const downloadBtn = event.target.closest('.btn-download-file');
             const deleteBtn = event.target.closest('.btn-delete-file');
 
@@ -2508,6 +3050,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                     console.error('Edit file error:', error);
                     showAlert(`Edit failed: ${error.message}`);
                 }
+            }
+
+            if (viewBtn) {
+                if (!hasPermission('can_view_files')) {
+                    showAlert('You do not have permission to view files.');
+                    return;
+                }
+
+                const fileUrl = viewBtn.getAttribute('data-file-url') || '';
+                if (!fileUrl) {
+                    showAlert('File URL unavailable.');
+                    return;
+                }
+
+                window.open(fileUrl, '_blank', 'noopener,noreferrer');
             }
 
             if (downloadBtn) {
@@ -2558,9 +3115,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (!fileId) return;
 
                 const confirmed = await showConfirm(
-                    'Delete this file permanently? This action cannot be undone.',
-                    'Delete File',
-                    'Delete',
+                    'Archive this file record? It will be removed from active files and preserved in Archives.',
+                    'Archive File',
+                    'Archive',
                     'Cancel'
                 );
 
@@ -2668,6 +3225,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        const INQUIRY_TYPE_LABELS = {
+            residential: 'Residential Project',
+            commercial: 'Commercial Project',
+            infrastructure: 'Infrastructure',
+            renovation: 'Renovation/Restoration',
+            other: 'Other'
+        };
+        function formatInquiryType(raw) {
+            if (!raw) return '-';
+            return INQUIRY_TYPE_LABELS[String(raw).toLowerCase()] || raw;
+        }
+
         inquiryTableBody.innerHTML = inquiries.map(inquiry => {
             const submitted = inquiry.submitted_at
                 ? new Date(inquiry.submitted_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -2675,9 +3244,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const badgeClass = getInquiryStatusBadgeClass(inquiry.status);
             const inquiryId = Number(inquiry.inquiry_id || 0);
             const inquiryMessage = String(inquiry.message || inquiry.message_body || '');
+            const inquiryTypeLabel = formatInquiryType(inquiry.subject);
             const subjectCell = getCollapsibleInquiryCellHtml({
                 inquiryId,
-                textValue: inquiry.subject || '-',
+                textValue: inquiryTypeLabel,
                 field: 'subject',
                 expandedSet: expandedInquirySubjectIds,
                 maxLength: 48
@@ -2705,7 +3275,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <td>${submitted}</td>
                     <td>${escapeHtml(inquiry.client_name || '-')}</td>
                     <td>${escapeHtml(inquiry.client_email || '-')}</td>
-                    <td class="inquiry-subject-cell" title="${escapeHtml(inquiry.subject || '-')}">
+                    <td class="inquiry-subject-cell" title="${escapeHtml(inquiryTypeLabel)}">
                         <span>${escapeHtml(subjectCell.text)}</span>
                         ${subjectCell.toggleHtml}
                     </td>
@@ -3115,9 +3685,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!inquiryId) return;
 
             const confirmed = await showConfirm(
-                'Delete this inquiry permanently? This action cannot be undone.',
-                'Delete Inquiry',
-                'Delete',
+                'Archive this inquiry record? It will be removed from active inquiries and preserved in Archives.',
+                'Archive Inquiry',
+                'Archive',
                 'Cancel'
             );
             if (!confirmed) return;
@@ -3175,12 +3745,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         reportEndDateInput.min = reportStartDateInput.value || '';
     }
 
+    function canDownloadReportType(reportType) {
+        const reportPermissionMap = {
+            attendance: hasPermission('can_export_attendance'),
+            'attendance-sites': hasPermission('can_view_all_attendance') || hasPermission('can_edit_attendance'),
+            'equipment-usage': hasPermission('can_view_equipment'),
+            'equipment-inventory': hasPermission('can_view_equipment'),
+            'inquiry-resolution': hasPermission('can_view_inquiries'),
+            'inquiries-detail': hasPermission('can_view_inquiries'),
+            files: hasPermission('can_view_files'),
+            'users-directory': hasPermission('can_view_users'),
+            'user-access': hasPermission('can_manage_permissions'),
+            'health-siem': hasPermission('can_view_health_logs') || hasPermission('can_export_health_logs'),
+            'health-backups': hasPermission('can_view_health_logs') || hasPermission('can_backup_database') || hasPermission('can_export_health_logs'),
+            'health-audit': hasPermission('can_view_audit_trail') || hasPermission('can_view_health_logs'),
+            'health-activity': hasPermission('can_view_audit_trail') || hasPermission('can_view_health_logs'),
+            archives: hasPermission('can_view_audit_trail')
+        };
+
+        return Boolean(reportPermissionMap[reportType]);
+    }
+
     async function downloadAdminReport(reportType, format, triggerButton) {
-        const canDownloadReport = (
-            (reportType === 'attendance' && hasPermission('can_export_attendance'))
-            || (reportType === 'equipment-usage' && hasPermission('can_view_equipment'))
-            || (reportType === 'inquiry-resolution' && hasPermission('can_view_inquiries'))
-        );
+        const canDownloadReport = canDownloadReportType(reportType);
 
         if (!canDownloadReport) {
             showAlert('You do not have permission to download this report.');
@@ -3298,6 +3885,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
+    document.getElementById('reports-shell')?.addEventListener('click', e => {
+        const header = e.target.closest('.report-accordion-header');
+        if (!header) return;
+        header.closest('.report-accordion-group')?.classList.toggle('open');
+    });
+
     initializeReportDateRange();
 
     // --- EDIT EQUIPMENT FUNCTION ---
@@ -3407,12 +4000,271 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- 6. LOAD OVERVIEW DATA (Dashboard Statistics) ---
+
+    let overviewDataCache = { users: [], equipment: [], inquiries: [] };
+
+    // Returns { start, end, labels, daysCount, isCurrent, isWeekly }
+    function getPeriodDateRange(period) {
+        const now = new Date();
+        let start, end, labels, daysCount, isCurrent, isWeekly;
+        if (period === 'this_week' || period === 'last_week') {
+            isWeekly = true;
+            const day = now.getDay();
+            const diffToMon = day === 0 ? -6 : 1 - day;
+            const monday = new Date(now);
+            monday.setDate(now.getDate() + diffToMon);
+            monday.setHours(0, 0, 0, 0);
+            if (period === 'last_week') monday.setDate(monday.getDate() - 7);
+            start = new Date(monday);
+            end = new Date(monday);
+            end.setDate(monday.getDate() + 6);
+            end.setHours(23, 59, 59, 999);
+            labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            daysCount = 7;
+            isCurrent = period === 'this_week';
+        } else {
+            isWeekly = false;
+            const d = new Date(now);
+            if (period === 'last_month') d.setMonth(d.getMonth() - 1);
+            start = new Date(d.getFullYear(), d.getMonth(), 1);
+            end   = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+            daysCount = end.getDate();
+            labels = Array.from({ length: daysCount }, (_, i) => String(i + 1));
+            isCurrent = period === 'this_month';
+        }
+        return { start, end, labels, daysCount, isCurrent, isWeekly };
+    }
+
+    // Draw an SVG line/area chart into container
+    function renderSvgLineChart(container, datasets, labels) {
+        if (!container) return;
+        const W = 400, H = 120;
+        const pL = 4, pR = 8, pT = 14, pB = 24;
+        const cW = W - pL - pR, cH = H - pT - pB;
+        const n = labels.length;
+        if (!n) { container.innerHTML = ''; return; }
+        const step = n > 1 ? cW / (n - 1) : cW;
+        const allVals = datasets.flatMap(d => d.values);
+        const maxV = Math.max(...allVals, 1);
+
+        const gridLines = [0.25, 0.5, 0.75, 1.0].map(ratio => {
+            const y = pT + cH * (1 - ratio);
+            return `<line x1="${pL}" y1="${y.toFixed(1)}" x2="${W - pR}" y2="${y.toFixed(1)}" stroke="#e5e7eb" stroke-width="0.8" stroke-dasharray="3,3"/>`;
+        }).join('');
+
+        const svgDatasets = datasets.map(({ values, color }) => {
+            const pts = values.map((v, i) => [pL + i * step, pT + cH - (v / maxV) * cH]);
+            let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+            for (let i = 1; i < pts.length; i++) {
+                const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
+                const cx = (x1 - x0) * 0.45;
+                d += ` C${(x0 + cx).toFixed(1)},${y0.toFixed(1)} ${(x1 - cx).toFixed(1)},${y1.toFixed(1)} ${x1.toFixed(1)},${y1.toFixed(1)}`;
+            }
+            const baseY = (pT + cH).toFixed(1);
+            const endX  = (pL + (n - 1) * step).toFixed(1);
+            const fillD = `${d} L${endX},${baseY} L${pL},${baseY} Z`;
+            const gId   = `ovg_${color.replace(/[^a-z0-9]/gi, '')}`;
+            const dots  = n <= 14 ? pts.map(([px, py]) =>
+                `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="3" fill="${color}" stroke="white" stroke-width="1.5"/>`
+            ).join('') : '';
+            return `<defs><linearGradient id="${gId}" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="${color}" stop-opacity="0.28"/>
+                <stop offset="100%" stop-color="${color}" stop-opacity="0.02"/>
+            </linearGradient></defs>
+            <path d="${fillD}" fill="url(#${gId})"/>
+            <path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            ${dots}`;
+        }).join('');
+
+        const freq = n <= 7 ? 1 : n <= 14 ? 2 : Math.ceil(n / 7);
+        const xLabels = labels.map((l, i) => {
+            if (i % freq !== 0 && i !== n - 1) return '';
+            return `<text x="${(pL + i * step).toFixed(1)}" y="${H - 4}" text-anchor="middle" font-size="9" fill="#9ca3af">${l}</text>`;
+        }).join('');
+
+        container.innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">${gridLines}${svgDatasets}${xLabels}</svg>`;
+    }
+
+    // Populate the attendance bar chart
+    function buildAttendanceBars(logs, periodRange) {
+        const barsEl  = document.getElementById('weekly-attendance-bars');
+        const scaleEl = document.getElementById('weekly-attendance-scale');
+        if (!barsEl) return;
+        const { start, end, labels, daysCount, isCurrent, isWeekly } = periodRange;
+        const counts = new Array(daysCount).fill(0);
+        const now = new Date();
+        const todayIdx = isWeekly ? (now.getDay() === 0 ? 6 : now.getDay() - 1) : now.getDate() - 1;
+        logs.forEach(log => {
+            if (log.action !== 'clock_in') return;
+            const ts = new Date(log.timestamp);
+            if (ts < start || ts > end) return;
+            const idx = isWeekly ? (ts.getDay() === 0 ? 6 : ts.getDay() - 1) : ts.getDate() - 1;
+            if (idx >= 0 && idx < daysCount) counts[idx]++;
+        });
+        const maxCount = Math.max(...counts, 1);
+        const step = Math.max(1, Math.ceil(maxCount / 4));
+        const axisMax = step * 4;
+        if (scaleEl) {
+            scaleEl.innerHTML = [axisMax, axisMax - step, axisMax - step * 2, axisMax - step * 3, 0]
+                .map(v => `<span>${v}</span>`).join('');
+        }
+        barsEl.style.gridTemplateColumns = isWeekly ? 'repeat(7, 1fr)' : `repeat(${daysCount}, 1fr)`;
+        if (isWeekly) { barsEl.classList.remove('monthly-view'); } else { barsEl.classList.add('monthly-view'); }
+        const maxBarH = 204;
+        barsEl.innerHTML = counts.map((count, i) => {
+            const isFuture = isCurrent && i > todayIdx;
+            const h = count === 0 ? 10 : Math.max(16, Math.round((count / axisMax) * maxBarH));
+            const cls = isFuture ? ' muted' : '';
+            return `<div class="weekly-bar-col"><div class="weekly-bar${cls}" style="height:${h}px"></div><span>${labels[i]}</span></div>`;
+        }).join('');
+    }
+
+    // Populate inquiry breakdown horizontal bars
+    function buildInquiryBreakdown(inquiries) {
+        const container = document.getElementById('inquiry-status-bars');
+        if (!container) return;
+        const total = inquiries.length;
+        if (!total) {
+            container.innerHTML = '<div class="overview-empty-state"><i class="bi bi-chat-square"></i><span>No inquiries yet</span></div>';
+            return;
+        }
+        const defs = [
+            { label: 'Pending',     color: '#f59e0b', count: inquiries.filter(i => i.status === 'Pending').length },
+            { label: 'In Progress', color: '#3b82f6', count: inquiries.filter(i => i.status === 'In Progress').length },
+            { label: 'Resolved',    color: '#2dad50', count: inquiries.filter(i => i.status === 'Resolved' || i.status === 'Closed').length },
+        ];
+        container.innerHTML = defs.map(({ label, color, count }) => {
+            const pct = Math.round((count / total) * 100);
+            return `<div class="inquiry-bar-row">
+                <div class="inquiry-bar-header">
+                    <span class="inquiry-bar-label"><span class="inquiry-bar-dot" style="background:${color}"></span>${label}</span>
+                    <span class="inquiry-bar-count">${count} <span class="inquiry-bar-pct">(${pct}%)</span></span>
+                </div>
+                <div class="inquiry-bar-track"><div class="inquiry-bar-fill" style="width:${Math.max(pct, 1)}%;background:${color}"></div></div>
+            </div>`;
+        }).join('') + `<div class="inquiry-bar-total">Total: <strong>${total}</strong></div>`;
+    }
+
+    // Populate recent inquiries list
+    function buildRecentInquiries(inquiries) {
+        const container = document.getElementById('recent-inquiries-list');
+        const badge     = document.getElementById('recent-inquiries-badge');
+        if (!container) return;
+        const pending = inquiries.filter(i => i.status === 'Pending' || i.status === 'In Progress').length;
+        if (badge) badge.textContent = pending;
+        const recent = [...inquiries]
+            .sort((a, b) => new Date(b.created_at || b.updated_at || 0) - new Date(a.created_at || a.updated_at || 0))
+            .slice(0, 6);
+        if (!recent.length) {
+            container.innerHTML = '<div class="overview-empty-state"><i class="bi bi-inbox"></i><span>No inquiries found</span></div>';
+            return;
+        }
+        const statusColors = { Pending: '#f59e0b', 'In Progress': '#3b82f6', Resolved: '#2dad50', Closed: '#6b7280' };
+        container.innerHTML = recent.map(inq => {
+            const color = statusColors[inq.status] || '#6b7280';
+            const date  = inq.created_at
+                ? new Date(inq.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+            return `<div class="overview-recent-item">
+                <div class="overview-recent-item-title">${escapeHtml(inq.subject || inq.title || 'Inquiry #' + inq.inquiry_id)}</div>
+                <div class="overview-recent-item-meta">
+                    <span class="overview-recent-status" style="color:${color}">${inq.status || 'Unknown'}</span>
+                    <span>${escapeHtml(inq.user?.full_name || '')}</span>
+                    <span>${date}</span>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // Wire up the overview search bar (called once at init; searches cached data)
+    function setupOverviewSearch() {
+        const input     = document.getElementById('overview-search-input');
+        const resultsEl = document.getElementById('overview-search-results');
+        if (!input || !resultsEl) return;
+        let timer;
+
+        input.addEventListener('input', () => {
+            clearTimeout(timer);
+            const q = input.value.trim().toLowerCase();
+            if (!q) { resultsEl.classList.add('hidden'); resultsEl.innerHTML = ''; return; }
+            timer = setTimeout(() => {
+                const { users = [], equipment = [], inquiries = [] } = overviewDataCache;
+                const mu = users.filter(u =>
+                    `${u.full_name} ${u.email} ${u.role}`.toLowerCase().includes(q)).slice(0, 4);
+                const me = equipment.filter(e =>
+                    `${e.name} ${e.qr_number} ${e.status}`.toLowerCase().includes(q)).slice(0, 4);
+                const mi = inquiries.filter(i =>
+                    `${i.subject || i.title} ${i.status} ${i.user?.full_name}`.toLowerCase().includes(q)).slice(0, 4);
+
+                if (!mu.length && !me.length && !mi.length) {
+                    resultsEl.innerHTML = `<div class="overview-search-empty">No results for &ldquo;${escapeHtml(q)}&rdquo;</div>`;
+                } else {
+                    let html = '';
+                    if (mu.length) {
+                        html += `<div class="overview-search-group-head"><i class="bi bi-people-fill"></i> Employees</div>`;
+                        html += mu.map(u => `<div class="overview-search-item" data-target="user-tab">
+                            <i class="bi bi-person"></i>
+                            <div><span class="overview-search-item-name">${escapeHtml(u.full_name || '—')}</span>
+                            <span class="overview-search-item-sub">${escapeHtml(u.role || '')} &middot; ${escapeHtml(u.email || '')}</span></div>
+                        </div>`).join('');
+                    }
+                    if (me.length) {
+                        html += `<div class="overview-search-group-head"><i class="bi bi-wrench-adjustable"></i> Equipment</div>`;
+                        html += me.map(e => {
+                            const sc = e.status === 'Available' ? '#2dad50' : '#f59e0b';
+                            return `<div class="overview-search-item" data-target="equipment-tab">
+                                <i class="bi bi-tools"></i>
+                                <div><span class="overview-search-item-name">${escapeHtml(e.name || '—')}</span>
+                                <span class="overview-search-item-sub">${escapeHtml(e.qr_number || '')} &middot; <span style="color:${sc}">${escapeHtml(e.status || '')}</span></span></div>
+                            </div>`;
+                        }).join('');
+                    }
+                    if (mi.length) {
+                        html += `<div class="overview-search-group-head"><i class="bi bi-chat-square-dots"></i> Inquiries</div>`;
+                        html += mi.map(i => `<div class="overview-search-item" data-target="inquiry-tab">
+                            <i class="bi bi-chat-square-text"></i>
+                            <div><span class="overview-search-item-name">${escapeHtml(i.subject || i.title || 'Inquiry')}</span>
+                            <span class="overview-search-item-sub">${escapeHtml(i.status || '')} &middot; ${escapeHtml(i.user?.full_name || '')}</span></div>
+                        </div>`).join('');
+                    }
+                    resultsEl.innerHTML = html;
+                }
+                resultsEl.classList.remove('hidden');
+            }, 240);
+        });
+
+        resultsEl.addEventListener('click', e => {
+            const item = e.target.closest('.overview-search-item');
+            if (!item) return;
+            const target = item.dataset.target;
+            if (target) activateTabByTarget(target);
+            resultsEl.classList.add('hidden');
+            input.value = '';
+        });
+
+        document.addEventListener('click', e => {
+            if (!input.contains(e.target) && !resultsEl.contains(e.target)) {
+                resultsEl.classList.add('hidden');
+            }
+        });
+
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Escape') { resultsEl.classList.add('hidden'); input.blur(); }
+        });
+    }
+
     async function loadOverview() {
         try {
             const token = localStorage.getItem('token');
             if (!token) return;
 
-            // Fetch overview dependencies in parallel to keep dashboard analytics live.
+            const period      = overviewPeriodSelect?.value || 'this_week';
+            const periodRange = getPeriodDateRange(period);
+            const periodLabel = { this_week: 'This Week', last_week: 'Last Week', this_month: 'This Month', last_month: 'Last Month' }[period] || '';
+            const attPeriodEl = document.getElementById('overview-attendance-period-label');
+            const actPeriodEl = document.getElementById('daily-activity-period-label');
+            if (attPeriodEl) attPeriodEl.textContent = periodLabel;
+            if (actPeriodEl) actPeriodEl.textContent = periodLabel;
+
             const [attendanceResponse, equipmentResponse, usersResponse, inquiriesResponse, filesResponse] = await Promise.all([
                 fetch('http://localhost:5000/api/attendance', {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -3431,326 +4283,158 @@ document.addEventListener('DOMContentLoaded', async () => {
                 })
             ]);
 
-            const clockedInEmployeesBody = document.getElementById('clocked-in-employees-body');
-            const deployedEquipmentBody = document.getElementById('deployed-equipment-body');
-            const activeEmployeesCount = document.getElementById('active-employees-count');
-            const equipmentDeployedCount = document.getElementById('equipment-deployed-count');
-            const totalUsersCount = document.getElementById('total-users-count');
-            const totalEquipmentCount = document.getElementById('total-equipment-count');
-            const inquiriesPendingCount = document.getElementById('inquiries-pending-count');
-            const inquiriesTotalCount = document.getElementById('inquiries-total-count');
-            const overviewFilesCount = document.getElementById('overview-files-count');
-            const activeProjectsCount = document.getElementById('active-projects-count');
+            let allAttendance = [], allEquipment = [], allUsers = [], allInquiries = [];
+
+            // --- Attendance ---
+            const clockedInEmployeesBody      = document.getElementById('clocked-in-employees-body');
+            const activeEmployeesCount        = document.getElementById('active-employees-count');
+            const clockedInBadge              = document.getElementById('clocked-in-badge');
             const attendanceActionsTodayCount = document.getElementById('attendance-actions-today-count');
-            const weeklyAttendanceBars = document.getElementById('weekly-attendance-bars');
-            const weeklyAttendanceScale = document.getElementById('weekly-attendance-scale');
-            const equipmentStatusChart = document.getElementById('equipment-status-chart');
-            const equipmentStatusTotal = document.getElementById('equipment-status-total');
-            const equipmentStatusLegend = document.getElementById('equipment-status-legend');
 
-            // Process Attendance Data
             if (attendanceResponse.ok) {
-                const attendanceData = await attendanceResponse.json();
-                const logs = attendanceData.attendance || [];
+                const data = await attendanceResponse.json();
+                allAttendance = data.attendance || [];
 
-                // Get today's date
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-
-                // Filter logs for today only
-                const todayLogs = logs.filter(log => {
-                    const logDate = new Date(log.timestamp);
-                    logDate.setHours(0, 0, 0, 0);
-                    return logDate.getTime() === today.getTime();
+                const today = new Date(); today.setHours(0, 0, 0, 0);
+                const todayLogs = allAttendance.filter(log => {
+                    const d = new Date(log.timestamp); d.setHours(0, 0, 0, 0);
+                    return d.getTime() === today.getTime();
                 });
-
-                // Group logs by user to find each user's latest status TODAY
                 const userLatestLog = {};
-                
                 todayLogs.forEach(log => {
-                    const userId = log.user_id;
-                    if (!userLatestLog[userId] || new Date(log.timestamp) > new Date(userLatestLog[userId].timestamp)) {
-                        userLatestLog[userId] = log;
+                    if (!userLatestLog[log.user_id] || new Date(log.timestamp) > new Date(userLatestLog[log.user_id].timestamp)) {
+                        userLatestLog[log.user_id] = log;
                     }
                 });
+                const clockedInUsers = Object.values(userLatestLog).filter(l => l.action === 'clock_in');
+                if (activeEmployeesCount)        activeEmployeesCount.textContent        = clockedInUsers.length;
+                if (attendanceActionsTodayCount) attendanceActionsTodayCount.textContent = todayLogs.length;
+                if (clockedInBadge)              clockedInBadge.textContent              = clockedInUsers.length;
 
-                // Filter users who are currently clocked in (latest action is clock_in)
-                const clockedInUsers = Object.values(userLatestLog).filter(log => log.action === 'clock_in');
-
-                // Update count
-                if (activeEmployeesCount) {
-                    activeEmployeesCount.textContent = clockedInUsers.length;
+                if (clockedInEmployeesBody) {
+                    clockedInEmployeesBody.innerHTML = clockedInUsers.length
+                        ? clockedInUsers.map(log => {
+                              const t = new Date(log.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                              return `<tr><td>${escapeHtml(log.user?.full_name || 'Unknown')}</td><td>${t}</td></tr>`;
+                          }).join('')
+                        : `<tr><td colspan="2" class="overview-empty-cell">No employees currently clocked in</td></tr>`;
                 }
-                if (attendanceActionsTodayCount) {
-                    attendanceActionsTodayCount.textContent = todayLogs.length;
-                }
 
-                if (weeklyAttendanceBars) {
-                    const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-                    const weeklyCounts = [0, 0, 0, 0, 0, 0, 0];
-                    const now = new Date();
-                    const selectedWeek = weeklyRangeSelect?.value || 'this_week';
+                buildAttendanceBars(allAttendance, periodRange);
 
-                    const monday = new Date(now);
-                    const day = monday.getDay();
-                    const diffToMonday = day === 0 ? -6 : 1 - day;
-                    monday.setDate(monday.getDate() + diffToMonday);
-                    monday.setHours(0, 0, 0, 0);
-
-                    if (selectedWeek === 'last_week') {
-                        monday.setDate(monday.getDate() - 7);
-                    }
-
-                    const sunday = new Date(monday);
-                    sunday.setDate(monday.getDate() + 6);
-                    sunday.setHours(23, 59, 59, 999);
-
-                    const todayIndex = now.getDay() === 0 ? 6 : now.getDay() - 1;
-
-                    logs.forEach(log => {
+                const dailyContainer = document.getElementById('daily-activity-chart');
+                if (dailyContainer) {
+                    const { start: pS, end: pE, labels: pL, daysCount, isWeekly } = periodRange;
+                    const dayCounts = new Array(daysCount).fill(0);
+                    allAttendance.forEach(log => {
                         if (log.action !== 'clock_in') return;
                         const ts = new Date(log.timestamp);
-                        if (ts >= monday && ts <= sunday) {
-                            const jsDay = ts.getDay();
-                            const index = jsDay === 0 ? 6 : jsDay - 1;
-                            weeklyCounts[index] += 1;
-                        }
+                        if (ts < pS || ts > pE) return;
+                        const idx = isWeekly ? (ts.getDay() === 0 ? 6 : ts.getDay() - 1) : ts.getDate() - 1;
+                        if (idx >= 0 && idx < daysCount) dayCounts[idx]++;
                     });
-
-                    const maxCount = Math.max(...weeklyCounts, 1);
-                    const step = Math.max(1, Math.ceil(maxCount / 4));
-                    const axisMax = step * 4;
-
-                    if (weeklyAttendanceScale) {
-                        const scaleValues = [axisMax, axisMax - step, axisMax - step * 2, axisMax - step * 3, 0];
-                        weeklyAttendanceScale.innerHTML = scaleValues.map(value => `<span>${value}</span>`).join('');
-                    }
-
-                    const maxBarHeightPx = 204;
-                    weeklyAttendanceBars.innerHTML = weeklyCounts.map((count, index) => {
-                        const isFutureDay = selectedWeek === 'this_week' && index > todayIndex;
-                        const height = count === 0
-                            ? 10
-                            : Math.max(16, Math.round((count / axisMax) * maxBarHeightPx));
-                        const mutedClass = isFutureDay ? ' muted' : '';
-                        return `<div class="weekly-bar-col"><div class="weekly-bar${mutedClass}" style="height:${height}px"></div><span>${dayLabels[index]}</span></div>`;
-                    }).join('');
-                }
-
-                // Display clocked-in employees
-                if (clockedInEmployeesBody) {
-                    if (clockedInUsers.length === 0) {
-                        clockedInEmployeesBody.innerHTML = `
-                            <tr>
-                                <td colspan="2" style="text-align: center; padding: 24px; color: #9ca3af;">
-                                    <div style="font-size: 16px;">No employees currently clocked in</div>
-                                </td>
-                            </tr>
-                        `;
-                    } else {
-                        clockedInEmployeesBody.innerHTML = clockedInUsers.map(log => {
-                            const clockInTime = new Date(log.timestamp).toLocaleTimeString('en-US', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            });
-                            return `
-                                <tr>
-                                    <td>${log.user?.full_name || 'Unknown Employee'}</td>
-                                    <td>${clockInTime}</td>
-                                </tr>
-                            `;
-                        }).join('');
-                    }
+                    renderSvgLineChart(dailyContainer, [{ values: dayCounts, color: '#2dad50' }], pL);
                 }
             } else {
-                if (clockedInEmployeesBody) {
-                    clockedInEmployeesBody.innerHTML = `
-                        <tr>
-                            <td colspan="2" style="text-align: center; padding: 24px; color: #ef4444;">
-                                <div style="font-size: 14px;">Unable to load attendance data</div>
-                            </td>
-                        </tr>
-                    `;
-                }
-                if (activeEmployeesCount) {
-                    activeEmployeesCount.textContent = '—';
-                }
-                if (attendanceActionsTodayCount) {
-                    attendanceActionsTodayCount.textContent = '—';
-                }
+                if (activeEmployeesCount)    activeEmployeesCount.textContent = '—';
+                if (clockedInEmployeesBody)  clockedInEmployeesBody.innerHTML = `<tr><td colspan="2" class="overview-error-cell">Unable to load attendance data</td></tr>`;
             }
 
-            // Process Equipment Data
-            let allEquipment = [];
+            // --- Equipment ---
+            const equipmentDeployedCount = document.getElementById('equipment-deployed-count');
+            const totalEquipmentCount    = document.getElementById('total-equipment-count');
+            const equipmentStatusChart   = document.getElementById('equipment-status-chart');
+            const equipmentStatusTotal   = document.getElementById('equipment-status-total');
+            const equipmentStatusLegend  = document.getElementById('equipment-status-legend');
+
             if (equipmentResponse.ok) {
-                const equipmentData = await equipmentResponse.json();
-                allEquipment = equipmentData.equipment || [];
+                const data = await equipmentResponse.json();
+                allEquipment = data.equipment || [];
+                const deployed = allEquipment.filter(e => (e.status || '').toLowerCase().includes('checked out'));
+                if (equipmentDeployedCount) equipmentDeployedCount.textContent = deployed.length;
+                if (totalEquipmentCount)    totalEquipmentCount.textContent    = allEquipment.length;
 
-                // Filter equipment that is "Checked Out"
-                const inUseEquipment = allEquipment.filter(item => item.status === 'Checked Out');
+                const sc = { inUse: 0, maintenance: 0, outOfOrder: 0 };
+                allEquipment.forEach(e => {
+                    const s = (e.status || '').toLowerCase();
+                    if (s.includes('checked out') || s.includes('in use') || s.includes('deployed')) sc.inUse++;
+                    else if (s.includes('maintenance')) sc.maintenance++;
+                    else if (s.includes('out of order') || s.includes('out of service') || s.includes('damaged') || s.includes('defective')) sc.outOfOrder++;
+                });
+                const tot      = allEquipment.length || 1;
+                const inUsePct = Math.round(sc.inUse      / tot * 100);
+                const maintPct = Math.round(sc.maintenance / tot * 100);
+                const outPct   = Math.round(sc.outOfOrder  / tot * 100);
+                const availPct = Math.max(0, 100 - inUsePct - maintPct - outPct);
 
-                // Update count
-                if (equipmentDeployedCount) {
-                    equipmentDeployedCount.textContent = inUseEquipment.length;
+                if (equipmentStatusTotal) equipmentStatusTotal.textContent = allEquipment.length;
+                if (equipmentStatusChart) {
+                    equipmentStatusChart.style.setProperty('--in-use',     inUsePct);
+                    equipmentStatusChart.style.setProperty('--maintenance', maintPct);
+                    equipmentStatusChart.style.setProperty('--out-order',   outPct);
                 }
-
-                if (equipmentStatusChart || equipmentStatusTotal || equipmentStatusLegend) {
-                    const statusCounts = {
-                        inUse: 0,
-                        maintenance: 0,
-                        outOfOrder: 0
-                    };
-
-                    allEquipment.forEach(item => {
-                        const rawStatus = (item.status || '').toString().toLowerCase();
-                        if (rawStatus.includes('checked out') || rawStatus.includes('in use') || rawStatus.includes('deployed')) {
-                            statusCounts.inUse += 1;
-                        } else if (rawStatus.includes('maintenance')) {
-                            statusCounts.maintenance += 1;
-                        } else if (rawStatus.includes('out of order') || rawStatus.includes('damaged') || rawStatus.includes('defective')) {
-                            statusCounts.outOfOrder += 1;
-                        }
-                    });
-
-                    const totalCount = allEquipment.length;
-                    const safeTotal = totalCount || 1;
-                    const inUsePct = Math.round((statusCounts.inUse / safeTotal) * 100);
-                    const maintenancePct = Math.round((statusCounts.maintenance / safeTotal) * 100);
-                    const outOfOrderPct = Math.round((statusCounts.outOfOrder / safeTotal) * 100);
-
-                    if (equipmentStatusTotal) {
-                        equipmentStatusTotal.textContent = totalCount;
-                    }
-
-                    if (equipmentStatusChart) {
-                        equipmentStatusChart.style.setProperty('--in-use', inUsePct);
-                        equipmentStatusChart.style.setProperty('--maintenance', maintenancePct);
-                        equipmentStatusChart.style.setProperty('--out-order', outOfOrderPct);
-                    }
-
-                    if (equipmentStatusLegend) {
-                        equipmentStatusLegend.innerHTML = `
-                            <div class="equipment-status-legend-row">
-                                <div class="legend-label"><span class="legend-dot green"></span><span>In Use</span></div>
-                                <strong>${inUsePct}%</strong>
-                            </div>
-                            <div class="equipment-status-legend-row">
-                                <div class="legend-label"><span class="legend-dot amber"></span><span>Maintenance</span></div>
-                                <strong>${maintenancePct}%</strong>
-                            </div>
-                            <div class="equipment-status-legend-row">
-                                <div class="legend-label"><span class="legend-dot red"></span><span>Out of Order</span></div>
-                                <strong>${outOfOrderPct}%</strong>
-                            </div>
-                        `;
-                    }
-                }
-
-                // Display deployed equipment
-                if (deployedEquipmentBody) {
-                    if (inUseEquipment.length === 0) {
-                        deployedEquipmentBody.innerHTML = `
-                            <tr>
-                                <td colspan="2" style="text-align: center; padding: 24px; color: #9ca3af;">
-                                    <div style="font-size: 16px;">No equipment currently in use</div>
-                                </td>
-                            </tr>
-                        `;
-                    } else {
-                        deployedEquipmentBody.innerHTML = inUseEquipment.map(item => {
-                            // Handle both 'name' and 'item_name' field names
-                            const itemName = item.name || item.item_name || 'Unknown Item';
-                            // Get user from active checkout
-                            const assignedToName = item.checkouts?.[0]?.user?.full_name || 'Unknown User';
-                            return `
-                                <tr>
-                                    <td>${itemName}</td>
-                                    <td><span class="badge success">Checked Out - ${assignedToName}</span></td>
-                                </tr>
-                            `;
-                        }).join('');
-                    }
+                if (equipmentStatusLegend) {
+                    equipmentStatusLegend.innerHTML = [
+                        { label: 'Available',      pct: availPct, cls: 'available' },
+                        { label: 'In Use',         pct: inUsePct, cls: 'green' },
+                        { label: 'Maintenance',    pct: maintPct, cls: 'amber' },
+                        { label: 'Out of Service', pct: outPct,   cls: 'red' },
+                    ].map(r => `<div class="equipment-status-legend-row">
+                        <div class="legend-label"><span class="legend-dot ${r.cls}"></span><span>${r.label}</span></div>
+                        <strong>${r.pct}%</strong>
+                    </div>`).join('');
                 }
             } else {
-                if (deployedEquipmentBody) {
-                    deployedEquipmentBody.innerHTML = `
-                        <tr>
-                            <td colspan="2" style="text-align: center; padding: 24px; color: #ef4444;">
-                                <div style="font-size: 14px;">Unable to load equipment data</div>
-                            </td>
-                        </tr>
-                    `;
-                }
-                if (equipmentDeployedCount) {
-                    equipmentDeployedCount.textContent = '—';
-                }
+                if (equipmentDeployedCount) equipmentDeployedCount.textContent = '—';
+                if (totalEquipmentCount)    totalEquipmentCount.textContent    = '—';
             }
 
-            // Update Total Users Count
+            // --- Users ---
+            const totalUsersCount = document.getElementById('total-users-count');
             if (usersResponse.ok) {
-                const usersData = await usersResponse.json();
-                const users = usersData.users || [];
-                if (totalUsersCount) {
-                    totalUsersCount.textContent = users.length;
-                }
+                const data = await usersResponse.json();
+                allUsers = data.users || [];
+                if (totalUsersCount) totalUsersCount.textContent = allUsers.length;
             } else {
-                if (totalUsersCount) {
-                    totalUsersCount.textContent = '—';
-                }
+                if (totalUsersCount) totalUsersCount.textContent = '—';
             }
 
-            // Update Total Equipment Count (reuse already fetched data)
-            if (totalEquipmentCount) {
-                totalEquipmentCount.textContent = allEquipment.length;
-            }
-
-            // Update inquiries overview analytics
+            // --- Inquiries ---
+            const inquiriesPendingCount = document.getElementById('inquiries-pending-count');
+            const inquiriesTotalCount   = document.getElementById('inquiries-total-count');
             if (inquiriesResponse.ok) {
-                const inquiriesData = await inquiriesResponse.json();
-                const inquiries = inquiriesData.inquiries || [];
-                const pendingCount = inquiries.filter(i => i.status === 'Pending' || i.status === 'In Progress').length;
-
-                if (inquiriesPendingCount) inquiriesPendingCount.textContent = pendingCount;
-                if (inquiriesTotalCount) inquiriesTotalCount.textContent = inquiries.length;
+                const data = await inquiriesResponse.json();
+                allInquiries = data.inquiries || [];
+                const pending = allInquiries.filter(i => i.status === 'Pending' || i.status === 'In Progress').length;
+                if (inquiriesPendingCount) inquiriesPendingCount.textContent = pending;
+                if (inquiriesTotalCount)   inquiriesTotalCount.textContent   = allInquiries.length;
+                buildInquiryBreakdown(allInquiries);
+                buildRecentInquiries(allInquiries);
             } else {
                 if (inquiriesPendingCount) inquiriesPendingCount.textContent = '—';
-                if (inquiriesTotalCount) inquiriesTotalCount.textContent = '—';
+                if (inquiriesTotalCount)   inquiriesTotalCount.textContent   = '—';
             }
 
-            // Update project files analytics
+            // --- Files ---
+            const overviewFilesCount  = document.getElementById('overview-files-count');
+            const activeProjectsCount = document.getElementById('active-projects-count');
             if (filesResponse.ok) {
-                const filesData = await filesResponse.json();
-                const files = filesData.files || [];
-                if (overviewFilesCount) overviewFilesCount.textContent = files.length;
+                const data = await filesResponse.json();
+                const files = data.files || [];
+                if (overviewFilesCount)  overviewFilesCount.textContent  = files.length;
                 if (activeProjectsCount) activeProjectsCount.textContent = files.length;
             } else {
-                if (overviewFilesCount) overviewFilesCount.textContent = '—';
+                if (overviewFilesCount)  overviewFilesCount.textContent  = '—';
                 if (activeProjectsCount) activeProjectsCount.textContent = '—';
             }
 
+            // Cache for search
+            overviewDataCache = { users: allUsers, equipment: allEquipment, inquiries: allInquiries };
+
         } catch (error) {
             console.error('Error loading overview data:', error);
-            const clockedInEmployeesBody = document.getElementById('clocked-in-employees-body');
-            const deployedEquipmentBody = document.getElementById('deployed-equipment-body');
-            
-            if (clockedInEmployeesBody) {
-                clockedInEmployeesBody.innerHTML = `
-                    <tr>
-                        <td colspan="2" style="text-align: center; padding: 24px; color: #ef4444;">
-                            <div style="font-size: 14px;">Connection Error</div>
-                        </td>
-                    </tr>
-                `;
-            }
-            if (deployedEquipmentBody) {
-                deployedEquipmentBody.innerHTML = `
-                    <tr>
-                        <td colspan="2" style="text-align: center; padding: 24px; color: #ef4444;">
-                            <div style="font-size: 14px;">Connection Error</div>
-                        </td>
-                    </tr>
-                `;
-            }
+            const errEl = document.getElementById('clocked-in-employees-body');
+            if (errEl) errEl.innerHTML = `<tr><td colspan="2" class="overview-error-cell">Connection Error</td></tr>`;
         }
     }
 
@@ -3758,6 +4442,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadOverview();
     loadUsers();
     loadNotificationFeed();
+    initializeGenericTablePaginationObservers();
+    setTimeout(() => {
+        refreshAllTablePaginations({ captureFromDom: true, onlyVisible: false });
+    }, 50);
+
+    window.addEventListener('resize', () => {
+        if (genericPaginationResizeTimer) {
+            clearTimeout(genericPaginationResizeTimer);
+        }
+        genericPaginationResizeTimer = setTimeout(() => {
+            refreshAllTablePaginations({ captureFromDom: false, onlyVisible: true });
+        }, 120);
+    });
 
     // Auto-refresh overview data every 10 seconds
     setInterval(() => {
@@ -3845,8 +4542,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         'System Admin': [
             { value: 'can_view_health_logs', label: 'View Health Logs' },
             { value: 'can_export_health_logs', label: 'Export Logs (SAM)' },
+            { value: 'can_manage_permissions', label: 'Manage Permissions' },
             { value: 'can_view_audit_trail', label: 'View Audit Trail' },
             { value: 'can_backup_database', label: 'Database Backups' }
+        ],
+        'Reports': [
+            { value: 'can_view_reports', label: 'Access Reports Tab' },
+            { value: 'can_export_attendance_report', label: 'Attendance Reports' },
+            { value: 'can_export_equipment_report', label: 'Equipment Reports' },
+            { value: 'can_export_inquiry_report', label: 'Inquiry Reports' },
+            { value: 'can_export_files_report', label: 'Files Reports' }
         ]
     };
     
@@ -4041,7 +4746,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 'can_view_equipment', 'can_add_equipment', 'can_edit_equipment', 'can_delete_equipment', 'can_assign_equipment',
                 'can_view_files', 'can_upload_files', 'can_edit_files', 'can_delete_files', 'can_download_files',
                 'can_view_inquiries', 'can_add_inquiries', 'can_update_inquiries', 'can_delete_inquiries', 'can_assign_inquiries',
-                'can_view_health_logs', 'can_export_health_logs', 'can_view_audit_trail', 'can_backup_database'
+                'can_view_health_logs', 'can_export_health_logs', 'can_manage_permissions', 'can_view_audit_trail', 'can_backup_database',
+                'can_view_reports', 'can_export_attendance_report', 'can_export_equipment_report', 'can_export_inquiry_report', 'can_export_files_report'
             ];
             
             // Ensure ALL permissions are explicitly set (checked ones to true, unchecked to false)
@@ -4190,7 +4896,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const error = await verifyResponse.json();
                 showAlert(`ERROR: Password Verification Failed\n\n${error.error || 'Incorrect password'}`);
                 confirmDeleteBtn.disabled = false;
-                confirmDeleteBtn.innerHTML = '<span><i class="bi bi-trash"></i> Delete Permanently</span>';
+                confirmDeleteBtn.innerHTML = '<span><i class="bi bi-archive"></i> Move To Archive</span>';
                 deleteConfirmPassword.value = '';
                 deleteConfirmPassword.focus();
                 return;
@@ -4207,7 +4913,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             if (deleteResponse.ok) {
-                showAlert(`SUCCESS: User Deleted Successfully!\n\n${userToDelete.userName} has been permanently removed from the system.`);
+                showAlert(`SUCCESS: User Archived Successfully!\n\n${userToDelete.userName} was removed from active records and preserved in the Archives tab.`);
                 
                 // Close both modals
                 closeDeleteModal();
@@ -4225,7 +4931,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             showAlert('ERROR: Network Error\n\nFailed to delete user. Please check your connection and try again.');
         } finally {
             confirmDeleteBtn.disabled = false;
-            confirmDeleteBtn.innerHTML = '<span><i class="bi bi-trash"></i> Delete Permanently</span>';
+            confirmDeleteBtn.innerHTML = '<span><i class="bi bi-archive"></i> Move To Archive</span>';
         }
     });
 
@@ -4237,7 +4943,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const lastBackupEl = document.getElementById('last-backup');
     const activeUsersEl = document.getElementById('active-users');
     const backupTableBody = document.getElementById('backup-table-body');
-    const healthTableBody = document.getElementById('health-table-body');
     const siemFailedLoginsEl = document.getElementById('siem-failed-logins');
     const siemUnauthorizedEl = document.getElementById('siem-unauthorized');
     const siemEquipmentAnomaliesEl = document.getElementById('siem-equipment-anomalies');
@@ -4246,13 +4951,134 @@ document.addEventListener('DOMContentLoaded', async () => {
     const siemEventFilter = document.getElementById('siem-event-filter');
     const siemTimeFilter = document.getElementById('siem-time-filter');
     const siemFilterResetBtn = document.getElementById('siem-filter-reset-btn');
-    const healthEventFilter = document.getElementById('health-event-filter');
-    const healthDateFilter = document.getElementById('health-date-filter');
-    const healthSearchInput = document.getElementById('health-search-input');
-    const healthFilterResetBtn = document.getElementById('health-filter-reset-btn');
+    const siemLogsScroll = document.getElementById('siem-logs-scroll');
+    const siemPagination = document.getElementById('siem-pagination');
+    const backupLogsScroll = document.getElementById('backup-logs-scroll');
+    const backupPagination = document.getElementById('backup-pagination');
+    const activityTableBody = document.getElementById('activity-table-body');
+    const activityEventFilter = document.getElementById('activity-event-filter');
+    const activityDateFilter = document.getElementById('activity-date-filter');
+    const activitySearchInput = document.getElementById('activity-search-input');
+    const activityFilterResetBtn = document.getElementById('activity-filter-reset-btn');
+    const activityLogsScroll = document.getElementById('activity-logs-scroll');
+    const activityPagination = document.getElementById('activity-pagination');
+    const healthSubtabButtons = document.querySelectorAll('.health-subtab-btn');
+    const healthSubtabShells = document.querySelectorAll('.health-subtab-shell');
 
-    let healthLogsCache = [];
+    const HEALTH_PAGE_SIZE = 15;
+    const healthPaginationState = {
+        siem: 1,
+        backup: 1,
+        activity: 1
+    };
+
     let siemAlertsCache = [];
+    let activityLogsCache = [];
+    let backupHistoryCache = [];
+    let filteredSiemAlertsCache = [];
+    let filteredActivityLogsCache = [];
+
+    function setScrollableState(scrollElement, totalItems) {
+        if (!scrollElement) return;
+        const shouldScroll = Number(totalItems || 0) > HEALTH_PAGE_SIZE;
+        scrollElement.classList.toggle('is-scrollable', shouldScroll);
+    }
+
+    function getPageSlice(items, key) {
+        const list = Array.isArray(items) ? items : [];
+        const totalPages = Math.max(1, Math.ceil(list.length / HEALTH_PAGE_SIZE));
+        const current = Math.min(Math.max(healthPaginationState[key] || 1, 1), totalPages);
+        healthPaginationState[key] = current;
+        const startIndex = (current - 1) * HEALTH_PAGE_SIZE;
+        return {
+            rows: list.slice(startIndex, startIndex + HEALTH_PAGE_SIZE),
+            current,
+            totalPages,
+            totalItems: list.length,
+            startNumber: list.length === 0 ? 0 : startIndex + 1,
+            endNumber: Math.min(startIndex + HEALTH_PAGE_SIZE, list.length)
+        };
+    }
+
+    function renderTablePagination(container, key, totalItems, onNavigate) {
+        if (!container) return;
+
+        const totalPages = Math.max(1, Math.ceil(Number(totalItems || 0) / HEALTH_PAGE_SIZE));
+        const current = Math.min(Math.max(healthPaginationState[key] || 1, 1), totalPages);
+        healthPaginationState[key] = current;
+
+        if (totalItems <= 0 || totalPages <= 1) {
+            container.innerHTML = '';
+            container.classList.add('hidden');
+            return;
+        }
+
+        const startNumber = (current - 1) * HEALTH_PAGE_SIZE + 1;
+        const endNumber = Math.min(current * HEALTH_PAGE_SIZE, totalItems);
+        const prevDisabled = current <= 1 ? 'disabled' : '';
+        const nextDisabled = current >= totalPages ? 'disabled' : '';
+
+        const tokens = [];
+        if (totalPages <= 7) {
+            for (let page = 1; page <= totalPages; page += 1) {
+                tokens.push(page);
+            }
+        } else {
+            tokens.push(1);
+            const start = Math.max(2, current - 1);
+            const end = Math.min(totalPages - 1, current + 1);
+
+            if (start > 2) tokens.push('ellipsis-start');
+            for (let page = start; page <= end; page += 1) {
+                tokens.push(page);
+            }
+            if (end < totalPages - 1) tokens.push('ellipsis-end');
+            tokens.push(totalPages);
+        }
+
+        const pageButtons = tokens.map((token) => {
+            if (typeof token !== 'number') {
+                return '<span class="table-page-ellipsis">...</span>';
+            }
+            const activeClass = token === current ? 'active-page' : '';
+            return `<button type="button" class="table-page-btn table-page-num ${activeClass}" data-page-number="${token}" aria-label="Go to page ${token}">${token}</button>`;
+        }).join('');
+
+        container.classList.remove('hidden');
+        container.innerHTML = `
+            <div class="table-pagination-meta">Showing ${startNumber}-${endNumber} of ${totalItems}</div>
+            <div class="table-pagination-controls">
+                <button type="button" class="table-page-btn" data-page-action="prev" ${prevDisabled}>Previous</button>
+                <div class="table-page-numbers">${pageButtons}</div>
+                <span class="table-page-indicator">Page ${current} of ${totalPages}</span>
+                <button type="button" class="table-page-btn" data-page-action="next" ${nextDisabled}>Next</button>
+            </div>
+        `;
+
+        container.querySelectorAll('[data-page-action]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const action = button.getAttribute('data-page-action');
+                if (action === 'prev' && healthPaginationState[key] > 1) {
+                    healthPaginationState[key] -= 1;
+                    onNavigate();
+                }
+                if (action === 'next' && healthPaginationState[key] < totalPages) {
+                    healthPaginationState[key] += 1;
+                    onNavigate();
+                }
+            });
+        });
+
+        container.querySelectorAll('[data-page-number]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const targetPage = Number(button.getAttribute('data-page-number') || 1);
+                if (!Number.isFinite(targetPage)) return;
+                if (healthPaginationState[key] === targetPage) return;
+                healthPaginationState[key] = targetPage;
+                onNavigate();
+            });
+        });
+    }
 
     function resetHealthSearch() {
         if (!healthSearchInput) return;
@@ -4260,9 +5086,43 @@ document.addEventListener('DOMContentLoaded', async () => {
         healthSearchInput.defaultValue = '';
     }
 
-    // Prevent browser autofill/history from restoring an email into the health search input.
-    resetHealthSearch();
-    window.addEventListener('pageshow', resetHealthSearch);
+    function setActiveHealthSubtab(targetShellId) {
+        if (!targetShellId) return;
+
+        healthSubtabButtons.forEach((button) => {
+            const isActive = button.dataset.healthShell === targetShellId;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            button.setAttribute('tabindex', isActive ? '0' : '-1');
+        });
+
+        healthSubtabShells.forEach((shell) => {
+            const shouldShow = shell.id === targetShellId;
+            shell.classList.toggle('health-subtab-hidden', !shouldShow);
+            shell.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+        });
+    }
+
+    function syncHealthSubtabsWithPermissions() {
+        if (healthSubtabButtons.length === 0 || healthSubtabShells.length === 0) return;
+
+        const visibleButtons = [];
+        healthSubtabButtons.forEach((button) => {
+            const shellId = button.dataset.healthShell || '';
+            const shell = document.getElementById(shellId);
+            const allowed = !!shell && !shell.classList.contains('hidden');
+            button.classList.toggle('hidden', !allowed);
+            if (allowed) {
+                visibleButtons.push(button);
+            }
+        });
+
+        if (visibleButtons.length === 0) return;
+
+        const activeVisible = visibleButtons.find((button) => button.classList.contains('active'));
+        const target = activeVisible || visibleButtons[0];
+        setActiveHealthSubtab(target.dataset.healthShell || '');
+    }
 
     function healthBadgeClass(eventType) {
         if (/BACKUP|SUCCESS|HEALTHY/i.test(eventType)) return 'success';
@@ -4293,26 +5153,73 @@ document.addEventListener('DOMContentLoaded', async () => {
         return cleaned || '-';
     }
 
-    function populateHealthEventFilter(logs) {
-        if (!healthEventFilter) return;
+    function renderBackupTable(backups) {
+        if (!backupTableBody) return;
 
-        const events = Array.from(new Set((logs || []).map(l => l.event_type).filter(Boolean))).sort();
-        healthEventFilter.innerHTML = `<option value="ALL">All Events</option>${events.map(evt => `<option value="${escapeHtml(evt)}">${escapeHtml(evt)}</option>`).join('')}`;
-    }
-
-    function renderHealthLogsTable(logs) {
-        if (!healthTableBody) return;
-
-        if (!logs || logs.length === 0) {
-            healthTableBody.innerHTML = `
+        if (!backups || backups.length === 0) {
+            backupTableBody.innerHTML = `
                 <tr>
-                    <td colspan="5" style="text-align:center; padding:24px; color:#9ca3af;">No logs found for current filters</td>
+                    <td colspan="6" style="text-align:center; padding:24px; color:#9ca3af;">No backup history yet</td>
                 </tr>
             `;
             return;
         }
 
-        healthTableBody.innerHTML = logs.slice(0, 200).map(log => {
+        backupTableBody.innerHTML = backups.map(backup => `
+            <tr>
+                <td>${backup.backup_id}</td>
+                <td>${formatHealthTimestamp(backup.timestamp)}</td>
+                <td>${backup.type}</td>
+                <td>${Number(backup.size_mb || 0).toFixed(2)} MB</td>
+                <td><span class="badge success">${backup.status}</span></td>
+                <td>${backup.storage}</td>
+            </tr>
+        `).join('');
+
+        lockGenericTableColumnWidths(backupTableBody.closest('table'));
+    }
+
+    function renderBackupPage() {
+        const page = getPageSlice(backupHistoryCache, 'backup');
+        renderBackupTable(page.rows);
+        setScrollableState(backupLogsScroll, page.totalItems);
+        renderTablePagination(backupPagination, 'backup', page.totalItems, renderBackupPage);
+    }
+
+    function renderSiemPage() {
+        const page = getPageSlice(filteredSiemAlertsCache, 'siem');
+        renderSiemAlerts(page.rows);
+        setScrollableState(siemLogsScroll, page.totalItems);
+        renderTablePagination(siemPagination, 'siem', page.totalItems, () => applySiemFilters(true));
+    }
+
+    function renderActivityPage() {
+        const page = getPageSlice(filteredActivityLogsCache, 'activity');
+        renderActivityLogsTable(page.rows);
+        setScrollableState(activityLogsScroll, page.totalItems);
+        renderTablePagination(activityPagination, 'activity', page.totalItems, () => applyActivityLogFilters(true));
+    }
+
+    function populateActivityEventFilter(logs) {
+        if (!activityEventFilter) return;
+
+        const events = Array.from(new Set((logs || []).map(l => l.event_type).filter(Boolean))).sort();
+        activityEventFilter.innerHTML = `<option value="ALL">All Activities</option>${events.map(evt => `<option value="${escapeHtml(evt)}">${escapeHtml(evt)}</option>`).join('')}`;
+    }
+
+    function renderActivityLogsTable(logs) {
+        if (!activityTableBody) return;
+
+        if (!logs || logs.length === 0) {
+            activityTableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align:center; padding:24px; color:#9ca3af;">No activity logs found for current filters</td>
+                </tr>
+            `;
+            return;
+        }
+
+        activityTableBody.innerHTML = logs.slice(0, 300).map(log => {
             const badgeClass = healthBadgeClass(log.event_type || '');
             const ip = log.ip_address || 'N/A';
             const emailMatch = (log.description || '').match(/([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})/i);
@@ -4328,6 +5235,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </tr>
             `;
         }).join('');
+
+        lockGenericTableColumnWidths(activityTableBody.closest('table'));
     }
 
     function getSiemSeverity(log = {}) {
@@ -4374,6 +5283,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </tr>
             `;
         }).join('');
+
+        lockGenericTableColumnWidths(siemAlertsBody.closest('table'));
     }
 
     function populateSiemEventFilter(alerts) {
@@ -4383,7 +5294,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         siemEventFilter.innerHTML = `<option value="ALL">All Events</option>${events.map(evt => `<option value="${escapeHtml(evt)}">${escapeHtml(evt)}</option>`).join('')}`;
     }
 
-    function applySiemFilters() {
+    function applySiemFilters(preservePage = false) {
         const selectedSeverity = (siemSeverityFilter?.value || 'ALL').toLowerCase();
         const selectedEventType = (siemEventFilter?.value || 'ALL').trim();
         const selectedTime = (siemTimeFilter?.value || '24h').trim();
@@ -4397,7 +5308,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const cutoffHours = timeHours[selectedTime] || 24;
         const cutoff = new Date(Date.now() - cutoffHours * 60 * 60 * 1000);
 
-        const filtered = siemAlertsCache.filter(alert => {
+        filteredSiemAlertsCache = siemAlertsCache.filter(alert => {
             const severity = getSiemSeverity(alert);
             const matchesSeverity = selectedSeverity === 'all' || severity === selectedSeverity;
             const matchesEvent = selectedEventType === 'ALL' || (alert.event_type || '') === selectedEventType;
@@ -4407,8 +5318,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             return matchesSeverity && matchesEvent && matchesTime;
         });
-
-        renderSiemAlerts(filtered);
+        if (!preservePage) {
+            healthPaginationState.siem = 1;
+        }
+        renderSiemPage();
     }
 
     function resetSiemFilters(event) {
@@ -4419,12 +5332,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         applySiemFilters();
     }
 
-    function applyHealthLogFilters() {
-        const eventType = (healthEventFilter?.value || 'ALL').trim();
-        const dateValue = (healthDateFilter?.value || '').trim();
-        const query = (healthSearchInput?.value || '').trim().toLowerCase();
+    function applyActivityLogFilters(preservePage = false) {
+        const eventType = (activityEventFilter?.value || 'ALL').trim();
+        const dateValue = (activityDateFilter?.value || '').trim();
+        const query = (activitySearchInput?.value || '').trim().toLowerCase();
 
-        const filtered = healthLogsCache.filter(log => {
+        filteredActivityLogsCache = activityLogsCache.filter(log => {
             const matchesEvent = eventType === 'ALL' || (log.event_type || '') === eventType;
 
             const logDate = new Date(log.timestamp);
@@ -4438,36 +5351,52 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             return matchesEvent && matchesDate && matchesQuery;
         });
-
-        renderHealthLogsTable(filtered);
+        if (!preservePage) {
+            healthPaginationState.activity = 1;
+        }
+        renderActivityPage();
     }
 
-    function resetHealthLogFilters(event) {
+    function resetActivityLogFilters(event) {
         if (event) event.preventDefault();
-        if (healthEventFilter) healthEventFilter.value = 'ALL';
-        if (healthDateFilter) healthDateFilter.value = '';
-        if (healthSearchInput) healthSearchInput.value = '';
-        applyHealthLogFilters();
+        if (activityEventFilter) activityEventFilter.value = 'ALL';
+        if (activityDateFilter) activityDateFilter.value = '';
+        if (activitySearchInput) activitySearchInput.value = '';
+        applyActivityLogFilters();
     }
 
     async function loadSystemHealthTab() {
+        syncHealthSubtabsWithPermissions();
+
         const canViewHealthLogs = hasPermission('can_view_health_logs');
         const canViewAuditTrail = hasPermission('can_view_audit_trail');
         const canViewHealth = canViewHealthLogs || canViewAuditTrail;
         if (!canViewHealth) {
-            if (healthTableBody) {
-                healthTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="5" style="text-align:center; padding:24px; color:#9ca3af;">You do not have permission to view system health logs.</td>
-                    </tr>
-                `;
-            }
             if (siemAlertsBody) {
                 siemAlertsBody.innerHTML = `
                     <tr>
                         <td colspan="5" style="text-align:center; padding:24px; color:#9ca3af;">You do not have permission to view security alerts.</td>
                     </tr>
                 `;
+            }
+            if (siemPagination) {
+                siemPagination.innerHTML = '';
+                siemPagination.classList.add('hidden');
+            }
+            if (activityTableBody) {
+                activityTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align:center; padding:24px; color:#9ca3af;">You do not have permission to view audit activity logs.</td>
+                    </tr>
+                `;
+            }
+            if (activityPagination) {
+                activityPagination.innerHTML = '';
+                activityPagination.classList.add('hidden');
+            }
+            if (backupPagination) {
+                backupPagination.innerHTML = '';
+                backupPagination.classList.add('hidden');
             }
             return;
         }
@@ -4479,9 +5408,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 })
                 : Promise.resolve(null);
 
-            const [summaryResponse, logsResponse] = await Promise.all([
+            const [summaryResponse, activityLogsResponse] = await Promise.all([
                 summaryRequest,
-                fetch('http://localhost:5000/api/system/health-logs', {
+                fetch('http://localhost:5000/api/system/activity-logs?limit=300', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 })
             ]);
@@ -4522,43 +5451,31 @@ document.addEventListener('DOMContentLoaded', async () => {
                 applySiemFilters();
 
                 if (backupTableBody) {
-                    const backups = summary.backup_history || [];
-                    if (backups.length === 0) {
-                        backupTableBody.innerHTML = `
-                            <tr>
-                                <td colspan="6" style="text-align:center; padding:24px; color:#9ca3af;">No backup history yet</td>
-                            </tr>
-                        `;
-                    } else {
-                        backupTableBody.innerHTML = backups.map(backup => `
-                            <tr>
-                                <td>${backup.backup_id}</td>
-                                <td>${formatHealthTimestamp(backup.timestamp)}</td>
-                                <td>${backup.type}</td>
-                                <td>${Number(backup.size_mb || 0).toFixed(2)} MB</td>
-                                <td><span class="badge success">${backup.status}</span></td>
-                                <td>${backup.storage}</td>
-                            </tr>
-                        `).join('');
-                    }
+                    backupHistoryCache = summary.backup_history || [];
+                    healthPaginationState.backup = 1;
+                    renderBackupPage();
                 }
             }
 
-            if (logsResponse.ok && healthTableBody) {
-                const logsData = await logsResponse.json();
-                const logs = logsData.logs || [];
-                healthLogsCache = logs;
-                populateHealthEventFilter(healthLogsCache);
-                applyHealthLogFilters();
-            } else if (healthTableBody) {
-                const message = logsResponse && logsResponse.status === 403
-                    ? 'You do not have permission to view audit logs.'
-                    : 'Failed to load health logs';
-                healthTableBody.innerHTML = `
+            if (activityLogsResponse.ok && activityTableBody) {
+                const activityData = await activityLogsResponse.json();
+                const logs = activityData.logs || [];
+                activityLogsCache = logs;
+                populateActivityEventFilter(activityLogsCache);
+                applyActivityLogFilters();
+            } else if (activityTableBody) {
+                const message = activityLogsResponse && activityLogsResponse.status === 403
+                    ? 'You do not have permission to view activity logs.'
+                    : 'Failed to load activity logs';
+                activityTableBody.innerHTML = `
                     <tr>
                         <td colspan="5" style="text-align:center; padding:24px; color:#ef4444;">${message}</td>
                     </tr>
                 `;
+                if (activityPagination) {
+                    activityPagination.innerHTML = '';
+                    activityPagination.classList.add('hidden');
+                }
             }
         } catch (error) {
             console.error('System health load error:', error);
@@ -4568,13 +5485,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <td colspan="6" style="text-align:center; padding:24px; color:#ef4444;">Failed to load backup history</td>
                     </tr>
                 `;
-            }
-            if (healthTableBody) {
-                healthTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="5" style="text-align:center; padding:24px; color:#ef4444;">Failed to load health logs</td>
-                    </tr>
-                `;
+                if (backupPagination) {
+                    backupPagination.innerHTML = '';
+                    backupPagination.classList.add('hidden');
+                }
             }
             if (siemAlertsBody) {
                 siemAlertsBody.innerHTML = `
@@ -4582,21 +5496,36 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <td colspan="5" style="text-align:center; padding:24px; color:#ef4444;">Failed to load security alerts</td>
                     </tr>
                 `;
+                if (siemPagination) {
+                    siemPagination.innerHTML = '';
+                    siemPagination.classList.add('hidden');
+                }
+            }
+            if (activityTableBody) {
+                activityTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align:center; padding:24px; color:#ef4444;">Failed to load activity logs</td>
+                    </tr>
+                `;
+                if (activityPagination) {
+                    activityPagination.innerHTML = '';
+                    activityPagination.classList.add('hidden');
+                }
             }
         }
     }
 
-    if (healthEventFilter) {
-        healthEventFilter.addEventListener('change', applyHealthLogFilters);
+    if (activityEventFilter) {
+        activityEventFilter.addEventListener('change', applyActivityLogFilters);
     }
-    if (healthDateFilter) {
-        healthDateFilter.addEventListener('change', applyHealthLogFilters);
+    if (activityDateFilter) {
+        activityDateFilter.addEventListener('change', applyActivityLogFilters);
     }
-    if (healthSearchInput) {
-        healthSearchInput.addEventListener('input', applyHealthLogFilters);
+    if (activitySearchInput) {
+        activitySearchInput.addEventListener('input', applyActivityLogFilters);
     }
-    if (healthFilterResetBtn) {
-        healthFilterResetBtn.addEventListener('click', resetHealthLogFilters);
+    if (activityFilterResetBtn) {
+        activityFilterResetBtn.addEventListener('click', resetActivityLogFilters);
     }
     if (siemSeverityFilter) {
         siemSeverityFilter.addEventListener('change', applySiemFilters);
@@ -4611,13 +5540,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         siemFilterResetBtn.addEventListener('click', resetSiemFilters);
     }
 
-    // Fallback binding in case the button is re-rendered later.
-    document.addEventListener('click', (event) => {
-        const resetBtn = event.target.closest('#health-filter-reset-btn');
-        if (!resetBtn) return;
-        resetHealthLogFilters(event);
+    healthSubtabButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            const targetShellId = button.dataset.healthShell || '';
+            setActiveHealthSubtab(targetShellId);
+        });
     });
 
+    document.querySelectorAll('.inquiry-subtab-btn').forEach((button) => {
+        button.addEventListener('click', () => {
+            const targetShellId = button.dataset.inquiryShell || '';
+            setActiveInquirySubtab(targetShellId);
+        });
+    });
+
+    document.querySelectorAll('.attendance-subtab-btn').forEach((button) => {
+        button.addEventListener('click', () => {
+            const targetShellId = button.dataset.attendanceShell || '';
+            setActiveAttendanceSubtab(targetShellId);
+            setTimeout(() => refreshAllTablePaginations({ onlyVisible: true, captureFromDom: true }), 60);
+        });
+    });
+
+    syncInquirySubtabsWithPermissions();
+    syncAttendanceSubtabsWithPermissions();
+
+    // Fallback binding in case the button is re-rendered later.
     if (triggerBackupBtn) {
         triggerBackupBtn.addEventListener('click', async () => {
             if (!hasPermission('can_backup_database')) {
@@ -4689,6 +5637,230 @@ document.addEventListener('DOMContentLoaded', async () => {
                 exportLogsBtn.disabled = false;
                 exportLogsBtn.innerHTML = '<i class="bi bi-download"></i> Export Logs (CSV)';
             }
+        });
+    }
+
+    // --- ARCHIVES TAB ---
+    const archivesTableBody = document.getElementById('archives-table-body');
+    const archivesEntityFilter = document.getElementById('archives-entity-filter');
+    const archivesActorFilter = document.getElementById('archives-actor-filter');
+    const archivesSearchInput = document.getElementById('archives-search-input');
+    const archivesFilterResetBtn = document.getElementById('archives-filter-reset-btn');
+    const archivesTotalRecordsEl = document.getElementById('archives-total-records');
+    const archivesUniqueEntitiesEl = document.getElementById('archives-unique-entities');
+    const archivesLastArchivedEl = document.getElementById('archives-last-archived');
+
+    let archivesCache = [];
+
+    function formatArchiveSnapshot(item = {}) {
+        const payload = item.payload || {};
+        const entity = String(item.entity_type || '').toUpperCase();
+
+        if (!payload || typeof payload !== 'object') return '-';
+
+        if (entity === 'EQUIPMENT') {
+            const name = payload.name || 'Equipment';
+            const qr = payload.qr_number ? `QR ${payload.qr_number}` : `ID ${payload.equipment_id || item.record_id || '-'}`;
+            const status = payload.status || 'Unknown status';
+            const condition = payload.condition || 'Unknown condition';
+            return `${name} (${qr}) • ${status} • ${condition}`;
+        }
+
+        if (entity === 'USER') {
+            const fullName = payload.full_name || 'Unknown user';
+            const email = payload.email || 'No email';
+            const role = payload.role || 'UNKNOWN';
+            return `${fullName} • ${email} • ${role}`;
+        }
+
+        if (entity === 'ATTENDANCE_LOG') {
+            const action = payload.action || 'Attendance action';
+            const userId = payload.user_id ?? '-';
+            const timestamp = payload.timestamp ? formatDateTime(payload.timestamp) : '-';
+            return `${action} • user #${userId} • ${timestamp}`;
+        }
+
+        if (entity === 'PROJECT_FILE') {
+            const fileName = payload.file_name || 'Unnamed file';
+            const fileType = payload.file_type || 'Unknown type';
+            const size = payload.file_size_mb != null ? `${Number(payload.file_size_mb).toFixed(2)} MB` : '-';
+            return `${fileName} • ${fileType} • ${size}`;
+        }
+
+        if (entity === 'CLIENT_INQUIRY') {
+            const client = payload.client_name || 'Unknown client';
+            const email = payload.client_email || 'No email';
+            const status = payload.status || 'Pending';
+            return `${client} • ${email} • ${status}`;
+        }
+
+        if (entity === 'CONSTRUCTION_SITE') {
+            const siteName = payload.site_name || 'Construction Site';
+            const radius = payload.geo_fence_radius_meters != null ? `${payload.geo_fence_radius_meters}m` : '-';
+            const active = payload.is_active ? 'Active' : 'Inactive';
+            return `${siteName} • Radius ${radius} • ${active}`;
+        }
+
+        const keys = Object.keys(payload);
+        if (keys.length === 0) return '-';
+
+        const compactPreview = keys.slice(0, 3).map((key) => `${key}: ${String(payload[key])}`).join(' • ');
+        return compactPreview;
+    }
+
+    function populateArchivesEntityFilter(items) {
+        if (!archivesEntityFilter) return;
+
+        const entities = Array.from(new Set((items || []).map(item => item.entity_type).filter(Boolean))).sort();
+        archivesEntityFilter.innerHTML = `<option value="ALL">All Entities</option>${entities.map(entity => `<option value="${escapeHtml(entity)}">${escapeHtml(entity)}</option>`).join('')}`;
+    }
+
+    function renderArchivesStats(summary = {}) {
+        if (archivesTotalRecordsEl) {
+            archivesTotalRecordsEl.textContent = Number(summary.total_records || 0);
+        }
+
+        if (archivesUniqueEntitiesEl) {
+            archivesUniqueEntitiesEl.textContent = Number(summary.unique_entities || 0);
+        }
+
+        if (archivesLastArchivedEl) {
+            archivesLastArchivedEl.textContent = summary.last_archived_at
+                ? formatDateTime(summary.last_archived_at)
+                : '-';
+        }
+    }
+
+    function renderArchivesTable(items) {
+        if (!archivesTableBody) return;
+
+        if (!items || items.length === 0) {
+            archivesTableBody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align:center; padding:24px; color:#9ca3af;">No archived records for current filters</td>
+                </tr>
+            `;
+            return;
+        }
+
+        archivesTableBody.innerHTML = items.map((item) => {
+            const actorName = item.deleted_by_name || item.deleted_by_email || 'System';
+            const actorRole = item.deleted_by_role || 'SYSTEM';
+            const snapshot = formatArchiveSnapshot(item);
+            const snapshotTitle = JSON.stringify(item.payload || {}, null, 2);
+            const roleBadgeClass = actorRole === 'ADMIN' ? 'success' : (actorRole === 'EMPLOYEE' ? 'warning' : '');
+
+            return `
+                <tr>
+                    <td>${formatDateTime(item.deleted_at)}</td>
+                    <td><span class="badge">${escapeHtml(item.entity_type || '-')}</span></td>
+                    <td>${escapeHtml(String(item.record_id || '-'))}</td>
+                    <td>${escapeHtml(item.source_table || '-')}</td>
+                    <td>${escapeHtml(actorName)}</td>
+                    <td><span class="badge ${roleBadgeClass}">${escapeHtml(actorRole)}</span></td>
+                    <td>${escapeHtml(item.deleted_ip || '-')}</td>
+                    <td><code class="archive-json-preview" title="${escapeHtml(snapshotTitle)}">${escapeHtml(snapshot)}</code></td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function applyArchivesFilters() {
+        const selectedEntity = String(archivesEntityFilter?.value || 'ALL').trim().toUpperCase();
+        const selectedActor = String(archivesActorFilter?.value || 'ALL').trim().toUpperCase();
+        const search = String(archivesSearchInput?.value || '').trim().toLowerCase();
+
+        const filtered = archivesCache.filter((item) => {
+            const entity = String(item.entity_type || '').toUpperCase();
+            const role = String(item.deleted_by_role || 'SYSTEM').toUpperCase();
+            const actor = String(item.deleted_by_name || item.deleted_by_email || 'system').toLowerCase();
+            const sourceTable = String(item.source_table || '').toLowerCase();
+            const recordId = String(item.record_id || '').toLowerCase();
+            const payloadText = JSON.stringify(item.payload || {}).toLowerCase();
+
+            const matchesEntity = selectedEntity === 'ALL' || entity === selectedEntity;
+            const matchesActor = selectedActor === 'ALL'
+                || (selectedActor === 'SYSTEM' ? !item.deleted_by_user_id : role === selectedActor);
+            const matchesSearch = !search
+                || actor.includes(search)
+                || sourceTable.includes(search)
+                || recordId.includes(search)
+                || payloadText.includes(search);
+
+            return matchesEntity && matchesActor && matchesSearch;
+        });
+
+        renderArchivesTable(filtered);
+        renderArchivesStats({
+            total_records: filtered.length,
+            unique_entities: new Set(filtered.map(item => item.entity_type)).size,
+            last_archived_at: filtered.length > 0 ? filtered[0].deleted_at : null
+        });
+    }
+
+    async function loadArchivesTab() {
+        if (!archivesTableBody) return;
+
+        if (!hasPermission('can_view_audit_trail')) {
+            archivesTableBody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align:center; padding:24px; color:#9ca3af;">You do not have permission to view archived records.</td>
+                </tr>
+            `;
+            renderArchivesStats({ total_records: 0, unique_entities: 0, last_archived_at: null });
+            return;
+        }
+
+        archivesTableBody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align:center; padding:24px; color:#6b7280;">Loading archive records...</td>
+            </tr>
+        `;
+
+        try {
+            const response = await fetch('http://localhost:5000/api/archives?limit=500', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to load archives');
+            }
+
+            archivesCache = data.archives || [];
+            populateArchivesEntityFilter(archivesCache);
+            renderArchivesStats(data.summary || {});
+            applyArchivesFilters();
+        } catch (error) {
+            console.error('Load archives error:', error);
+            archivesTableBody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align:center; padding:24px; color:#ef4444;">Failed to load archives: ${escapeHtml(error.message)}</td>
+                </tr>
+            `;
+            renderArchivesStats({ total_records: 0, unique_entities: 0, last_archived_at: null });
+        }
+    }
+
+    if (archivesEntityFilter) {
+        archivesEntityFilter.addEventListener('change', applyArchivesFilters);
+    }
+
+    if (archivesActorFilter) {
+        archivesActorFilter.addEventListener('change', applyArchivesFilters);
+    }
+
+    if (archivesSearchInput) {
+        archivesSearchInput.addEventListener('input', applyArchivesFilters);
+    }
+
+    if (archivesFilterResetBtn) {
+        archivesFilterResetBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            if (archivesEntityFilter) archivesEntityFilter.value = 'ALL';
+            if (archivesActorFilter) archivesActorFilter.value = 'ALL';
+            if (archivesSearchInput) archivesSearchInput.value = '';
+            applyArchivesFilters();
         });
     }
 });

@@ -30,7 +30,19 @@
                 </div>
                 <div class="input-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" required placeholder="••••••••">
+                    <div class="password-input-wrap">
+                        <input type="password" id="password" required placeholder="••••••••">
+                        <button
+                            type="button"
+                            id="password-toggle"
+                            class="password-toggle"
+                            aria-label="Show password"
+                            aria-controls="password"
+                            aria-pressed="false"
+                        >
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" class="btn-primary w-full">
                     <i class="bi bi-box-arrow-in-right"></i> Sign In

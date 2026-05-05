@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const axios = require('axios');
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -137,13 +138,13 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'"],
-            scriptSrc: ["'self'", "https://unpkg.com"],
+            scriptSrc: ["'self'", "https://unpkg.com", "https://www.google.com", "https://www.gstatic.com"],
             imgSrc: ["'self'", "data:", "https:"],
-            connectSrc: ["'self'"],
+            connectSrc: ["'self'", "https://www.google.com", "https://www.gstatic.com"],
             fontSrc: ["'self'"],
             objectSrc: ["'none'"],
             mediaSrc: ["'self'"],
-            frameSrc: ["'none'"]
+            frameSrc: ["'self'", "https://www.google.com", "https://recaptcha.google.com"]
         }
     },
     hsts: {
@@ -270,10 +271,10 @@ function getUserProfilePhoto(userId) {
 }
 
 function resolveUserProfilePhoto(dbPhoto, userId) {
-    // Use DB value first. If empty, fallback to legacy JSON value.
+    // DB is the source of truth. Legacy store is only written for compatibility.
     const normalizedDbPhoto = typeof dbPhoto === 'string' ? dbPhoto.trim() : '';
     if (normalizedDbPhoto.length > 0) return normalizedDbPhoto;
-    return getUserProfilePhoto(userId);
+    return null;
 }
 
 function setUserProfilePhoto(userId, photoDataUrl) {
@@ -364,6 +365,117 @@ function getClientIp(req) {
     return req.ip || req.headers['x-forwarded-for'] || req.connection?.remoteAddress || '127.0.0.1';
 }
 
+async function ensureArchiveStore() {
+    await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS archive_records (
+            archive_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            entity_type VARCHAR(64) NOT NULL,
+            source_table VARCHAR(128) NOT NULL,
+            record_id VARCHAR(64) NOT NULL,
+            deleted_by_user_id INT NULL,
+            deleted_by_name VARCHAR(191) NULL,
+            deleted_by_email VARCHAR(191) NULL,
+            deleted_by_role VARCHAR(64) NULL,
+            delete_reason VARCHAR(255) NULL,
+            deleted_ip VARCHAR(120) NULL,
+            payload_json LONGTEXT NOT NULL,
+            deleted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            is_immutable TINYINT(1) NOT NULL DEFAULT 1,
+            PRIMARY KEY (archive_id),
+            INDEX idx_archive_deleted_at (deleted_at),
+            INDEX idx_archive_entity_type (entity_type),
+            INDEX idx_archive_deleted_by_user_id (deleted_by_user_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+}
+
+function sanitizeArchivePayload(entityType, payload) {
+    if (!payload || typeof payload !== 'object') {
+        return payload;
+    }
+
+    const sanitized = { ...payload };
+
+    if (entityType === 'USER') {
+        if (Object.prototype.hasOwnProperty.call(sanitized, 'password_hash')) {
+            sanitized.password_hash = '[REDACTED]';
+        }
+        if (Object.prototype.hasOwnProperty.call(sanitized, 'mfa_secret')) {
+            sanitized.mfa_secret = '[REDACTED]';
+        }
+    }
+
+    return sanitized;
+}
+
+function parseArchivePayload(payloadJson) {
+    if (!payloadJson) return null;
+    try {
+        return JSON.parse(payloadJson);
+    } catch (error) {
+        return null;
+    }
+}
+
+async function archiveDeletedRecord(txClient, archiveData) {
+    const {
+        entityType,
+        sourceTable,
+        recordId,
+        actorUserId,
+        actorName,
+        actorEmail,
+        actorRole,
+        deletedIp,
+        payload,
+        deleteReason
+    } = archiveData;
+
+    const sanitizedPayload = sanitizeArchivePayload(entityType, payload);
+    const payloadJson = JSON.stringify(sanitizedPayload ?? {});
+
+    await txClient.$executeRaw`
+        INSERT INTO archive_records (
+            entity_type,
+            source_table,
+            record_id,
+            deleted_by_user_id,
+            deleted_by_name,
+            deleted_by_email,
+            deleted_by_role,
+            delete_reason,
+            deleted_ip,
+            payload_json,
+            is_immutable
+        )
+        VALUES (
+            ${entityType},
+            ${sourceTable},
+            ${String(recordId)},
+            ${actorUserId ?? null},
+            ${actorName || null},
+            ${actorEmail || null},
+            ${actorRole || null},
+            ${deleteReason || null},
+            ${deletedIp || null},
+            ${payloadJson},
+            ${1}
+        )
+    `;
+}
+
+function getArchiveActorFromRequest(req) {
+    const permissionsUser = req.userPermissions || {};
+    const jwtUser = req.user || {};
+
+    return {
+        actorUserId: permissionsUser.user_id ?? jwtUser.user_id ?? null,
+        actorName: permissionsUser.full_name || null,
+        actorEmail: permissionsUser.email || null,
+        actorRole: (permissionsUser.role || jwtUser.role || 'UNKNOWN').toUpperCase()
+    };
+}
+
 async function logSiemEvent(eventType, severity, description, req, metadata = {}) {
     const payload = {
         event_type: eventType,
@@ -399,6 +511,20 @@ function getNotificationTransporter() {
     });
 
     return notificationTransporter;
+}
+
+function extractNotificationContext(description) {
+    const text = String(description || '');
+    const marker = ' | context=';
+    const idx = text.indexOf(marker);
+    if (idx === -1) return null;
+    const jsonText = text.slice(idx + marker.length).trim();
+    try {
+        const payload = JSON.parse(jsonText);
+        return payload && typeof payload === 'object' ? payload : null;
+    } catch (error) {
+        return null;
+    }
 }
 
 async function sendNotificationEmail(recipients, subject, title, messageLines = []) {
@@ -514,6 +640,7 @@ async function checkAndNotifyLowInventory(equipmentName, req, metadata = {}) {
         `Equipment "${equipmentName}" is low on available units (${availableCount} available out of ${totalCount}).`,
         req,
         {
+            notification_type: 'low_inventory',
             equipment_name: equipmentName,
             available_count: availableCount,
             total_count: totalCount,
@@ -1140,7 +1267,14 @@ app.post('/register', authenticateToken, requirePermission('can_add_users'), val
         can_export_health_logs,
         can_manage_permissions,
         can_view_audit_trail,
-        can_backup_database
+        can_backup_database,
+        
+        // Reports
+        can_view_reports,
+        can_export_attendance_report,
+        can_export_equipment_report,
+        can_export_inquiry_report,
+        can_export_files_report
     } = req.body;
 
     try {
@@ -1200,7 +1334,14 @@ app.post('/register', authenticateToken, requirePermission('can_add_users'), val
                 can_export_health_logs: can_export_health_logs || false,
                 can_manage_permissions: can_manage_permissions || false,
                 can_view_audit_trail: can_view_audit_trail || false,
-                can_backup_database: can_backup_database || false
+                can_backup_database: can_backup_database || false,
+                
+                // Reports
+                can_view_reports: can_view_reports || false,
+                can_export_attendance_report: can_export_attendance_report || false,
+                can_export_equipment_report: can_export_equipment_report || false,
+                can_export_inquiry_report: can_export_inquiry_report || false,
+                can_export_files_report: can_export_files_report || false
             }
         });
         
@@ -1289,6 +1430,11 @@ app.get('/api/me', authenticateToken, async (req, res) => {
                 can_manage_permissions: true,
                 can_view_audit_trail: true,
                 can_backup_database: true,
+                can_view_reports: true,
+                can_export_attendance_report: true,
+                can_export_equipment_report: true,
+                can_export_inquiry_report: true,
+                can_export_files_report: true,
                 created_at: true
             }
         });
@@ -1426,7 +1572,13 @@ app.get('/api/users/:user_id', authenticateToken, requirePermission('can_view_us
                 can_export_health_logs: true,
                 can_manage_permissions: true,
                 can_view_audit_trail: true,
-                can_backup_database: true
+                can_backup_database: true,
+                // Reports
+                can_view_reports: true,
+                can_export_attendance_report: true,
+                can_export_equipment_report: true,
+                can_export_inquiry_report: true,
+                can_export_files_report: true
             }
         });
         
@@ -1464,7 +1616,9 @@ app.put('/api/users/:user_id', authenticateToken, requirePermission('can_edit_us
         // Inquiries
         can_view_inquiries, can_add_inquiries, can_update_inquiries, can_delete_inquiries, can_assign_inquiries,
         // System
-        can_view_health_logs, can_export_health_logs, can_manage_permissions, can_view_audit_trail, can_backup_database
+        can_view_health_logs, can_export_health_logs, can_manage_permissions, can_view_audit_trail, can_backup_database,
+        // Reports
+        can_view_reports, can_export_attendance_report, can_export_equipment_report, can_export_inquiry_report, can_export_files_report
     } = req.body;
 
     const permissionFieldNames = [
@@ -1473,7 +1627,8 @@ app.put('/api/users/:user_id', authenticateToken, requirePermission('can_edit_us
         'can_view_equipment', 'can_add_equipment', 'can_edit_equipment', 'can_delete_equipment', 'can_assign_equipment',
         'can_view_files', 'can_upload_files', 'can_edit_files', 'can_delete_files', 'can_download_files',
         'can_view_inquiries', 'can_add_inquiries', 'can_update_inquiries', 'can_delete_inquiries', 'can_assign_inquiries',
-        'can_view_health_logs', 'can_export_health_logs', 'can_manage_permissions', 'can_view_audit_trail', 'can_backup_database'
+        'can_view_health_logs', 'can_export_health_logs', 'can_manage_permissions', 'can_view_audit_trail', 'can_backup_database',
+        'can_view_reports', 'can_export_attendance_report', 'can_export_equipment_report', 'can_export_inquiry_report', 'can_export_files_report'
     ];
 
     const isSelfPermissionPayload = targetUserId === requesterUserId && permissionFieldNames.some(field => req.body[field] !== undefined);
@@ -1524,7 +1679,8 @@ app.put('/api/users/:user_id', authenticateToken, requirePermission('can_edit_us
                 can_view_equipment, can_add_equipment, can_edit_equipment, can_delete_equipment, can_assign_equipment,
                 can_view_files, can_upload_files, can_edit_files, can_delete_files, can_download_files,
                 can_view_inquiries, can_add_inquiries, can_update_inquiries, can_delete_inquiries, can_assign_inquiries,
-                can_view_health_logs, can_export_health_logs, can_manage_permissions, can_view_audit_trail, can_backup_database
+                can_view_health_logs, can_export_health_logs, can_manage_permissions, can_view_audit_trail, can_backup_database,
+                can_view_reports, can_export_attendance_report, can_export_equipment_report, can_export_inquiry_report, can_export_files_report
             },
             select: {
                 user_id: true,
@@ -1549,8 +1705,7 @@ app.delete('/api/users/:user_id', authenticateToken, requirePermission('can_dele
 
     try {
         const targetUser = await prisma.user.findUnique({
-            where: { user_id: targetUserId },
-            select: { user_id: true, role: true }
+            where: { user_id: targetUserId }
         });
 
         if (!targetUser) {
@@ -1578,10 +1733,26 @@ app.delete('/api/users/:user_id', authenticateToken, requirePermission('can_dele
             });
         }
 
-        await prisma.user.delete({
-            where: { user_id: targetUserId }
+        const archiveActor = getArchiveActorFromRequest(req);
+        const deletedIp = getClientIp(req);
+
+        await prisma.$transaction(async (tx) => {
+            await archiveDeletedRecord(tx, {
+                entityType: 'USER',
+                sourceTable: 'User',
+                recordId: targetUserId,
+                ...archiveActor,
+                deletedIp,
+                deleteReason: 'Deleted from account provisioning',
+                payload: targetUser
+            });
+
+            await tx.user.delete({
+                where: { user_id: targetUserId }
+            });
         });
-        res.json({ message: "User deleted successfully." });
+
+        res.json({ message: 'User moved to archives successfully.' });
     } catch (error) {
         console.error("Delete User Error:", error);
         res.status(500).json({ error: "Failed to delete user." });
@@ -1847,17 +2018,32 @@ app.delete('/api/equipment/:equipment_id', authenticateToken, requirePermission(
     const { equipment_id } = req.params;
 
     try {
+        const equipmentId = parseInt(equipment_id);
         const existingEquipment = await prisma.equipment_Inventory.findUnique({
-            where: { equipment_id: parseInt(equipment_id) },
-            select: { equipment_id: true, name: true }
+            where: { equipment_id: equipmentId }
         });
 
         if (!existingEquipment) {
             return res.status(404).json({ error: "Equipment not found." });
         }
 
-        await prisma.equipment_Inventory.delete({
-            where: { equipment_id: parseInt(equipment_id) }
+        const archiveActor = getArchiveActorFromRequest(req);
+        const deletedIp = getClientIp(req);
+
+        await prisma.$transaction(async (tx) => {
+            await archiveDeletedRecord(tx, {
+                entityType: 'EQUIPMENT',
+                sourceTable: 'Equipment_Inventory',
+                recordId: existingEquipment.equipment_id,
+                ...archiveActor,
+                deletedIp,
+                deleteReason: 'Deleted from equipment inventory',
+                payload: existingEquipment
+            });
+
+            await tx.equipment_Inventory.delete({
+                where: { equipment_id: equipmentId }
+            });
         });
 
         await checkAndNotifyLowInventory(existingEquipment.name, req, {
@@ -1866,7 +2052,7 @@ app.delete('/api/equipment/:equipment_id', authenticateToken, requirePermission(
             equipment_id: existingEquipment.equipment_id
         });
 
-        res.json({ message: "Equipment deleted successfully." });
+        res.json({ message: 'Equipment moved to archives successfully.' });
     } catch (error) {
         console.error("Delete Equipment Error:", error);
         res.status(500).json({ error: "Failed to delete equipment." });
@@ -2108,6 +2294,26 @@ app.post('/api/equipment/assign', authenticateToken, requirePermission('can_assi
             equipment_id: equipmentId,
             assigned_to_user_id: targetUserId
         });
+
+        await createNotificationEvent(
+            'NOTIFICATION_EQUIPMENT_ASSIGN',
+            'LOW',
+            'Equipment Assigned',
+            `You have been assigned ${equipment.name}.`,
+            req,
+            {
+                notification_type: 'equipment_assign',
+                target_user_id: targetUserId,
+                target_user_name: targetUser.full_name,
+                equipment_id: equipmentId,
+                equipment_name: equipment.name,
+                qr_number: equipment.qr_number || null,
+                assigned_by_user_id: actorUserId,
+                assigned_by_name: req.userPermissions?.full_name || null,
+                assigned_by_email: req.userPermissions?.email || null,
+                notes: notes || null
+            }
+        );
 
         res.json({
             message: `Equipment assigned to ${targetUser.full_name}.`,
@@ -2453,10 +2659,35 @@ app.delete('/api/attendance/:log_id', authenticateToken, requirePermission('can_
     const { log_id } = req.params;
 
     try {
-        await prisma.attendance_Log.delete({
-            where: { log_id: parseInt(log_id) }
+        const attendanceLogId = parseInt(log_id);
+        const existingLog = await prisma.attendance_Log.findUnique({
+            where: { log_id: attendanceLogId }
         });
-        res.json({ message: "Attendance record deleted successfully." });
+
+        if (!existingLog) {
+            return res.status(404).json({ error: 'Attendance record not found.' });
+        }
+
+        const archiveActor = getArchiveActorFromRequest(req);
+        const deletedIp = getClientIp(req);
+
+        await prisma.$transaction(async (tx) => {
+            await archiveDeletedRecord(tx, {
+                entityType: 'ATTENDANCE_LOG',
+                sourceTable: 'Attendance_Log',
+                recordId: existingLog.log_id,
+                ...archiveActor,
+                deletedIp,
+                deleteReason: 'Deleted from attendance management',
+                payload: existingLog
+            });
+
+            await tx.attendance_Log.delete({
+                where: { log_id: attendanceLogId }
+            });
+        });
+
+        res.json({ message: 'Attendance record moved to archives successfully.' });
     } catch (error) {
         console.error("Delete Attendance Error:", error);
         res.status(500).json({ error: "Failed to delete attendance." });
@@ -2604,11 +2835,35 @@ app.delete('/api/sites/:site_id', authenticateToken, requirePermission('can_mana
     const { site_id } = req.params;
 
     try {
-        await prisma.construction_Site.delete({
-            where: { site_id: parseInt(site_id) }
+        const siteId = parseInt(site_id);
+        const existingSite = await prisma.construction_Site.findUnique({
+            where: { site_id: siteId }
+        });
+
+        if (!existingSite) {
+            return res.status(404).json({ error: 'Construction site not found.' });
+        }
+
+        const archiveActor = getArchiveActorFromRequest(req);
+        const deletedIp = getClientIp(req);
+
+        await prisma.$transaction(async (tx) => {
+            await archiveDeletedRecord(tx, {
+                entityType: 'CONSTRUCTION_SITE',
+                sourceTable: 'Construction_Site',
+                recordId: existingSite.site_id,
+                ...archiveActor,
+                deletedIp,
+                deleteReason: 'Deleted from geo-fencing site management',
+                payload: existingSite
+            });
+
+            await tx.construction_Site.delete({
+                where: { site_id: siteId }
+            });
         });
         
-        res.json({ message: "Construction site deleted successfully." });
+        res.json({ message: 'Construction site moved to archives successfully.' });
     } catch (error) {
         console.error("Delete Site Error:", error);
         res.status(500).json({ error: "Failed to delete construction site." });
@@ -2692,6 +2947,103 @@ app.get('/api/files', authenticateToken, requirePermission('can_view_files'), as
     } catch (error) {
         console.error("Fetch Files Error:", error);
         res.status(500).json({ error: "Failed to retrieve files." });
+    }
+});
+
+// Sync Cloudinary folder assets into Project_File records
+app.post('/api/files/sync-cloudinary', authenticateToken, requirePermission('can_upload_files'), async (req, res) => {
+    try {
+        const prefix = 'cicj-shcoms/project-files';
+        const cloudinaryAssets = [];
+        let nextCursor = undefined;
+
+        do {
+            const response = await cloudinary.api.resources({
+                type: 'upload',
+                resource_type: 'image',
+                prefix,
+                max_results: 100,
+                next_cursor: nextCursor
+            });
+
+            const resources = Array.isArray(response?.resources) ? response.resources : [];
+            cloudinaryAssets.push(...resources);
+            nextCursor = response?.next_cursor;
+        } while (nextCursor);
+
+        const existingCloudFiles = await prisma.project_File.findMany({
+            where: { storage_location: 'CLOUD' },
+            select: {
+                cloudinary_public_id: true,
+                cloudinary_url: true
+            }
+        });
+
+        const existingPublicIds = new Set(
+            existingCloudFiles
+                .map(file => String(file.cloudinary_public_id || '').trim())
+                .filter(Boolean)
+        );
+        const existingUrls = new Set(
+            existingCloudFiles
+                .map(file => String(file.cloudinary_url || '').trim())
+                .filter(Boolean)
+        );
+
+        const recordsToCreate = cloudinaryAssets
+            .filter(asset => {
+                const publicId = String(asset?.public_id || '').trim();
+                const secureUrl = String(asset?.secure_url || '').trim();
+                if (!publicId || !secureUrl) return false;
+                return !existingPublicIds.has(publicId) && !existingUrls.has(secureUrl);
+            })
+            .map(asset => {
+                const publicId = String(asset.public_id || '').trim();
+                const secureUrl = String(asset.secure_url || '').trim();
+                const format = String(asset.format || '').toLowerCase();
+                const originalFilename = String(asset.filename || '').trim();
+                const fallbackFilename = publicId.split('/').pop() || `cloudinary_${Date.now()}`;
+                const baseName = originalFilename || fallbackFilename;
+                const fileName = format && !baseName.toLowerCase().endsWith(`.${format}`)
+                    ? `${baseName}.${format}`
+                    : baseName;
+                const fileType = format ? `image/${format}` : 'image/*';
+                const fileSizeMb = Number(((Number(asset.bytes) || 0) / (1024 * 1024)).toFixed(2));
+
+                return {
+                    uploader_id: req.user.user_id,
+                    file_name: fileName,
+                    file_type: fileType,
+                    file_size_mb: fileSizeMb,
+                    storage_location: 'CLOUD',
+                    cloudinary_url: secureUrl,
+                    cloudinary_public_id: publicId,
+                    local_ftp_path: null
+                };
+            });
+
+        let imported = 0;
+        if (recordsToCreate.length > 0) {
+            const createResult = await prisma.project_File.createMany({
+                data: recordsToCreate
+            });
+            imported = Number(createResult?.count || 0);
+        }
+
+        res.json({
+            message: imported > 0
+                ? `Imported ${imported} Cloudinary file${imported === 1 ? '' : 's'}.`
+                : 'No new Cloudinary files found to import.',
+            stats: {
+                scanned: cloudinaryAssets.length,
+                imported,
+                skipped: Math.max(cloudinaryAssets.length - imported, 0),
+                folder: prefix
+            }
+        });
+    } catch (error) {
+        console.error('Cloudinary Sync Error:', error);
+        res.status(500).json({ error: 'Failed to sync Cloudinary files.' });
     }
 });
 
@@ -2870,8 +3222,9 @@ app.put('/api/files/:file_id', authenticateToken, requirePermission('can_edit_fi
 app.delete('/api/files/:file_id', authenticateToken, requirePermission('can_delete_files'), async (req, res) => {
     const { file_id } = req.params;
     try {
+        const fileId = parseInt(file_id);
         const file = await prisma.project_File.findUnique({
-            where: { file_id: parseInt(file_id) }
+            where: { file_id: fileId }
         });
         if (!file) return res.status(404).json({ error: "File not found." });
 
@@ -2882,8 +3235,24 @@ app.delete('/api/files/:file_id', authenticateToken, requirePermission('can_dele
             );
         }
 
-        await prisma.project_File.delete({ where: { file_id: parseInt(file_id) } });
-        res.json({ message: "File deleted successfully." });
+        const archiveActor = getArchiveActorFromRequest(req);
+        const deletedIp = getClientIp(req);
+
+        await prisma.$transaction(async (tx) => {
+            await archiveDeletedRecord(tx, {
+                entityType: 'PROJECT_FILE',
+                sourceTable: 'Project_File',
+                recordId: file.file_id,
+                ...archiveActor,
+                deletedIp,
+                deleteReason: 'Deleted from project files',
+                payload: file
+            });
+
+            await tx.project_File.delete({ where: { file_id: fileId } });
+        });
+
+        res.json({ message: 'File moved to archives successfully.' });
     } catch (error) {
         console.error("Delete File Error:", error);
         res.status(500).json({ error: "Failed to delete file." });
@@ -2949,6 +3318,92 @@ app.post('/api/equipment/:equipment_id/photo',
 // CLIENT INQUIRIES ROUTES (Granular Permissions)
 // ==========================================
 
+// Public inquiry submission rate limiter (stricter – no auth guarding it)
+const publicInquiryLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 10, // 10 submissions per IP per hour
+    message: { error: 'Too many inquiry submissions. Please try again later.' }
+});
+
+// Submit Inquiry from Public Client Page (no auth required)
+app.post('/api/inquiries/public', publicInquiryLimiter, async (req, res) => {
+    const { client_name, client_email, phone_number, subject, message, recaptchaToken } = req.body;
+    const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
+
+    if (!recaptchaSecret) {
+        return res.status(500).json({ error: 'Server misconfiguration. Please try again later.' });
+    }
+    if (!recaptchaToken) {
+        return res.status(400).json({ error: 'Please complete the reCAPTCHA check.' });
+    }
+
+    try {
+        const verifyPayload = new URLSearchParams({
+            secret: recaptchaSecret,
+            response: recaptchaToken,
+            remoteip: req.ip
+        });
+
+        const verifyRes = await axios.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            verifyPayload,
+            { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+        );
+
+        if (!verifyRes?.data?.success) {
+            return res.status(400).json({ error: 'reCAPTCHA verification failed. Please try again.' });
+        }
+    } catch (error) {
+        console.error('reCAPTCHA Verify Error:', error);
+        return res.status(500).json({ error: 'reCAPTCHA verification failed. Please try again.' });
+    }
+
+    if (!client_name || !client_email || !subject || !message) {
+        return res.status(400).json({ error: 'Please fill in all required fields.' });
+    }
+    if (String(client_name).trim().length < 2 || String(client_name).trim().length > 100) {
+        return res.status(400).json({ error: 'Name must be between 2 and 100 characters.' });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(client_email).trim())) {
+        return res.status(400).json({ error: 'Please enter a valid email address.' });
+    }
+    if (String(message).trim().length < 10) {
+        return res.status(400).json({ error: 'Message must be at least 10 characters.' });
+    }
+
+    try {
+        const newInquiry = await prisma.client_Inquiry.create({
+            data: {
+                client_name: String(client_name).trim(),
+                client_email: String(client_email).trim().toLowerCase(),
+                contact_number: phone_number ? String(phone_number).trim() : null,
+                subject: String(subject).trim(),
+                message_body: String(message).trim(),
+                status: 'Pending'
+            }
+        });
+
+        try {
+            await notifyAdmins(
+                'NOTIFICATION_NEW_INQUIRY',
+                'MEDIUM',
+                'New Client Inquiry Submitted',
+                `New inquiry from ${client_name} (${client_email}) submitted via the client page.`,
+                req,
+                { inquiry_id: newInquiry.inquiry_id, client_name, client_email, submitted_status: 'Pending' },
+                `New Inquiry: ${client_name}`
+            );
+        } catch (notifyErr) {
+            console.warn('Notification warning (non-fatal):', notifyErr.message);
+        }
+
+        res.status(201).json({ message: 'Inquiry submitted successfully.', inquiry_id: newInquiry.inquiry_id });
+    } catch (error) {
+        console.error('Public Submit Inquiry Error:', error);
+        res.status(500).json({ error: 'Failed to submit your inquiry. Please try again.' });
+    }
+});
+
 // Get All Inquiries - Requires can_view_inquiries permission
 app.get('/api/inquiries', authenticateToken, requirePermission('can_view_inquiries'), async (req, res) => {
     try {
@@ -2985,7 +3440,7 @@ app.post('/api/inquiries', authenticateToken, requirePermission('can_add_inquiri
                 client_name,
                 client_email,
                 subject,
-                message,
+                message_body: message,
                 status: status || 'Pending'
             }
         });
@@ -3093,6 +3548,28 @@ app.post('/api/inquiries/:inquiry_id/assign', authenticateToken, requirePermissi
             }
         });
 
+        await createNotificationEvent(
+            'NOTIFICATION_INQUIRY_ASSIGN',
+            'LOW',
+            'Inquiry Assigned',
+            `A new inquiry has been assigned to you.`,
+            req,
+            {
+                notification_type: 'inquiry_assign',
+                target_user_id: assignee.user_id,
+                target_user_name: assignee.full_name,
+                inquiry_id: inquiryId,
+                subject: inquiry.subject || null,
+                client_name: inquiry.client_name || null,
+                client_email: inquiry.client_email || null,
+                message_body: inquiry.message_body || null,
+                assigned_by_user_id: req.user.user_id,
+                assigned_by_name: req.userPermissions?.full_name || null,
+                assigned_by_email: req.userPermissions?.email || null,
+                next_status: updatedInquiry.status || null
+            }
+        );
+
         res.json({
             message: `Inquiry assigned to ${assignee.full_name}.`,
             inquiry: updatedInquiry
@@ -3110,6 +3587,7 @@ app.get('/api/notifications', authenticateToken, async (req, res) => {
         const limit = Number.isFinite(requestedLimit)
             ? Math.min(Math.max(requestedLimit, 1), 100)
             : 25;
+        const scope = String(req.query.scope || '').toLowerCase();
 
         const logs = await prisma.system_Health_Log.findMany({
             where: {
@@ -3122,16 +3600,30 @@ app.get('/api/notifications', authenticateToken, async (req, res) => {
         });
 
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        const notifications = logs.map(log => {
+        let notifications = logs.map(log => {
             const severityMatch = String(log.description || '').match(/\[NOTIFICATION\]\[(LOW|MEDIUM|HIGH)\]/i);
+            const context = extractNotificationContext(log.description || '');
             return {
                 id: log.sys_log_id,
                 event_type: log.event_type,
                 severity: (severityMatch?.[1] || 'LOW').toUpperCase(),
                 description: log.description,
                 ip_address: log.ip_address,
-                timestamp: log.timestamp
+                timestamp: log.timestamp,
+                context
             };
+        });
+
+        const targetUserId = Number(req.user?.user_id || 0);
+        const isAdmin = String(req.user?.role || '').toUpperCase() === 'ADMIN';
+        const canManageEquipment = Boolean(req.userPermissions?.can_manage_equipment);
+
+        notifications = notifications.filter(item => {
+            const context = item.context || {};
+            const isTargeted = Number(context.target_user_id || 0) === targetUserId;
+            const isLowInventory = String(context.notification_type || '').toLowerCase() === 'low_inventory';
+            const hasEquipmentAccess = isAdmin || canManageEquipment;
+            return isTargeted || (isLowInventory && hasEquipmentAccess);
         });
 
         const unreadCount = notifications.filter(item => new Date(item.timestamp) >= twentyFourHoursAgo).length;
@@ -3172,10 +3664,35 @@ app.delete('/api/inquiries/:inquiry_id', authenticateToken, requirePermission('c
     const { inquiry_id } = req.params;
 
     try {
-        await prisma.client_Inquiry.delete({
-            where: { inquiry_id: parseInt(inquiry_id) }
+        const inquiryId = parseInt(inquiry_id);
+        const existingInquiry = await prisma.client_Inquiry.findUnique({
+            where: { inquiry_id: inquiryId }
         });
-        res.json({ message: "Inquiry deleted successfully." });
+
+        if (!existingInquiry) {
+            return res.status(404).json({ error: 'Inquiry not found.' });
+        }
+
+        const archiveActor = getArchiveActorFromRequest(req);
+        const deletedIp = getClientIp(req);
+
+        await prisma.$transaction(async (tx) => {
+            await archiveDeletedRecord(tx, {
+                entityType: 'CLIENT_INQUIRY',
+                sourceTable: 'Client_Inquiry',
+                recordId: existingInquiry.inquiry_id,
+                ...archiveActor,
+                deletedIp,
+                deleteReason: 'Deleted from client inquiries',
+                payload: existingInquiry
+            });
+
+            await tx.client_Inquiry.delete({
+                where: { inquiry_id: inquiryId }
+            });
+        });
+
+        res.json({ message: 'Inquiry moved to archives successfully.' });
     } catch (error) {
         console.error("Delete Inquiry Error:", error);
         res.status(500).json({ error: "Failed to delete inquiry." });
@@ -3186,13 +3703,20 @@ app.delete('/api/inquiries/:inquiry_id', authenticateToken, requirePermission('c
 // ADMIN REPORTS (CSV/PDF)
 // ==========================================
 
+function resolveReportFormat(req, res) {
+    const format = String(req.query.format || 'csv').toLowerCase();
+    if (!['csv', 'pdf'].includes(format)) {
+        res.status(400).json({ error: 'Invalid format. Use csv or pdf.' });
+        return null;
+    }
+    return format;
+}
+
 // Weekly Attendance Logs Report
 app.get('/api/reports/attendance', authenticateToken, requirePermission('can_export_attendance'), async (req, res) => {
     try {
-        const format = String(req.query.format || 'csv').toLowerCase();
-        if (!['csv', 'pdf'].includes(format)) {
-            return res.status(400).json({ error: 'Invalid format. Use csv or pdf.' });
-        }
+        const format = resolveReportFormat(req, res);
+        if (!format) return;
 
         const { startDate, endDate } = parseDateRange(req.query, 7);
         const logs = await prisma.attendance_Log.findMany({
@@ -3243,10 +3767,8 @@ app.get('/api/reports/attendance', authenticateToken, requirePermission('can_exp
 // Equipment Usage History Report
 app.get('/api/reports/equipment-usage', authenticateToken, requirePermission('can_view_equipment'), async (req, res) => {
     try {
-        const format = String(req.query.format || 'csv').toLowerCase();
-        if (!['csv', 'pdf'].includes(format)) {
-            return res.status(400).json({ error: 'Invalid format. Use csv or pdf.' });
-        }
+        const format = resolveReportFormat(req, res);
+        if (!format) return;
 
         const { startDate, endDate } = parseDateRange(req.query, 30);
         const checkouts = await prisma.equipment_Checkout.findMany({
@@ -3301,10 +3823,8 @@ app.get('/api/reports/equipment-usage', authenticateToken, requirePermission('ca
 // Inquiry Resolution Statistics Report
 app.get('/api/reports/inquiry-resolution', authenticateToken, requirePermission('can_view_inquiries'), async (req, res) => {
     try {
-        const format = String(req.query.format || 'csv').toLowerCase();
-        if (!['csv', 'pdf'].includes(format)) {
-            return res.status(400).json({ error: 'Invalid format. Use csv or pdf.' });
-        }
+        const format = resolveReportFormat(req, res);
+        if (!format) return;
 
         const { startDate, endDate } = parseDateRange(req.query, 30);
         const inquiries = await prisma.client_Inquiry.findMany({
@@ -3361,6 +3881,559 @@ app.get('/api/reports/inquiry-resolution', authenticateToken, requirePermission(
     } catch (error) {
         console.error('Inquiry stats report error:', error);
         res.status(500).json({ error: 'Failed to generate inquiry resolution report.' });
+    }
+});
+
+// Users Directory Report
+app.get('/api/reports/users-directory', authenticateToken, requirePermission('can_view_users'), async (req, res) => {
+    try {
+        const format = resolveReportFormat(req, res);
+        if (!format) return;
+
+        const { startDate, endDate } = parseDateRange(req.query, 90);
+        const users = await prisma.user.findMany({
+            where: {
+                created_at: {
+                    gte: startDate,
+                    lte: endDate
+                }
+            },
+            orderBy: { created_at: 'desc' }
+        });
+
+        const headers = ['User ID', 'Name', 'Email', 'Role', 'Contact', 'Status', 'Created At'];
+        const rows = users.map(user => [
+            user.user_id,
+            user.full_name,
+            user.email,
+            user.role,
+            user.contact_number || '',
+            user.is_active ? 'Active' : 'Inactive',
+            formatDateTime(user.created_at)
+        ]);
+
+        const activeCount = users.filter(user => user.is_active).length;
+        const fileName = `users_directory_${startDate.toISOString().slice(0, 10)}_${endDate.toISOString().slice(0, 10)}`;
+        const summary = [
+            `Range: ${startDate.toDateString()} to ${endDate.toDateString()}`,
+            `Total users: ${rows.length}`,
+            `Active users: ${activeCount}`
+        ];
+
+        if (format === 'csv') {
+            return sendCsvReport(res, fileName, headers, rows, {
+                title: 'Users Directory',
+                summaryLines: summary
+            });
+        }
+
+        return sendPdfReport(res, fileName, 'Users Directory', headers, rows, summary);
+    } catch (error) {
+        console.error('Users directory report error:', error);
+        res.status(500).json({ error: 'Failed to generate users directory report.' });
+    }
+});
+
+// User Access Matrix Report
+app.get('/api/reports/user-access', authenticateToken, requirePermission('can_manage_permissions'), async (req, res) => {
+    try {
+        const format = resolveReportFormat(req, res);
+        if (!format) return;
+
+        const users = await prisma.user.findMany({ orderBy: { created_at: 'desc' } });
+
+        const permissionKeys = [
+            'can_view_users', 'can_add_users', 'can_edit_users', 'can_delete_users', 'can_activate_users',
+            'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance', 'can_delete_attendance', 'can_export_attendance',
+            'can_view_equipment', 'can_add_equipment', 'can_edit_equipment', 'can_delete_equipment', 'can_assign_equipment',
+            'can_view_files', 'can_upload_files', 'can_edit_files', 'can_delete_files', 'can_download_files',
+            'can_view_inquiries', 'can_add_inquiries', 'can_update_inquiries', 'can_delete_inquiries', 'can_assign_inquiries',
+            'can_view_health_logs', 'can_export_health_logs', 'can_manage_permissions', 'can_view_audit_trail', 'can_backup_database'
+        ];
+
+        const headers = ['User ID', 'Name', 'Email', 'Role', 'Status', ...permissionKeys];
+        const rows = users.map(user => [
+            user.user_id,
+            user.full_name,
+            user.email,
+            user.role,
+            user.is_active ? 'Active' : 'Inactive',
+            ...permissionKeys.map(key => (user[key] ? 'Yes' : 'No'))
+        ]);
+
+        const fileName = `user_access_matrix_${new Date().toISOString().slice(0, 10)}`;
+        const summary = [`Total users: ${rows.length}`];
+
+        if (format === 'csv') {
+            return sendCsvReport(res, fileName, headers, rows, {
+                title: 'User Access Matrix',
+                summaryLines: summary
+            });
+        }
+
+        return sendPdfReport(res, fileName, 'User Access Matrix', headers, rows, summary);
+    } catch (error) {
+        console.error('User access report error:', error);
+        res.status(500).json({ error: 'Failed to generate user access report.' });
+    }
+});
+
+// Equipment Inventory Report
+app.get('/api/reports/equipment-inventory', authenticateToken, requirePermission('can_view_equipment'), async (req, res) => {
+    try {
+        const format = resolveReportFormat(req, res);
+        if (!format) return;
+
+        const { startDate, endDate } = parseDateRange(req.query, 90);
+        const equipment = await prisma.equipment_Inventory.findMany({
+            where: {
+                created_at: {
+                    gte: startDate,
+                    lte: endDate
+                }
+            },
+            orderBy: { created_at: 'desc' }
+        });
+
+        const headers = ['Equipment ID', 'Name', 'QR Number', 'Quantity', 'Condition', 'Status', 'Location', 'Created At', 'Last Updated'];
+        const rows = equipment.map(item => [
+            item.equipment_id,
+            item.name,
+            item.qr_number || '-',
+            item.quantity,
+            item.condition,
+            item.status,
+            item.current_location || '-',
+            formatDateTime(item.created_at),
+            formatDateTime(item.last_updated)
+        ]);
+
+        const fileName = `equipment_inventory_${startDate.toISOString().slice(0, 10)}_${endDate.toISOString().slice(0, 10)}`;
+        const summary = [
+            `Range: ${startDate.toDateString()} to ${endDate.toDateString()}`,
+            `Total items: ${rows.length}`
+        ];
+
+        if (format === 'csv') {
+            return sendCsvReport(res, fileName, headers, rows, {
+                title: 'Equipment Inventory',
+                summaryLines: summary
+            });
+        }
+
+        return sendPdfReport(res, fileName, 'Equipment Inventory', headers, rows, summary);
+    } catch (error) {
+        console.error('Equipment inventory report error:', error);
+        res.status(500).json({ error: 'Failed to generate equipment inventory report.' });
+    }
+});
+
+// Attendance Sites Report
+app.get('/api/reports/attendance-sites', authenticateToken, requireAnyPermission(['can_view_all_attendance', 'can_edit_attendance']), async (req, res) => {
+    try {
+        const format = resolveReportFormat(req, res);
+        if (!format) return;
+
+        const { startDate, endDate } = parseDateRange(req.query, 365);
+        const sites = await prisma.construction_Site.findMany({
+            where: {
+                created_at: {
+                    gte: startDate,
+                    lte: endDate
+                }
+            },
+            orderBy: { created_at: 'desc' }
+        });
+
+        const headers = ['Site ID', 'Name', 'Address', 'Latitude', 'Longitude', 'Radius (m)', 'Active', 'Created At', 'Updated At'];
+        const rows = sites.map(site => [
+            site.site_id,
+            site.site_name,
+            site.site_address || '-',
+            site.center_lat,
+            site.center_lng,
+            site.geo_fence_radius_meters,
+            site.is_active ? 'Active' : 'Inactive',
+            formatDateTime(site.created_at),
+            formatDateTime(site.updated_at)
+        ]);
+
+        const fileName = `attendance_sites_${startDate.toISOString().slice(0, 10)}_${endDate.toISOString().slice(0, 10)}`;
+        const summary = [
+            `Range: ${startDate.toDateString()} to ${endDate.toDateString()}`,
+            `Total sites: ${rows.length}`
+        ];
+
+        if (format === 'csv') {
+            return sendCsvReport(res, fileName, headers, rows, {
+                title: 'Attendance Sites',
+                summaryLines: summary
+            });
+        }
+
+        return sendPdfReport(res, fileName, 'Attendance Sites', headers, rows, summary);
+    } catch (error) {
+        console.error('Attendance sites report error:', error);
+        res.status(500).json({ error: 'Failed to generate attendance sites report.' });
+    }
+});
+
+// Inquiry Detail Report
+app.get('/api/reports/inquiries-detail', authenticateToken, requirePermission('can_view_inquiries'), async (req, res) => {
+    try {
+        const format = resolveReportFormat(req, res);
+        if (!format) return;
+
+        const { startDate, endDate } = parseDateRange(req.query, 30);
+        const inquiries = await prisma.client_Inquiry.findMany({
+            where: {
+                submitted_at: {
+                    gte: startDate,
+                    lte: endDate
+                }
+            },
+            include: {
+                manager: {
+                    select: { full_name: true, email: true }
+                }
+            },
+            orderBy: { submitted_at: 'desc' }
+        });
+
+        const headers = ['Submitted At', 'Client', 'Email', 'Contact', 'Status', 'Assigned To', 'Assigned Email', 'Message'];
+        const rows = inquiries.map(inquiry => [
+            formatDateTime(inquiry.submitted_at),
+            inquiry.client_name,
+            inquiry.client_email,
+            inquiry.contact_number || '-',
+            inquiry.status,
+            inquiry.manager?.full_name || '-',
+            inquiry.manager?.email || '-',
+            inquiry.message_body || ''
+        ]);
+
+        const fileName = `inquiry_details_${startDate.toISOString().slice(0, 10)}_${endDate.toISOString().slice(0, 10)}`;
+        const summary = [
+            `Range: ${startDate.toDateString()} to ${endDate.toDateString()}`,
+            `Total inquiries: ${rows.length}`
+        ];
+
+        if (format === 'csv') {
+            return sendCsvReport(res, fileName, headers, rows, {
+                title: 'Inquiry Details',
+                summaryLines: summary
+            });
+        }
+
+        return sendPdfReport(res, fileName, 'Inquiry Details', headers, rows, summary);
+    } catch (error) {
+        console.error('Inquiry detail report error:', error);
+        res.status(500).json({ error: 'Failed to generate inquiry detail report.' });
+    }
+});
+
+// Project Files Report
+app.get('/api/reports/files', authenticateToken, requirePermission('can_view_files'), async (req, res) => {
+    try {
+        const format = resolveReportFormat(req, res);
+        if (!format) return;
+
+        const { startDate, endDate } = parseDateRange(req.query, 90);
+        const files = await prisma.project_File.findMany({
+            where: {
+                uploaded_at: {
+                    gte: startDate,
+                    lte: endDate
+                }
+            },
+            include: {
+                uploader: {
+                    select: { full_name: true, email: true }
+                }
+            },
+            orderBy: { uploaded_at: 'desc' }
+        });
+
+        const headers = ['Uploaded At', 'File Name', 'Type', 'Size (MB)', 'Storage', 'Uploader', 'Uploader Email'];
+        const rows = files.map(file => [
+            formatDateTime(file.uploaded_at),
+            file.file_name,
+            file.file_type,
+            Number(file.file_size_mb || 0),
+            file.storage_location,
+            file.uploader?.full_name || '-',
+            file.uploader?.email || '-'
+        ]);
+
+        const fileName = `project_files_${startDate.toISOString().slice(0, 10)}_${endDate.toISOString().slice(0, 10)}`;
+        const summary = [
+            `Range: ${startDate.toDateString()} to ${endDate.toDateString()}`,
+            `Total files: ${rows.length}`
+        ];
+
+        if (format === 'csv') {
+            return sendCsvReport(res, fileName, headers, rows, {
+                title: 'Project Files',
+                summaryLines: summary
+            });
+        }
+
+        return sendPdfReport(res, fileName, 'Project Files', headers, rows, summary);
+    } catch (error) {
+        console.error('Project files report error:', error);
+        res.status(500).json({ error: 'Failed to generate project files report.' });
+    }
+});
+
+// System Health SIEM Report
+app.get('/api/reports/health-siem', authenticateToken, requireAnyPermission(['can_view_health_logs', 'can_export_health_logs']), async (req, res) => {
+    try {
+        const format = resolveReportFormat(req, res);
+        if (!format) return;
+
+        const { startDate, endDate } = parseDateRange(req.query, 30);
+        const logs = await prisma.system_Health_Log.findMany({
+            where: {
+                timestamp: {
+                    gte: startDate,
+                    lte: endDate
+                },
+                OR: [
+                    { description: { startsWith: '[SIEM]' } },
+                    { event_type: { startsWith: 'SECURITY_' } }
+                ]
+            },
+            orderBy: { timestamp: 'desc' }
+        });
+
+        const headers = ['Timestamp', 'Event Type', 'Description', 'IP Address'];
+        const rows = logs.map(log => [
+            formatDateTime(log.timestamp),
+            log.event_type,
+            log.description,
+            log.ip_address
+        ]);
+
+        const fileName = `siem_alerts_${startDate.toISOString().slice(0, 10)}_${endDate.toISOString().slice(0, 10)}`;
+        const summary = [
+            `Range: ${startDate.toDateString()} to ${endDate.toDateString()}`,
+            `Total alerts: ${rows.length}`
+        ];
+
+        if (format === 'csv') {
+            return sendCsvReport(res, fileName, headers, rows, {
+                title: 'SIEM Alerts',
+                summaryLines: summary
+            });
+        }
+
+        return sendPdfReport(res, fileName, 'SIEM Alerts', headers, rows, summary);
+    } catch (error) {
+        console.error('SIEM report error:', error);
+        res.status(500).json({ error: 'Failed to generate SIEM report.' });
+    }
+});
+
+// System Health Backup Report
+app.get('/api/reports/health-backups', authenticateToken, requireAnyPermission(['can_view_health_logs', 'can_export_health_logs', 'can_backup_database']), async (req, res) => {
+    try {
+        const format = resolveReportFormat(req, res);
+        if (!format) return;
+
+        const { startDate, endDate } = parseDateRange(req.query, 90);
+        const logs = await prisma.system_Health_Log.findMany({
+            where: {
+                timestamp: {
+                    gte: startDate,
+                    lte: endDate
+                },
+                event_type: { startsWith: 'BACKUP_' }
+            },
+            orderBy: { timestamp: 'desc' }
+        });
+
+        const headers = ['Timestamp', 'Event Type', 'Description', 'IP Address'];
+        const rows = logs.map(log => [
+            formatDateTime(log.timestamp),
+            log.event_type,
+            log.description,
+            log.ip_address
+        ]);
+
+        const fileName = `backup_history_${startDate.toISOString().slice(0, 10)}_${endDate.toISOString().slice(0, 10)}`;
+        const summary = [
+            `Range: ${startDate.toDateString()} to ${endDate.toDateString()}`,
+            `Total backups: ${rows.length}`
+        ];
+
+        if (format === 'csv') {
+            return sendCsvReport(res, fileName, headers, rows, {
+                title: 'Backup History',
+                summaryLines: summary
+            });
+        }
+
+        return sendPdfReport(res, fileName, 'Backup History', headers, rows, summary);
+    } catch (error) {
+        console.error('Backup report error:', error);
+        res.status(500).json({ error: 'Failed to generate backup report.' });
+    }
+});
+
+// System Health Audit Trail Report (all logs)
+app.get('/api/reports/health-audit', authenticateToken, requireAnyPermission(['can_view_health_logs', 'can_view_audit_trail', 'can_export_health_logs']), async (req, res) => {
+    try {
+        const format = resolveReportFormat(req, res);
+        if (!format) return;
+
+        const { startDate, endDate } = parseDateRange(req.query, 30);
+        const logs = await prisma.system_Health_Log.findMany({
+            where: {
+                timestamp: {
+                    gte: startDate,
+                    lte: endDate
+                }
+            },
+            orderBy: { timestamp: 'desc' }
+        });
+
+        const headers = ['Timestamp', 'Event Type', 'Description', 'IP Address'];
+        const rows = logs.map(log => [
+            formatDateTime(log.timestamp),
+            log.event_type,
+            log.description,
+            log.ip_address
+        ]);
+
+        const fileName = `health_audit_${startDate.toISOString().slice(0, 10)}_${endDate.toISOString().slice(0, 10)}`;
+        const summary = [
+            `Range: ${startDate.toDateString()} to ${endDate.toDateString()}`,
+            `Total events: ${rows.length}`
+        ];
+
+        if (format === 'csv') {
+            return sendCsvReport(res, fileName, headers, rows, {
+                title: 'System Health Audit Trail',
+                summaryLines: summary
+            });
+        }
+
+        return sendPdfReport(res, fileName, 'System Health Audit Trail', headers, rows, summary);
+    } catch (error) {
+        console.error('Health audit report error:', error);
+        res.status(500).json({ error: 'Failed to generate health audit report.' });
+    }
+});
+
+// System Health Activity Report (non-SIEM and non-backup)
+app.get('/api/reports/health-activity', authenticateToken, requireAnyPermission(['can_view_health_logs', 'can_view_audit_trail', 'can_export_health_logs']), async (req, res) => {
+    try {
+        const format = resolveReportFormat(req, res);
+        if (!format) return;
+
+        const { startDate, endDate } = parseDateRange(req.query, 30);
+        const logs = await prisma.system_Health_Log.findMany({
+            where: {
+                timestamp: {
+                    gte: startDate,
+                    lte: endDate
+                },
+                AND: [
+                    { event_type: { not: { startsWith: 'BACKUP_' } } },
+                    { description: { not: { startsWith: '[SIEM]' } } }
+                ]
+            },
+            orderBy: { timestamp: 'desc' }
+        });
+
+        const headers = ['Timestamp', 'Event Type', 'Description', 'IP Address'];
+        const rows = logs.map(log => [
+            formatDateTime(log.timestamp),
+            log.event_type,
+            log.description,
+            log.ip_address
+        ]);
+
+        const fileName = `health_activity_${startDate.toISOString().slice(0, 10)}_${endDate.toISOString().slice(0, 10)}`;
+        const summary = [
+            `Range: ${startDate.toDateString()} to ${endDate.toDateString()}`,
+            `Total events: ${rows.length}`
+        ];
+
+        if (format === 'csv') {
+            return sendCsvReport(res, fileName, headers, rows, {
+                title: 'System Health Activity Logs',
+                summaryLines: summary
+            });
+        }
+
+        return sendPdfReport(res, fileName, 'System Health Activity Logs', headers, rows, summary);
+    } catch (error) {
+        console.error('Health activity report error:', error);
+        res.status(500).json({ error: 'Failed to generate health activity report.' });
+    }
+});
+
+// Archives Report
+app.get('/api/reports/archives', authenticateToken, requirePermission('can_view_audit_trail'), async (req, res) => {
+    try {
+        const format = resolveReportFormat(req, res);
+        if (!format) return;
+
+        const { startDate, endDate } = parseDateRange(req.query, 90);
+        const rows = await prisma.$queryRawUnsafe(
+            `
+            SELECT
+                archive_id,
+                entity_type,
+                source_table,
+                record_id,
+                deleted_by_name,
+                deleted_by_email,
+                deleted_by_role,
+                deleted_ip,
+                delete_reason,
+                payload_json,
+                deleted_at
+            FROM archive_records
+            WHERE deleted_at >= ? AND deleted_at <= ?
+            ORDER BY deleted_at DESC
+            `,
+            startDate,
+            endDate
+        );
+
+        const headers = ['Archived At', 'Entity', 'Source Table', 'Record ID', 'Deleted By', 'Deleted Email', 'Role', 'IP Address', 'Reason', 'Payload'];
+        const dataRows = (rows || []).map(row => [
+            formatDateTime(row.deleted_at),
+            row.entity_type,
+            row.source_table,
+            row.record_id,
+            row.deleted_by_name || '-',
+            row.deleted_by_email || '-',
+            row.deleted_by_role || '-',
+            row.deleted_ip || '-',
+            row.delete_reason || '-',
+            row.payload_json || ''
+        ]);
+
+        const fileName = `archives_${startDate.toISOString().slice(0, 10)}_${endDate.toISOString().slice(0, 10)}`;
+        const summary = [
+            `Range: ${startDate.toDateString()} to ${endDate.toDateString()}`,
+            `Total archived records: ${dataRows.length}`
+        ];
+
+        if (format === 'csv') {
+            return sendCsvReport(res, fileName, headers, dataRows, {
+                title: 'Archives Report',
+                summaryLines: summary
+            });
+        }
+
+        return sendPdfReport(res, fileName, 'Archives Report', headers, dataRows, summary);
+    } catch (error) {
+        console.error('Archives report error:', error);
+        res.status(500).json({ error: 'Failed to generate archives report.' });
     }
 });
 
@@ -3520,6 +4593,153 @@ app.get('/api/system/health-logs', authenticateToken, requireAnyPermission(['can
     }
 });
 
+// Get Activity Audit Logs (not covered by SIEM/Backups/Notifications)
+app.get('/api/system/activity-logs', authenticateToken, requireAnyPermission(['can_view_health_logs', 'can_view_audit_trail']), async (req, res) => {
+    try {
+        const requestedLimit = parseInt(req.query.limit, 10);
+        const limit = Number.isFinite(requestedLimit)
+            ? Math.min(Math.max(requestedLimit, 1), 300)
+            : 200;
+
+        const logs = await prisma.system_Health_Log.findMany({
+            where: {
+                AND: [
+                    { event_type: { not: { startsWith: 'SECURITY_' } } },
+                    { event_type: { not: { startsWith: 'BACKUP_' } } },
+                    { description: { not: { startsWith: '[SIEM]' } } },
+                    { description: { not: { startsWith: '[NOTIFICATION]' } } }
+                ]
+            },
+            orderBy: { timestamp: 'desc' },
+            take: limit
+        });
+
+        res.json({ logs });
+    } catch (error) {
+        console.error('Fetch Activity Logs Error:', error);
+        res.status(500).json({ error: 'Failed to retrieve activity logs.' });
+    }
+});
+
+// Read Archive Records - Requires can_view_audit_trail permission
+app.get('/api/archives', authenticateToken, requirePermission('can_view_audit_trail'), async (req, res) => {
+    try {
+        const requestedLimit = parseInt(req.query.limit, 10);
+        const limit = Number.isFinite(requestedLimit)
+            ? Math.min(Math.max(requestedLimit, 1), 500)
+            : 200;
+
+        const entityType = String(req.query.entityType || 'ALL').trim().toUpperCase();
+        const actorType = String(req.query.actorType || 'ALL').trim().toUpperCase();
+        const search = String(req.query.search || '').trim();
+
+        let sql = `
+            SELECT
+                archive_id,
+                entity_type,
+                source_table,
+                record_id,
+                deleted_by_user_id,
+                deleted_by_name,
+                deleted_by_email,
+                deleted_by_role,
+                delete_reason,
+                deleted_ip,
+                payload_json,
+                deleted_at,
+                is_immutable
+            FROM archive_records
+            WHERE 1=1
+        `;
+        const params = [];
+
+        if (entityType !== 'ALL') {
+            sql += ' AND entity_type = ?';
+            params.push(entityType);
+        }
+
+        if (actorType === 'SYSTEM') {
+            sql += ' AND deleted_by_user_id IS NULL';
+        } else if (actorType === 'ADMIN' || actorType === 'EMPLOYEE') {
+            sql += ' AND UPPER(COALESCE(deleted_by_role, \"\")) = ?';
+            params.push(actorType);
+        }
+
+        if (search) {
+            sql += ' AND (record_id LIKE ? OR deleted_by_name LIKE ? OR deleted_by_email LIKE ? OR source_table LIKE ? OR payload_json LIKE ?)';
+            const wildcard = `%${search}%`;
+            params.push(wildcard, wildcard, wildcard, wildcard, wildcard);
+        }
+
+        sql += ' ORDER BY deleted_at DESC LIMIT ?';
+        params.push(limit);
+
+        const rows = await prisma.$queryRawUnsafe(sql, ...params);
+
+        const archives = (rows || []).map((row) => ({
+            archive_id: Number(row.archive_id),
+            entity_type: row.entity_type,
+            source_table: row.source_table,
+            record_id: row.record_id,
+            deleted_by_user_id: row.deleted_by_user_id,
+            deleted_by_name: row.deleted_by_name,
+            deleted_by_email: row.deleted_by_email,
+            deleted_by_role: row.deleted_by_role,
+            delete_reason: row.delete_reason,
+            deleted_ip: row.deleted_ip,
+            deleted_at: row.deleted_at,
+            is_immutable: Boolean(row.is_immutable),
+            payload: parseArchivePayload(row.payload_json)
+        }));
+
+        const summary = {
+            total_records: archives.length,
+            last_archived_at: archives.length > 0 ? archives[0].deleted_at : null,
+            unique_entities: new Set(archives.map(item => item.entity_type)).size
+        };
+
+        res.json({ archives, summary });
+    } catch (error) {
+        console.error('Fetch Archives Error:', error);
+        res.status(500).json({ error: 'Failed to retrieve archives.' });
+    }
+});
+
+// Immutable Archive Guard - archive data cannot be deleted by any account.
+app.delete('/api/archives/:archive_id', authenticateToken, async (req, res) => {
+    await logSiemEvent(
+        'SECURITY_ARCHIVE_DELETE_ATTEMPT_BLOCKED',
+        'HIGH',
+        `Blocked delete attempt for archive_id=${req.params.archive_id}`,
+        req,
+        {
+            archive_id: req.params.archive_id,
+            requester_user_id: req.user?.user_id || null
+        }
+    );
+
+    return res.status(403).json({
+        error: 'Archives are immutable and cannot be deleted.'
+    });
+});
+
+app.put('/api/archives/:archive_id', authenticateToken, async (req, res) => {
+    await logSiemEvent(
+        'SECURITY_ARCHIVE_MUTATION_ATTEMPT_BLOCKED',
+        'HIGH',
+        `Blocked update attempt for archive_id=${req.params.archive_id}`,
+        req,
+        {
+            archive_id: req.params.archive_id,
+            requester_user_id: req.user?.user_id || null
+        }
+    );
+
+    return res.status(403).json({
+        error: 'Archives are immutable and cannot be modified.'
+    });
+});
+
 // Export Health Logs (CSV) - Requires can_export_health_logs permission
 app.get('/api/system/export-logs', authenticateToken, requirePermission('can_export_health_logs'), async (req, res) => {
     try {
@@ -3671,4 +4891,14 @@ app.get('/health', async (req, res) => {
 // Initialize email transporter on startup
 initializeEmailTransporter();
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+async function startServer() {
+    try {
+        await ensureArchiveStore();
+        app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    } catch (error) {
+        console.error('Startup Error:', error);
+        process.exit(1);
+    }
+}
+
+startServer();

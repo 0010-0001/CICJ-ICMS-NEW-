@@ -23,11 +23,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const otpAttemptsInfo = document.getElementById('otp-attempts-info');
     const resendBtn = document.getElementById('resend-otp-btn');
     const cancelBtn = document.getElementById('cancel-otp-btn');
+    const passwordInput = document.getElementById('password');
+    const passwordToggleBtn = document.getElementById('password-toggle');
+    const signInBtn = loginForm?.querySelector('button[type="submit"]');
+    const signInBtnDefaultHtml = signInBtn ? signInBtn.innerHTML : '';
 
     // State
     let currentEmail = '';
     let timerInterval = null;
     let expiryTime = null;
+
+    function setSignInLoading(isLoading) {
+        if (!signInBtn) return;
+        signInBtn.disabled = isLoading;
+        signInBtn.classList.toggle('is-loading', isLoading);
+        if (isLoading) {
+            signInBtn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span> Signing In...';
+        } else {
+            signInBtn.innerHTML = signInBtnDefaultHtml;
+        }
+    }
+
+    // Show/hide password toggle for login field.
+    if (passwordInput && passwordToggleBtn) {
+        passwordToggleBtn.addEventListener('click', () => {
+            const shouldShow = passwordInput.type === 'password';
+            passwordInput.type = shouldShow ? 'text' : 'password';
+            passwordToggleBtn.setAttribute('aria-pressed', shouldShow ? 'true' : 'false');
+            passwordToggleBtn.setAttribute('aria-label', shouldShow ? 'Hide password' : 'Show password');
+            passwordToggleBtn.innerHTML = `<i class="bi ${shouldShow ? 'bi-eye-slash' : 'bi-eye'}"></i>`;
+        });
+    }
 
     /**
      * Login Form Submission (Step 1)
@@ -39,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = document.getElementById('password').value;
 
         errorBox.classList.add('hidden');
+        setSignInLoading(true);
 
         try {
             const response = await fetch('http://localhost:5000/login', {
@@ -71,6 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Login error:', error);
             errorBox.textContent = "Network error. Is your Node.js backend running?";
             errorBox.classList.remove('hidden');
+        } finally {
+            setSignInLoading(false);
         }
     });
 

@@ -66,6 +66,13 @@ model User {
   can_view_audit_trail    Boolean @default(false)  // Admin/Compliance
   can_backup_database     Boolean @default(false)  // IT Admin only
   
+  // Reports
+  can_view_reports              Boolean @default(false)  // Access to Reports tab
+  can_export_attendance_report  Boolean @default(false)  // Attendance report downloads
+  can_export_equipment_report   Boolean @default(false)  // Equipment report downloads
+  can_export_inquiry_report     Boolean @default(false)  // Inquiry report downloads
+  can_export_files_report       Boolean @default(false)  // Files report downloads
+  
   // Relations
   attendance          Attendance_Log[]
   inquiries           Client_Inquiry[] @relation("ManagedBy")
@@ -138,6 +145,7 @@ model Client_Inquiry {
   client_name    String
   client_email   String
   contact_number String?
+  subject        String?
   message_body   String   @db.Text
   status         String   @default("Pending")
   handled_by     Int?     
