@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             setLoading(true);
             try {
-                const res = await fetch('http://localhost:5000/api/inquiries/public', {
+                const res = await fetch('/api/inquiries/public', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
