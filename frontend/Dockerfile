@@ -1,6 +1,6 @@
 FROM nginx:alpine
 
-COPY frontend/nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 WORKDIR /usr/share/nginx/html
 
