@@ -73,6 +73,9 @@ const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET;
 const SEED_ADMIN_TOKEN = process.env.SEED_ADMIN_TOKEN;
 
+// Railway/Reverse-proxy setup so rate limiting reads real client IPs.
+app.set('trust proxy', 1);
+
 // ==========================================
 // PASSPORT OAUTH CONFIGURATION
 // ==========================================
