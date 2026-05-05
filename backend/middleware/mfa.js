@@ -72,9 +72,8 @@ const generateOTP = () => {
     return otp;
 };
 
-const buildOtpEmailHtml = ({ userName, otp, logoMarkup }) => {
+const buildOtpEmailHtml = ({ userName, otp }) => {
     const safeName = userName || 'User';
-    const headerLogo = logoMarkup || '<div class="logo-box"><div class="logo-icon"></div></div>';
 
     return `
 <!DOCTYPE html>
@@ -100,7 +99,7 @@ const buildOtpEmailHtml = ({ userName, otp, logoMarkup }) => {
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
         }
         .header {
-            background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+            background: #0b0b0b;
             padding: 36px 30px;
             text-align: center;
         }
@@ -109,47 +108,19 @@ const buildOtpEmailHtml = ({ userName, otp, logoMarkup }) => {
             align-items: center;
             gap: 10px;
             padding: 6px 14px;
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.6);
             border-radius: 999px;
-            color: #cbd5f5;
+            color: #d1d5db;
             font-size: 12px;
             letter-spacing: 0.4px;
             margin: 6px 0 18px;
         }
-        .logo-box {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, #2dad50 0%, #258a3f 100%);
-            border-radius: 16px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
-            box-shadow: 0 8px 24px rgba(45, 173, 80, 0.3);
-        }
-        .brand-logo {
-            width: 64px;
-            height: 64px;
-            object-fit: contain;
-            border-radius: 12px;
-            margin-bottom: 16px;
-            background: #ffffff;
-            padding: 6px;
-            box-shadow: 0 8px 24px rgba(45, 173, 80, 0.3);
-        }
         .brand-name {
-            color: #e2e8f0;
+            color: #e5e7eb;
             font-size: 13px;
             letter-spacing: 1.6px;
             text-transform: uppercase;
             margin-bottom: 6px;
-        }
-        .logo-icon {
-            width: 32px;
-            height: 32px;
-            background-color: white;
-            -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 18c-3.86 0-7-3.14-7-7V8.3l7-3.11 7 3.11V13c0 3.86-3.14 7-7 7z"/></svg>') no-repeat center;
-            mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 18c-3.86 0-7-3.14-7-7V8.3l7-3.11 7 3.11V13c0 3.86-3.14 7-7 7z"/></svg>') no-repeat center;
         }
         .header h1 {
             color: #ffffff;
@@ -158,7 +129,7 @@ const buildOtpEmailHtml = ({ userName, otp, logoMarkup }) => {
             font-weight: 700;
         }
         .header p {
-            color: #cbd5f5;
+            color: #c7c7c7;
             margin: 6px 0 0 0;
             font-size: 13px;
             font-weight: 500;
@@ -229,7 +200,6 @@ const buildOtpEmailHtml = ({ userName, otp, logoMarkup }) => {
 <body>
     <div class="container">
         <div class="header">
-            ${headerLogo}
             <div class="brand-name">CICJ Construction</div>
             <h1>CICJ-SH-COMS Verification</h1>
             <p>Secure access confirmation</p>
@@ -257,17 +227,6 @@ const buildOtpEmailHtml = ({ userName, otp, logoMarkup }) => {
 const sendOTPEmail = async (email, otp, userName = 'User') => {
     // In dev mode, OTP can be printed in terminal when SMTP is not configured.
     try {
-        const logoCid = 'cicj-logo';
-        const logoPath = path.join(__dirname, '..', '..', 'Images', 'CICJ.png');
-        const logoExists = fs.existsSync(logoPath);
-        const logoBase64 = logoExists ? fs.readFileSync(logoPath).toString('base64') : null;
-        const publicBaseUrl = process.env.PUBLIC_ASSET_BASE_URL
-            || process.env.FRONTEND_URL
-            || process.env.BACKEND_URL
-            || (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : '');
-        const logoPublicUrl = publicBaseUrl
-            ? `${publicBaseUrl.replace(/\/$/, '')}/Images/CICJ.png`
-            : '';
 
         // Prefer Brevo HTTP API when configured (avoids SMTP blocks).
         if (process.env.BREVO_API_KEY) {
@@ -278,12 +237,6 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
                 throw new Error('Brevo sender email missing');
             }
 
-            const headerLogoMarkup = logoPublicUrl
-                ? `<img src="${logoPublicUrl}" alt="CICJ Logo" class="brand-logo">`
-                : (logoExists
-                    ? `<img src="cid:${logoCid}" alt="CICJ Logo" class="brand-logo">`
-                    : `<div class="logo-box"><div class="logo-icon"></div></div>`);
-
             const brevoPayload = {
                 sender: {
                     name: senderName,
@@ -291,16 +244,8 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
                 },
                 to: [{ email, name: userName }],
                 subject: 'Login Verification Code - CICJ-SH-COMS',
-                htmlContent: buildOtpEmailHtml({ userName, otp, logoMarkup: headerLogoMarkup })
+                htmlContent: buildOtpEmailHtml({ userName, otp })
             };
-
-            if (!logoPublicUrl && logoExists && logoBase64) {
-                brevoPayload.attachment = [{
-                    name: 'CICJ.png',
-                    content: logoBase64,
-                    contentId: logoCid
-                }];
-            }
 
             await axios.post('https://api.brevo.com/v3/smtp/email', brevoPayload, {
                 headers: {
@@ -329,24 +274,12 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
             initializeEmailTransporter();
         }
 
-        const headerLogoMarkup = logoPublicUrl
-            ? `<img src="${logoPublicUrl}" alt="CICJ Logo" class="brand-logo">`
-            : (logoExists
-                ? `<img src="cid:${logoCid}" alt="CICJ Logo" class="brand-logo">`
-                : `<div class="logo-box"><div class="logo-icon"></div></div>`);
-
         const mailOptions = {
             from: `"CICJ-SH-COMS Security" <${process.env.SMTP_USER}>`,
             to: email,
             subject: 'Login Verification Code - CICJ-SH-COMS',
-            attachments: !logoPublicUrl && logoExists
-                ? [{
-                    filename: 'CICJ.png',
-                    path: logoPath,
-                    cid: logoCid
-                }]
-                : [],
-            html: buildOtpEmailHtml({ userName, otp, logoMarkup: headerLogoMarkup }),
+            attachments: [],
+            html: buildOtpEmailHtml({ userName, otp }),
             text: `
 CICJ-SH-COMS Login Verification
 ========================================
