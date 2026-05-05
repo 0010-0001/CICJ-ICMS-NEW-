@@ -261,6 +261,13 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
         const logoPath = path.join(__dirname, '..', '..', 'Images', 'CICJ.png');
         const logoExists = fs.existsSync(logoPath);
         const logoBase64 = logoExists ? fs.readFileSync(logoPath).toString('base64') : null;
+        const publicBaseUrl = process.env.PUBLIC_ASSET_BASE_URL
+            || process.env.FRONTEND_URL
+            || process.env.BACKEND_URL
+            || (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : '');
+        const logoPublicUrl = publicBaseUrl
+            ? `${publicBaseUrl.replace(/\/$/, '')}/Images/CICJ.png`
+            : '';
 
         // Prefer Brevo HTTP API when configured (avoids SMTP blocks).
         if (process.env.BREVO_API_KEY) {
@@ -271,36 +278,37 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
                 throw new Error('Brevo sender email missing');
             }
 
-            const headerLogoMarkup = logoExists
-                ? `<img src="cid:${logoCid}" alt="CICJ Logo" class="brand-logo">`
-                : `<div class="logo-box"><div class="logo-icon"></div></div>`;
+            const headerLogoMarkup = logoPublicUrl
+                ? `<img src="${logoPublicUrl}" alt="CICJ Logo" class="brand-logo">`
+                : (logoExists
+                    ? `<img src="cid:${logoCid}" alt="CICJ Logo" class="brand-logo">`
+                    : `<div class="logo-box"><div class="logo-icon"></div></div>`);
 
-            await axios.post(
-                'https://api.brevo.com/v3/smtp/email',
-                {
-                    sender: {
-                        name: senderName,
-                        email: senderEmail
-                    },
-                    to: [{ email, name: userName }],
-                    subject: 'Login Verification Code - CICJ-SH-COMS',
-                    htmlContent: buildOtpEmailHtml({ userName, otp, logoMarkup: headerLogoMarkup }),
-                    attachment: logoExists
-                        ? [{
-                            name: 'CICJ.png',
-                            content: logoBase64,
-                            contentId: logoCid
-                        }]
-                        : []
+            const brevoPayload = {
+                sender: {
+                    name: senderName,
+                    email: senderEmail
                 },
-                {
-                    headers: {
-                        'api-key': process.env.BREVO_API_KEY,
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 10000
-                }
-            );
+                to: [{ email, name: userName }],
+                subject: 'Login Verification Code - CICJ-SH-COMS',
+                htmlContent: buildOtpEmailHtml({ userName, otp, logoMarkup: headerLogoMarkup })
+            };
+
+            if (!logoPublicUrl && logoExists && logoBase64) {
+                brevoPayload.attachment = [{
+                    name: 'CICJ.png',
+                    content: logoBase64,
+                    contentId: logoCid
+                }];
+            }
+
+            await axios.post('https://api.brevo.com/v3/smtp/email', brevoPayload, {
+                headers: {
+                    'api-key': process.env.BREVO_API_KEY,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 10000
+            });
 
             return { success: true, devMode: false };
         }
@@ -321,15 +329,17 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
             initializeEmailTransporter();
         }
 
-        const headerLogoMarkup = logoExists
-            ? `<img src="cid:${logoCid}" alt="CICJ Logo" class="brand-logo">`
-            : `<div class="logo-box"><div class="logo-icon"></div></div>`;
+        const headerLogoMarkup = logoPublicUrl
+            ? `<img src="${logoPublicUrl}" alt="CICJ Logo" class="brand-logo">`
+            : (logoExists
+                ? `<img src="cid:${logoCid}" alt="CICJ Logo" class="brand-logo">`
+                : `<div class="logo-box"><div class="logo-icon"></div></div>`);
 
         const mailOptions = {
             from: `"CICJ-SH-COMS Security" <${process.env.SMTP_USER}>`,
             to: email,
             subject: 'Login Verification Code - CICJ-SH-COMS',
-            attachments: logoExists
+            attachments: !logoPublicUrl && logoExists
                 ? [{
                     filename: 'CICJ.png',
                     path: logoPath,
@@ -376,6 +386,9 @@ This is an automated message. Please do not reply.
         return { success: true, messageId: info.messageId };
 
     } catch (error) {
+        if (error.response?.data) {
+            console.error('[MFA] Brevo error response:', error.response.data);
+        }
         console.error('[MFA] Failed to send OTP email:', error.message);
         
         // In development, still show OTP in console
