@@ -190,7 +190,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             setLoading(true);
             try {
-                const res = await fetch('/api/inquiries/public', {
+                const apiBase = typeof window.API_BASE === 'string' ? window.API_BASE.replace(/\/$/, '') : '';
+                const inquiryUrl = apiBase ? `${apiBase}/api/inquiries/public` : '/api/inquiries/public';
+                const res = await fetch(inquiryUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
