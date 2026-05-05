@@ -257,11 +257,10 @@ const buildOtpEmailHtml = ({ userName, otp, logoMarkup }) => {
 const sendOTPEmail = async (email, otp, userName = 'User') => {
     // In dev mode, OTP can be printed in terminal when SMTP is not configured.
     try {
+        const logoCid = 'cicj-logo';
         const logoPath = path.join(__dirname, '..', '..', 'Images', 'CICJ.png');
         const logoExists = fs.existsSync(logoPath);
-        const logoDataUri = logoExists
-            ? `data:image/png;base64,${fs.readFileSync(logoPath).toString('base64')}`
-            : null;
+        const logoBase64 = logoExists ? fs.readFileSync(logoPath).toString('base64') : null;
 
         // Prefer Brevo HTTP API when configured (avoids SMTP blocks).
         if (process.env.BREVO_API_KEY) {
@@ -272,8 +271,8 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
                 throw new Error('Brevo sender email missing');
             }
 
-            const headerLogoMarkup = logoDataUri
-                ? `<img src="${logoDataUri}" alt="CICJ Logo" class="brand-logo">`
+            const headerLogoMarkup = logoExists
+                ? `<img src="cid:${logoCid}" alt="CICJ Logo" class="brand-logo">`
                 : `<div class="logo-box"><div class="logo-icon"></div></div>`;
 
             await axios.post(
@@ -285,7 +284,14 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
                     },
                     to: [{ email, name: userName }],
                     subject: 'Login Verification Code - CICJ-SH-COMS',
-                    htmlContent: buildOtpEmailHtml({ userName, otp, logoMarkup: headerLogoMarkup })
+                    htmlContent: buildOtpEmailHtml({ userName, otp, logoMarkup: headerLogoMarkup }),
+                    attachment: logoExists
+                        ? [{
+                            name: 'CICJ.png',
+                            content: logoBase64,
+                            contentId: logoCid
+                        }]
+                        : []
                 },
                 {
                     headers: {
