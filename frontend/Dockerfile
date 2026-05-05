@@ -1,6 +1,6 @@
 FROM nginx:alpine
 
-COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY frontend/nginx.conf.template /etc/nginx/templates/default.conf.template
 
 WORKDIR /usr/share/nginx/html
 
@@ -17,7 +17,5 @@ COPY responsive-demo.html ./
 COPY js ./js
 COPY css ./css
 COPY Images ./Images
-
-EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
