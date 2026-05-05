@@ -1,9 +1,7 @@
 (function () {
     const localBase = 'http://localhost:5000';
-    const productionBase = 'https://cicj-shcoms.up.railway.app';
-    const inferredBase = window.location.hostname.includes('railway.app')
-        ? productionBase
-        : localBase;
+    const isRailway = window.location.hostname.includes('railway.app');
+    const inferredBase = isRailway ? window.location.origin : localBase;
     const apiBase = window.API_BASE || inferredBase;
 
     window.API_BASE = apiBase;
