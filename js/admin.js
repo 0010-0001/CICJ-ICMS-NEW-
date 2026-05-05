@@ -941,7 +941,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadNotificationFeed() {
         try {
-            const response = await fetch('http://localhost:5000/api/notifications?limit=20', {
+            const apiBase = typeof window.API_BASE === 'string' ? window.API_BASE.replace(/\/$/, '') : '';
+            const notificationUrl = apiBase ? `${apiBase}/api/notifications?limit=20` : '/api/notifications?limit=20';
+            const response = await fetch(notificationUrl, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
