@@ -321,7 +321,6 @@ const sendOTPEmail = async (email, otp, userName = 'User') => {
             initializeEmailTransporter();
         }
 
-        const logoCid = 'cicj-logo';
         const headerLogoMarkup = logoExists
             ? `<img src="cid:${logoCid}" alt="CICJ Logo" class="brand-logo">`
             : `<div class="logo-box"><div class="logo-icon"></div></div>`;
