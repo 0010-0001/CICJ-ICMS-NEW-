@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ==========================================
  * MFA (MULTI-FACTOR AUTHENTICATION) TEST SUITE
  * ==========================================
@@ -8,7 +8,7 @@
 const http = require('http');
 
 // Test configuration
-const BASE_URL = 'http://localhost:5000';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:5000';
 const TEST_EMAIL = 'admin@cicj.com';
 const TEST_PASSWORD = 'Password123!';
 
@@ -110,23 +110,23 @@ async function testLoginOTPGeneration() {
         console.log(`Response:`, JSON.stringify(response.body, null, 2));
 
         if (response.status === 200 && response.body.mfaRequired) {
-            console.log(`\n${GREEN}✅ MFA Required: ${response.body.mfaRequired}${RESET}`);
-            console.log(`${GREEN}✅ Email: ${response.body.email}${RESET}`);
-            console.log(`${GREEN}✅ Expires In: ${response.body.expiresIn} seconds${RESET}`);
-            console.log(`${GREEN}✅ Hint: ${response.body.hint}${RESET}`);
+            console.log(`\n${GREEN}âœ… MFA Required: ${response.body.mfaRequired}${RESET}`);
+            console.log(`${GREEN}âœ… Email: ${response.body.email}${RESET}`);
+            console.log(`${GREEN}âœ… Expires In: ${response.body.expiresIn} seconds${RESET}`);
+            console.log(`${GREEN}âœ… Hint: ${response.body.hint}${RESET}`);
             
             if (response.body.devMode) {
-                console.log(`${YELLOW}⚠️  Dev Mode: Check terminal for OTP${RESET}`);
+                console.log(`${YELLOW}âš ï¸  Dev Mode: Check terminal for OTP${RESET}`);
             }
 
             return { success: true, email: response.body.email };
         } else {
-            console.log(`${RED}❌ MFA not triggered or unexpected response${RESET}`);
+            console.log(`${RED}âŒ MFA not triggered or unexpected response${RESET}`);
             return { success: false };
         }
 
     } catch (error) {
-        console.error(`${RED}❌ Test failed:${RESET}`, error.message);
+        console.error(`${RED}âŒ Test failed:${RESET}`, error.message);
         return { success: false };
     }
 }
@@ -149,20 +149,20 @@ async function testOTPVerification(email, otp) {
         console.log(`Response:`, JSON.stringify(response.body, null, 2));
 
         if (response.status === 200 && response.body.token) {
-            console.log(`\n${GREEN}✅ OTP Verified Successfully${RESET}`);
-            console.log(`${GREEN}✅ JWT Token: ${response.body.token.substring(0, 30)}...${RESET}`);
-            console.log(`${GREEN}✅ User: ${response.body.user.full_name} (${response.body.user.email})${RESET}`);
-            console.log(`${GREEN}✅ Role: ${response.body.user.role}${RESET}`);
+            console.log(`\n${GREEN}âœ… OTP Verified Successfully${RESET}`);
+            console.log(`${GREEN}âœ… JWT Token: ${response.body.token.substring(0, 30)}...${RESET}`);
+            console.log(`${GREEN}âœ… User: ${response.body.user.full_name} (${response.body.user.email})${RESET}`);
+            console.log(`${GREEN}âœ… Role: ${response.body.user.role}${RESET}`);
 
             return { success: true, token: response.body.token };
         } else {
-            console.log(`${RED}❌ OTP verification failed${RESET}`);
+            console.log(`${RED}âŒ OTP verification failed${RESET}`);
             console.log(`${RED}   Error: ${response.body.error}${RESET}`);
             return { success: false };
         }
 
     } catch (error) {
-        console.error(`${RED}❌ Test failed:${RESET}`, error.message);
+        console.error(`${RED}âŒ Test failed:${RESET}`, error.message);
         return { success: false };
     }
 }
@@ -184,18 +184,18 @@ async function testInvalidOTP(email) {
         console.log(`Status: ${response.status}`);
 
         if (response.status === 401) {
-            console.log(`${GREEN}✅ Invalid OTP correctly rejected${RESET}`);
+            console.log(`${GREEN}âœ… Invalid OTP correctly rejected${RESET}`);
             console.log(`   Error: ${response.body.error}`);
             console.log(`   Code: ${response.body.code}`);
             console.log(`   Attempts Left: ${response.body.attemptsLeft}`);
             return { success: true };
         } else {
-            console.log(`${RED}❌ Invalid OTP not properly rejected${RESET}`);
+            console.log(`${RED}âŒ Invalid OTP not properly rejected${RESET}`);
             return { success: false };
         }
 
     } catch (error) {
-        console.error(`${RED}❌ Test failed:${RESET}`, error.message);
+        console.error(`${RED}âŒ Test failed:${RESET}`, error.message);
         return { success: false };
     }
 }
@@ -215,10 +215,10 @@ async function testResendOTP(email) {
         console.log(`First Resend - Status: ${response1.status}`);
 
         if (response1.status === 200) {
-            console.log(`${GREEN}✅ OTP resent successfully${RESET}`);
+            console.log(`${GREEN}âœ… OTP resent successfully${RESET}`);
             console.log(`   Message: ${response1.body.message}`);
         } else {
-            console.log(`${YELLOW}⚠️  First resend had issues: ${response1.body.error}${RESET}`);
+            console.log(`${YELLOW}âš ï¸  First resend had issues: ${response1.body.error}${RESET}`);
         }
 
         // Immediate second resend (should be rate-limited)
@@ -228,17 +228,17 @@ async function testResendOTP(email) {
         console.log(`Second Resend - Status: ${response2.status}`);
 
         if (response2.status === 429) {
-            console.log(`${GREEN}✅ Rate limiting working${RESET}`);
+            console.log(`${GREEN}âœ… Rate limiting working${RESET}`);
             console.log(`   Error: ${response2.body.error}`);
             console.log(`   Wait Time: ${response2.body.waitTime} seconds`);
             return { success: true };
         } else {
-            console.log(`${RED}❌ Rate limiting not working${RESET}`);
+            console.log(`${RED}âŒ Rate limiting not working${RESET}`);
             return { success: false };
         }
 
     } catch (error) {
-        console.error(`${RED}❌ Test failed:${RESET}`, error.message);
+        console.error(`${RED}âŒ Test failed:${RESET}`, error.message);
         return { success: false };
     }
 }
@@ -251,9 +251,9 @@ async function testOTPExpiration(email) {
     console.log('TEST 5: OTP Expiration (Manual Test)');
     console.log(`========================================${RESET}\n`);
 
-    console.log(`${YELLOW}ℹ️  OTP expiration is set to 5 minutes${RESET}`);
-    console.log(`${YELLOW}ℹ️  To test expiration, wait 5 minutes and try to verify OTP${RESET}`);
-    console.log(`${YELLOW}ℹ️  Skipping automated expiration test (would take too long)${RESET}`);
+    console.log(`${YELLOW}â„¹ï¸  OTP expiration is set to 5 minutes${RESET}`);
+    console.log(`${YELLOW}â„¹ï¸  To test expiration, wait 5 minutes and try to verify OTP${RESET}`);
+    console.log(`${YELLOW}â„¹ï¸  Skipping automated expiration test (would take too long)${RESET}`);
 
     return { success: true, skipped: true };
 }
@@ -274,7 +274,7 @@ async function testMaxAttempts(email) {
         });
 
         if (loginResponse.status !== 200) {
-            console.log(`${RED}❌ Failed to generate OTP${RESET}`);
+            console.log(`${RED}âŒ Failed to generate OTP${RESET}`);
             return { success: false };
         }
 
@@ -295,17 +295,17 @@ async function testMaxAttempts(email) {
             console.log(`Attempts Left: ${response.body.attemptsLeft}`);
 
             if (i === 3 && response.body.code === 'MAX_ATTEMPTS_EXCEEDED') {
-                console.log(`\n${GREEN}✅ Max attempts limit enforced${RESET}`);
+                console.log(`\n${GREEN}âœ… Max attempts limit enforced${RESET}`);
                 console.log(`   Error: ${response.body.error}`);
                 return { success: true };
             }
         }
 
-        console.log(`${RED}❌ Max attempts limit not enforced${RESET}`);
+        console.log(`${RED}âŒ Max attempts limit not enforced${RESET}`);
         return { success: false };
 
     } catch (error) {
-        console.error(`${RED}❌ Test failed:${RESET}`, error.message);
+        console.error(`${RED}âŒ Test failed:${RESET}`, error.message);
         return { success: false };
     }
 }
@@ -319,7 +319,7 @@ async function testOTPStatus(email) {
     console.log(`========================================${RESET}\n`);
 
     if (process.env.NODE_ENV === 'production') {
-        console.log(`${YELLOW}⚠️  Skipped (production mode)${RESET}`);
+        console.log(`${YELLOW}âš ï¸  Skipped (production mode)${RESET}`);
         return { success: true, skipped: true };
     }
 
@@ -330,7 +330,7 @@ async function testOTPStatus(email) {
         console.log(`Response:`, JSON.stringify(response.body, null, 2));
 
         if (response.status === 200) {
-            console.log(`${GREEN}✅ OTP status retrieved${RESET}`);
+            console.log(`${GREEN}âœ… OTP status retrieved${RESET}`);
             console.log(`   Exists: ${response.body.exists}`);
             
             if (response.body.exists) {
@@ -340,12 +340,12 @@ async function testOTPStatus(email) {
 
             return { success: true };
         } else {
-            console.log(`${RED}❌ Failed to get OTP status${RESET}`);
+            console.log(`${RED}âŒ Failed to get OTP status${RESET}`);
             return { success: false };
         }
 
     } catch (error) {
-        console.error(`${RED}❌ Test failed:${RESET}`, error.message);
+        console.error(`${RED}âŒ Test failed:${RESET}`, error.message);
         return { success: false };
     }
 }
@@ -354,13 +354,13 @@ async function testOTPStatus(email) {
  * Main Test Runner
  */
 async function runAllTests() {
-    console.log(`\n${MAGENTA}╔════════════════════════════════════════╗`);
-    console.log(`║  MFA (MULTI-FACTOR AUTHENTICATION)     ║`);
-    console.log(`║  EMAIL-BASED OTP TEST SUITE            ║`);
-    console.log(`╚════════════════════════════════════════╝${RESET}\n`);
+    console.log(`\n${MAGENTA}â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—`);
+    console.log(`â•‘  MFA (MULTI-FACTOR AUTHENTICATION)     â•‘`);
+    console.log(`â•‘  EMAIL-BASED OTP TEST SUITE            â•‘`);
+    console.log(`â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•${RESET}\n`);
 
-    console.log(`${YELLOW}⚠️  Ensure the server is running on ${BASE_URL}${RESET}`);
-    console.log(`${YELLOW}⚠️  Test account: ${TEST_EMAIL}${RESET}\n`);
+    console.log(`${YELLOW}âš ï¸  Ensure the server is running on ${BASE_URL}${RESET}`);
+    console.log(`${YELLOW}âš ï¸  Test account: ${TEST_EMAIL}${RESET}\n`);
 
     const results = [];
 
@@ -370,7 +370,7 @@ async function runAllTests() {
         results.push({ test: 'Login OTP Generation', ...test1 });
 
         if (!test1.success) {
-            console.log(`\n${RED}❌ Login flow failed. Stopping tests.${RESET}`);
+            console.log(`\n${RED}âŒ Login flow failed. Stopping tests.${RESET}`);
             return;
         }
 
@@ -378,7 +378,7 @@ async function runAllTests() {
         const otp = await promptForOTP();
 
         if (!otp || otp.length !== 6) {
-            console.log(`${RED}❌ Invalid OTP format. Tests aborted.${RESET}`);
+            console.log(`${RED}âŒ Invalid OTP format. Tests aborted.${RESET}`);
             return;
         }
 
@@ -435,14 +435,14 @@ async function runAllTests() {
         results.push({ test: 'OTP Status Endpoint', ...test7 });
 
         // Summary
-        console.log(`\n${MAGENTA}╔════════════════════════════════════════╗`);
-        console.log(`║  TEST SUMMARY                          ║`);
-        console.log(`╚════════════════════════════════════════╝${RESET}\n`);
+        console.log(`\n${MAGENTA}â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—`);
+        console.log(`â•‘  TEST SUMMARY                          â•‘`);
+        console.log(`â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•${RESET}\n`);
 
         results.forEach((result, index) => {
-            const status = result.skipped ? `${YELLOW}⊘ SKIPPED${RESET}` :
-                          result.success ? `${GREEN}✅ PASS${RESET}` :
-                          `${RED}❌ FAIL${RESET}`;
+            const status = result.skipped ? `${YELLOW}âŠ˜ SKIPPED${RESET}` :
+                          result.success ? `${GREEN}âœ… PASS${RESET}` :
+                          `${RED}âŒ FAIL${RESET}`;
             console.log(`${index + 1}. ${result.test}: ${status}`);
         });
 
@@ -453,15 +453,16 @@ async function runAllTests() {
         console.log(`\n${BLUE}Results: ${passed} passed, ${failed} failed, ${skipped} skipped${RESET}`);
 
         if (failed === 0) {
-            console.log(`\n${GREEN}🎉 All MFA tests passed!${RESET}\n`);
+            console.log(`\n${GREEN}ðŸŽ‰ All MFA tests passed!${RESET}\n`);
         } else {
-            console.log(`\n${RED}❌ Some tests failed. Review output above.${RESET}\n`);
+            console.log(`\n${RED}âŒ Some tests failed. Review output above.${RESET}\n`);
         }
 
     } catch (error) {
-        console.error(`\n${RED}❌ Test suite error:${RESET}`, error);
+        console.error(`\n${RED}âŒ Test suite error:${RESET}`, error);
     }
 }
 
 // Run tests
 runAllTests();
+

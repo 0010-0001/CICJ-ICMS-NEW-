@@ -1,4 +1,4 @@
-/**
+﻿/**
  * User Provisioning API Test
  * Tests the complete flow of creating a user with granular permissions
  */
@@ -268,13 +268,13 @@ async function testUserProvisioning() {
         await prisma.user.delete({
             where: { email: 'juan.delacruz@cicj.com' }
         });
-        console.log('✅ Test user deleted\n');
+        console.log('âœ… Test user deleted\n');
 
         await prisma.$disconnect();
         process.exit(verificationSuccess ? 0 : 1);
 
     } catch (error) {
-        console.error('\n❌ Test Error:', error.message);
+        console.error('\nâŒ Test Error:', error.message);
         console.error(error);
         await prisma.$disconnect();
         process.exit(1);
@@ -282,3 +282,4 @@ async function testUserProvisioning() {
 }
 
 testUserProvisioning();
+

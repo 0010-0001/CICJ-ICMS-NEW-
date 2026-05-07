@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
     const inquiryForm = document.getElementById('contactForm');
     const subscribeForm = document.getElementById('pcl-footer-subscribe-form');
     const mobileMenuBtn = document.getElementById('pcl-mobile-menu-btn');

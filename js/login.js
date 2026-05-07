@@ -1,3 +1,4 @@
+﻿const API_BASE = window.API_BASE || API_BASE + '';
 /**
  * ==========================================
  * LOGIN WITH MFA (Multi-Factor Authentication)
@@ -68,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setSignInLoading(true);
 
         try {
-            const response = await fetch('http://localhost:5000/login', {
+            const response = await fetch(API_BASE + '/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
@@ -96,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Login error:', error);
-            errorBox.textContent = "Network error. Is your Node.js backend running?";
+            errorBox.textContent = "Network error.";
             errorBox.classList.remove('hidden');
         } finally {
             setSignInLoading(false);
@@ -148,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
         otpSuccessBox.classList.add('hidden');
 
         try {
-            const response = await fetch('http://localhost:5000/verify-otp', {
+            const response = await fetch(API_BASE + '/verify-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: currentEmail, otp })
@@ -201,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resendBtn.textContent = 'Sending...';
 
         try {
-            const response = await fetch('http://localhost:5000/resend-otp', {
+            const response = await fetch(API_BASE + '/resend-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: currentEmail })
@@ -383,3 +384,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+
+

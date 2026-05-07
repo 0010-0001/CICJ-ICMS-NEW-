@@ -1,3 +1,4 @@
+﻿const API_BASE = window.API_BASE || API_BASE + '';
 // ==========================================
 // ATTENDANCE MANAGEMENT MODULE
 // ==========================================
@@ -139,7 +140,7 @@ async function ensureAttendanceSitesLoaded() {
 
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/sites', {
+        const response = await fetch(API_BASE + '/api/sites', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -283,7 +284,7 @@ if (getLocationBtn) {
             let message = `SUCCESS: Location captured successfully!\n\n`;
             message += `Latitude: ${position.latitude.toFixed(6)}\n`;
             message += `Longitude: ${position.longitude.toFixed(6)}\n`;
-            message += `Accuracy: ±${Math.round(position.accuracy)} meters\n\n`;
+            message += `Accuracy: Â±${Math.round(position.accuracy)} meters\n\n`;
             message += `You can adjust coordinates manually if needed.`;
             
             showAlert(message);
@@ -309,7 +310,7 @@ async function loadAttendanceStats() {
         const token = localStorage.getItem('token');
         
         // Get all attendance logs
-        const response = await fetch('http://localhost:5000/api/attendance', {
+        const response = await fetch(API_BASE + '/api/attendance', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
@@ -415,7 +416,7 @@ async function loadAttendanceLogs(filters = {}) {
         
         tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px;">Loading...</td></tr>';
         
-        const response = await fetch('http://localhost:5000/api/attendance', {
+        const response = await fetch(API_BASE + '/api/attendance', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
@@ -501,7 +502,7 @@ async function loadAttendanceUserFilter() {
         const token = localStorage.getItem('token');
         const select = document.getElementById('attendance-user-filter');
         
-        const response = await fetch('http://localhost:5000/api/users', {
+        const response = await fetch(API_BASE + '/api/users', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
@@ -602,7 +603,7 @@ async function loadConstructionSites() {
         
         tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px;">Loading...</td></tr>';
         
-        const response = await fetch('http://localhost:5000/api/sites', {
+        const response = await fetch(API_BASE + '/api/sites', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
@@ -670,8 +671,8 @@ if (addSiteForm) {
         
         try {
             const url = editingSiteId 
-                ? `http://localhost:5000/api/sites/${editingSiteId}`
-                : 'http://localhost:5000/api/sites';
+                ? `${API_BASE}/api/sites/${editingSiteId}`
+                : API_BASE + '/api/sites';
             
             const response = await fetch(url, {
                 method: editingSiteId ? 'PUT' : 'POST',
@@ -772,7 +773,7 @@ async function editAttendanceLog(logId, currentAction, currentTimestamp) {
 
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:5000/api/attendance/${logId}`, {
+        const response = await fetch(`${API_BASE}/api/attendance/${logId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -913,7 +914,7 @@ async function deleteAttendanceLog(logId) {
 
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:5000/api/attendance/${logId}`, {
+        const response = await fetch(`${API_BASE}/api/attendance/${logId}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -947,7 +948,7 @@ async function editSite(siteId) {
 
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/sites', {
+        const response = await fetch(API_BASE + '/api/sites', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
@@ -1003,7 +1004,7 @@ async function toggleSiteStatus(siteId, activate) {
     
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:5000/api/sites/${siteId}`, {
+        const response = await fetch(`${API_BASE}/api/sites/${siteId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1048,7 +1049,7 @@ if (deleteSiteBtn) {
         
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/sites/${editingSiteId}`, {
+            const response = await fetch(`${API_BASE}/api/sites/${editingSiteId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -1084,7 +1085,7 @@ if (markDoneSiteBtn) {
             const token = localStorage.getItem('token');
             
             // Fetch current site status
-            const sitesResponse = await fetch('http://localhost:5000/api/sites', {
+            const sitesResponse = await fetch(API_BASE + '/api/sites', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             
@@ -1108,7 +1109,7 @@ if (markDoneSiteBtn) {
                 return;
             }
             
-            const response = await fetch(`http://localhost:5000/api/sites/${editingSiteId}`, {
+            const response = await fetch(`${API_BASE}/api/sites/${editingSiteId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1172,7 +1173,7 @@ async function fetchAttendancePhoto(logId, user, action, rawAction, timestamp, r
 
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:5000/api/attendance/${logId}`, {
+        const response = await fetch(`${API_BASE}/api/attendance/${logId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -1280,3 +1281,6 @@ loadConstructionSites();
 // ==========================================
 // END ATTENDANCE MODULE
 // ==========================================
+
+
+

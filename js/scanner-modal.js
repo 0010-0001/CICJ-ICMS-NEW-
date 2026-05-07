@@ -1,3 +1,4 @@
+﻿const API_BASE = window.API_BASE || API_BASE + '';
 // Equipment Scanner Modal
 document.addEventListener('DOMContentLoaded', () => {
     console.log('[Scanner Modal] Initializing...');
@@ -159,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
             scannerLoading.querySelector('p').textContent = 'Checking equipment status...';
 
             // First, lookup the equipment to check its status
-            const lookupResponse = await fetch(`http://localhost:5000/api/equipment/qr/${qrNumber}`, {
+            const lookupResponse = await fetch(`${API_BASE}/api/equipment/qr/${qrNumber}`, {
                 headers: { 'Authorization': `Bearer ${getAuthToken()}` }
             });
 
@@ -225,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('[Scanner Modal] Sending checkout request:', requestBody);
 
             // Perform checkout
-            const response = await fetch('http://localhost:5000/api/equipment/checkout', {
+            const response = await fetch(API_BASE + '/api/equipment/checkout', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -284,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('[Scanner Modal] Sending return request:', requestBody);
 
             // Perform return
-            const response = await fetch('http://localhost:5000/api/equipment/return', {
+            const response = await fetch(API_BASE + '/api/equipment/return', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -438,3 +439,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log('[Scanner Modal] Ready');
 });
+
+
+

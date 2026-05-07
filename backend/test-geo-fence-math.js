@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Unit test for Haversine formula and geo-fencing logic
  * No database or authentication required
  */
@@ -102,16 +102,17 @@ const boundaryDistance = calculateDistance(siteLat, siteLng, siteLat + 0.0009, s
 console.log(`   Boundary test distance: ${boundaryDistance}m`);
 const boundaryCheck = isWithinGeoFence(siteLat + 0.0009, siteLng, siteLat, siteLng, 100);
 console.log(`   isWithinFence at ~${boundaryDistance}m: ${boundaryCheck.isWithinFence}`);
-console.log('   ℹ️  Note: Boundary may be slightly inside or outside due to rounding\n');
+console.log('   â„¹ï¸  Note: Boundary may be slightly inside or outside due to rounding\n');
 
 // Same coordinates (0m distance)
 const sameSpot = calculateDistance(siteLat, siteLng, siteLat, siteLng);
 console.log(`   Same coordinates distance: ${sameSpot}m`);
-console.log(sameSpot === 0 ? '   ✅ PASS\n' : '   ❌ FAIL\n');
+console.log(sameSpot === 0 ? '   âœ… PASS\n' : '   âŒ FAIL\n');
 
-console.log('✅ All mathematical tests completed!\n');
-console.log('📊 Haversine Formula Accuracy:');
-console.log('   - Short distances (~11m): ±5m precision');
-console.log('   - Medium distances (~1km): ±50m precision');
-console.log('   - Formula: d = 2R × arcsin(√(sin²(Δφ/2) + cos(φ₁)cos(φ₂)sin²(Δλ/2)))');
+console.log('âœ… All mathematical tests completed!\n');
+console.log('ðŸ“Š Haversine Formula Accuracy:');
+console.log('   - Short distances (~11m): Â±5m precision');
+console.log('   - Medium distances (~1km): Â±50m precision');
+console.log('   - Formula: d = 2R Ã— arcsin(âˆš(sinÂ²(Î”Ï†/2) + cos(Ï†â‚)cos(Ï†â‚‚)sinÂ²(Î”Î»/2)))');
 console.log('   - Earth radius: 6,371,000 meters');
+

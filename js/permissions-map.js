@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ==========================================
  * PERMISSION-TO-FEATURE MAPPING (AUTOMATED)
  * ==========================================
@@ -156,7 +156,7 @@ const EMPLOYEE_FEATURES = [
  * @returns {boolean}
  */
 function hasFeatureAccess(user, feature) {
-    // ADMIN role bypasses all permission checks — always full access
+    // ADMIN role bypasses all permission checks ΓÇö always full access
     if (user?.role === 'ADMIN') return true;
 
     // If no permissions required, always grant access

@@ -1,3 +1,4 @@
+﻿const API_BASE = window.API_BASE || API_BASE + '';
 document.addEventListener('DOMContentLoaded', async () => {
     // Employee dashboard bootstrap: auth check, permission sync, then bind UI features.
     // --- 1. AUTHENTICATION CHECK ---
@@ -45,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Always ask server for latest permission flags before rendering controls.
         console.log('[Employee Dashboard] Fetching fresh permissions from server...');
         try {
-            const response = await fetch('http://localhost:5000/api/me', {
+            const response = await fetch(API_BASE + '/api/me', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             
@@ -527,7 +528,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         paginationContainer.classList.remove('hidden');
         paginationContainer.innerHTML = `
-            <div class="table-pagination-meta">Showing ${startIndex + 1}–${endIndex} of ${totalItems}</div>
+            <div class="table-pagination-meta">Showing ${startIndex + 1}â€“${endIndex} of ${totalItems}</div>
             <div class="table-pagination-controls">
                 <button type="button" class="table-page-btn" data-generic-action="prev" ${prevDisabled}>Previous</button>
                 <div class="table-page-numbers">${numberButtons}</div>
@@ -892,7 +893,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const token = localStorage.getItem('token');
             if (!token) return;
             
-            const response = await fetch('http://localhost:5000/api/me', {
+            const response = await fetch(API_BASE + '/api/me', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             
@@ -1186,7 +1187,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         profileRecordsList.innerHTML = '<div class="profile-records-empty">Loading records...</div>';
 
         try {
-            const response = await fetch('http://localhost:5000/api/attendance/me', {
+            const response = await fetch(API_BASE + '/api/attendance/me', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -1218,7 +1219,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadProfileActivityFeed(attendanceRecords = []) {
         try {
-            const response = await fetch('http://localhost:5000/api/notifications?limit=20&scope=personal', {
+            const response = await fetch(API_BASE + '/api/notifications?limit=20&scope=personal', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -1350,7 +1351,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             try {
                 profilePhotoSaveBtn.disabled = true;
-                const response = await fetch('http://localhost:5000/api/me/profile-photo', {
+                const response = await fetch(API_BASE + '/api/me/profile-photo', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1398,7 +1399,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             try {
                 profilePhotoRemoveBtn.disabled = true;
-                const response = await fetch('http://localhost:5000/api/me/profile-photo', {
+                const response = await fetch(API_BASE + '/api/me/profile-photo', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1689,7 +1690,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         try {
-            const response = await fetch('http://localhost:5000/api/inquiries', {
+            const response = await fetch(API_BASE + '/api/inquiries', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error(`Inquiry fetch failed (${response.status})`);
@@ -1782,7 +1783,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadTopbarNotifications() {
         if (!topbarNotificationList) return;
         try {
-            const response = await fetch('http://localhost:5000/api/notifications?limit=20&scope=personal', {
+            const response = await fetch(API_BASE + '/api/notifications?limit=20&scope=personal', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error(`Notifications unavailable (${response.status})`);
@@ -2003,14 +2004,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             const requests = [];
             if (canHealth) {
                 requests.push(
-                    fetch('http://localhost:5000/api/system/summary', { headers: { 'Authorization': `Bearer ${token}` } })
+                    fetch(API_BASE + '/api/system/summary', { headers: { 'Authorization': `Bearer ${token}` } })
                 );
             } else {
                 requests.push(Promise.resolve(null));
             }
             if (canAudit || canHealth) {
                 requests.push(
-                    fetch('http://localhost:5000/api/system/activity-logs?limit=200', { headers: { 'Authorization': `Bearer ${token}` } })
+                    fetch(API_BASE + '/api/system/activity-logs?limit=200', { headers: { 'Authorization': `Bearer ${token}` } })
                 );
             } else {
                 requests.push(Promise.resolve(null));
@@ -2240,7 +2241,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             if (position.accuracy > 50) {
                 const proceed = await showConfirm(
-                    `GPS accuracy is low (±${Math.round(position.accuracy)}m).\n` +
+                    `GPS accuracy is low (Â±${Math.round(position.accuracy)}m).\n` +
                     `This might affect geo-fence validation.\n\n` +
                     `Continue anyway?`,
                     'GPS Accuracy Warning'
@@ -2255,7 +2256,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.textContent = action === 'clock_in' ? 'Clocking In...' : 'Clocking Out...';
 
             // Send attendance request with GPS and photo
-            const response = await fetch('http://localhost:5000/api/attendance', {
+            const response = await fetch(API_BASE + '/api/attendance', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -2555,7 +2556,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         
         try {
-            const response = await fetch('http://localhost:5000/api/attendance/me', {
+            const response = await fetch(API_BASE + '/api/attendance/me', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -2767,7 +2768,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (employeeAttendanceSitesCache.length > 0) return;
 
         try {
-            const response = await fetch('http://localhost:5000/api/sites', {
+            const response = await fetch(API_BASE + '/api/sites', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -2889,7 +2890,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         try {
-            const response = await fetch(`http://localhost:5000/api/attendance/${logId}`, {
+            const response = await fetch(`${API_BASE}/api/attendance/${logId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -2934,7 +2935,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!approved) return false;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/attendance/${logId}`, {
+            const response = await fetch(`${API_BASE}/api/attendance/${logId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -2956,7 +2957,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function fetchEmployeeAttendancePhoto(logId, rowData) {
         try {
-            const response = await fetch(`http://localhost:5000/api/attendance/${logId}`, {
+            const response = await fetch(`${API_BASE}/api/attendance/${logId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -3166,10 +3167,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             teamAttendanceTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px; color:#6b7280;">Loading team attendance...</td></tr>';
 
             const [attendanceResponse, sitesResponse] = await Promise.all([
-                fetch('http://localhost:5000/api/attendance', {
+                fetch(API_BASE + '/api/attendance', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }),
-                fetch('http://localhost:5000/api/sites', {
+                fetch(API_BASE + '/api/sites', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 })
             ]);
@@ -3229,7 +3230,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            const exportUrl = 'http://localhost:5000/api/reports/attendance?format=csv';
+            const exportUrl = API_BASE + '/api/reports/attendance?format=csv';
             window.open(exportUrl, '_blank', 'noopener,noreferrer');
         });
     }
@@ -3478,7 +3479,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load Equipment Checkouts (globally accessible for scanner modal)
     window.loadEquipmentData = async function() {
         try {
-            const response = await fetch('http://localhost:5000/api/equipment/my-checkouts', {
+            const response = await fetch(API_BASE + '/api/equipment/my-checkouts', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             
@@ -3551,7 +3552,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const equipmentInventoryTableBody = document.getElementById('equipment-inventory-table-body');
 
     async function fetchAssignableEquipmentUsers() {
-        const response = await fetch('http://localhost:5000/api/equipment/assignable-users', {
+        const response = await fetch(API_BASE + '/api/equipment/assignable-users', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -3653,7 +3654,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             equipmentInventoryTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px; color:#6b7280;">Loading inventory...</td></tr>';
-            const response = await fetch('http://localhost:5000/api/equipment', {
+            const response = await fetch(API_BASE + '/api/equipment', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -3709,7 +3710,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!Number.isFinite(quantity) || quantity < 1) return;
 
             try {
-                const response = await fetch('http://localhost:5000/api/equipment', {
+                const response = await fetch(API_BASE + '/api/equipment', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -3751,7 +3752,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             if (!approved) return;
 
-            const response = await fetch(`http://localhost:5000/api/equipment/${equipmentId}`, {
+            const response = await fetch(`${API_BASE}/api/equipment/${equipmentId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -3787,7 +3788,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         return;
                     }
                     if (!updated.name) return;
-                    const response = await fetch(`http://localhost:5000/api/equipment/${equipmentId}`, {
+                    const response = await fetch(`${API_BASE}/api/equipment/${equipmentId}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
@@ -3830,7 +3831,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const assignment = await openEquipmentAssignModal(selectedItem, users);
                     if (!assignment) return;
 
-                    const response = await fetch('http://localhost:5000/api/equipment/assign', {
+                    const response = await fetch(API_BASE + '/api/equipment/assign', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -3899,7 +3900,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadStorageSummary() {
         try {
-            const response = await fetch('http://localhost:5000/api/files/storage-summary', {
+            const response = await fetch(API_BASE + '/api/files/storage-summary', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -4037,7 +4038,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         filesTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 24px; color:#6b7280;">Loading project files...</td></tr>';
 
         try {
-            const response = await fetch('http://localhost:5000/api/files', {
+            const response = await fetch(API_BASE + '/api/files', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -4087,7 +4088,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             syncCloudinaryBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Syncing...';
 
             try {
-                const response = await fetch('http://localhost:5000/api/files/sync-cloudinary', {
+                const response = await fetch(API_BASE + '/api/files/sync-cloudinary', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -4151,7 +4152,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 formData.append('file', selectedFile);
                 formData.append('category', projectFileCategory?.value || 'project_progress');
 
-                const response = await fetch('http://localhost:5000/api/files', {
+                const response = await fetch(API_BASE + '/api/files', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
@@ -4225,7 +4226,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
 
                 try {
-                    const response = await fetch(`http://localhost:5000/api/files/${fileId}`, {
+                    const response = await fetch(`${API_BASE}/api/files/${fileId}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
@@ -4270,7 +4271,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (!fileId) return;
 
                 try {
-                    const response = await fetch(`http://localhost:5000/api/files/${fileId}/download`, {
+                    const response = await fetch(`${API_BASE}/api/files/${fileId}/download`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
 
@@ -4314,7 +4315,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (!confirmed) return;
 
                 try {
-                    const response = await fetch(`http://localhost:5000/api/files/${fileId}`, {
+                    const response = await fetch(`${API_BASE}/api/files/${fileId}`, {
                         method: 'DELETE',
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
@@ -4492,7 +4493,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function fetchEmployeeAssignableInquiryUsers() {
         if (assignableInquiryUsersCache.length) return assignableInquiryUsersCache;
 
-        const response = await fetch('http://localhost:5000/api/inquiries/assignable-users', {
+        const response = await fetch(API_BASE + '/api/inquiries/assignable-users', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -4635,7 +4636,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const selectedUser = await openEmployeeInquiryAssignModal(inquiry, users);
         if (!selectedUser) return;
 
-        const response = await fetch(`http://localhost:5000/api/inquiries/${Number(inquiry.inquiry_id)}/assign`, {
+        const response = await fetch(`${API_BASE}/api/inquiries/${Number(inquiry.inquiry_id)}/assign`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -4664,7 +4665,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             inquiriesTableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px; color:#6b7280;">Loading inquiries...</td></tr>';
 
-            const response = await fetch('http://localhost:5000/api/inquiries', {
+            const response = await fetch(API_BASE + '/api/inquiries', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -4717,7 +4718,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     inquirySubmitBtn.textContent = 'Submitting...';
                 }
 
-                const response = await fetch('http://localhost:5000/api/inquiries', {
+                const response = await fetch(API_BASE + '/api/inquiries', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -4812,7 +4813,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (!approved) return;
 
                 try {
-                    const response = await fetch(`http://localhost:5000/api/inquiries/${inquiryId}`, {
+                    const response = await fetch(`${API_BASE}/api/inquiries/${inquiryId}`, {
                         method: 'DELETE',
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
@@ -4841,7 +4842,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!inquiryId || !newStatus) return;
 
             try {
-                const response = await fetch(`http://localhost:5000/api/inquiries/${inquiryId}`, {
+                const response = await fetch(`${API_BASE}/api/inquiries/${inquiryId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -5078,14 +5079,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             const summaryRequest = canViewHealthLogs
-                ? fetch('http://localhost:5000/api/system/summary', {
+                ? fetch(API_BASE + '/api/system/summary', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 })
                 : Promise.resolve(null);
 
             const [summaryResponse, logsResponse] = await Promise.all([
                 summaryRequest,
-                fetch('http://localhost:5000/api/system/health-logs', {
+                fetch(API_BASE + '/api/system/health-logs', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 })
             ]);
@@ -5179,7 +5180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 triggerBackupBtn.disabled = true;
                 triggerBackupBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Running...';
 
-                const response = await fetch('http://localhost:5000/api/system/backup', {
+                const response = await fetch(API_BASE + '/api/system/backup', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -5210,7 +5211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 exportLogsBtn.disabled = true;
                 exportLogsBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Exporting...';
 
-                const response = await fetch('http://localhost:5000/api/system/export-logs', {
+                const response = await fetch(API_BASE + '/api/system/export-logs', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -5579,7 +5580,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const requesterRole = String(currentUserData.role || '').toUpperCase();
 
         try {
-            const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+            const response = await fetch(`${API_BASE}/api/users/${userId}`, {
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -5764,7 +5765,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             employeeUsersTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px; color:#6b7280;">Loading users...</td></tr>';
 
-            const response = await fetch('http://localhost:5000/api/users', {
+            const response = await fetch(API_BASE + '/api/users', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -5972,7 +5973,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             try {
-                const response = await fetch('http://localhost:5000/register', {
+                const response = await fetch(API_BASE + '/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -6057,7 +6058,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     updateData.is_active = Boolean(editUserActiveEmployee?.checked);
                 }
 
-                const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+                const response = await fetch(`${API_BASE}/api/users/${userId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -6103,9 +6104,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             try {
                 confirmDeleteBtnEmployee.disabled = true;
-                confirmDeleteBtnEmployee.innerHTML = '<span>⏳ Verifying...</span>';
+                confirmDeleteBtnEmployee.innerHTML = '<span>â³ Verifying...</span>';
 
-                const verifyResponse = await fetch('http://localhost:5000/api/verify-password', {
+                const verifyResponse = await fetch(API_BASE + '/api/verify-password', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -6126,9 +6127,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     return;
                 }
 
-                confirmDeleteBtnEmployee.innerHTML = '<span>⏳ Deleting...</span>';
+                confirmDeleteBtnEmployee.innerHTML = '<span>â³ Deleting...</span>';
 
-                const response = await fetch(`http://localhost:5000/api/users/${employeePendingDeleteUser.userId}`, {
+                const response = await fetch(`${API_BASE}/api/users/${employeePendingDeleteUser.userId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -6472,7 +6473,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         async function loadMyAttendance(periodRange) {
             if (!sectionGates.attendance()) return [];
             try {
-                const res = await fetch('http://localhost:5000/api/attendance/me', {
+                const res = await fetch(API_BASE + '/api/attendance/me', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -6548,8 +6549,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!sectionGates.equipment()) return;
             try {
                 const [checkoutRes, equipmentRes] = await Promise.all([
-                    fetch('http://localhost:5000/api/equipment/my-checkouts', { headers: { 'Authorization': `Bearer ${token}` } }).catch(() => null),
-                    fetch('http://localhost:5000/api/equipment', { headers: { 'Authorization': `Bearer ${token}` } })
+                    fetch(API_BASE + '/api/equipment/my-checkouts', { headers: { 'Authorization': `Bearer ${token}` } }).catch(() => null),
+                    fetch(API_BASE + '/api/equipment', { headers: { 'Authorization': `Bearer ${token}` } })
                 ]);
 
                 // My checkouts KPI
@@ -6614,7 +6615,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const canViewAll  = sectionGates.team();
             if (!canViewMine && !canViewAll) return;
             try {
-                const res = await fetch('http://localhost:5000/api/inquiries', {
+                const res = await fetch(API_BASE + '/api/inquiries', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -6845,7 +6846,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Preparing...';
 
             try {
-                const res = await fetch(`http://localhost:5000/api/reports/${reportType}?${params.toString()}`, {
+                const res = await fetch(`${API_BASE}/api/reports/${reportType}?${params.toString()}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!res.ok) {
@@ -6908,3 +6909,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 });
+
+
+

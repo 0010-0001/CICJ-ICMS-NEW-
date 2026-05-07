@@ -1,3 +1,4 @@
+﻿const API_BASE = window.API_BASE || API_BASE + '';
 document.addEventListener('DOMContentLoaded', () => {
     // Client portal setup: menu behavior, smooth navigation, and inquiry form UX.
     // --- MOBILE NAVIGATION TOGGLE ---
@@ -58,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 /* 
                 WEEK 6: Backend Integration
-                const response = await fetch('http://localhost:5000/api/inquiries', {
+                const response = await fetch(API_BASE + '/api/inquiries', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
@@ -91,3 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+
+

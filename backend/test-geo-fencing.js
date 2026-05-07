@@ -1,11 +1,11 @@
-/**
+﻿/**
  * Test script for geo-fencing functionality
  * Tests construction site creation and attendance geo-fence validation
  */
 
 const axios = require('axios');
 
-const BASE_URL = 'http://localhost:5000';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:5000';
 let AUTH_TOKEN = '';
 
 // Test data
@@ -79,7 +79,7 @@ async function runTests() {
         console.log(`   [Radius] ${TEST_SITE.geo_fence_radius_meters} meters\n`);
 
         // Step 3: Test location check endpoint
-        console.log('3️⃣ Testing location check endpoint...');
+        console.log('3ï¸âƒ£ Testing location check endpoint...');
         
         // Test from inside
         console.log('   Testing coordinates INSIDE geo-fence...');
@@ -89,7 +89,7 @@ async function runTests() {
             { headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` } }
         );
         console.log('   Result:', checkInside.data);
-        console.log(checkInside.data.withinSite ? '   ✅ PASSED' : '   ❌ FAILED');
+        console.log(checkInside.data.withinSite ? '   âœ… PASSED' : '   âŒ FAILED');
         console.log('');
 
         // Test from outside
@@ -100,11 +100,11 @@ async function runTests() {
             { headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` } }
         );
         console.log('   Result:', checkOutside.data);
-        console.log(!checkOutside.data.withinSite ? '   ✅ PASSED' : '   ❌ FAILED');
+        console.log(!checkOutside.data.withinSite ? '   âœ… PASSED' : '   âŒ FAILED');
         console.log('');
 
         // Step 4: Test actual attendance with geo-fence
-        console.log('4️⃣ Testing attendance with geo-fence validation...');
+        console.log('4ï¸âƒ£ Testing attendance with geo-fence validation...');
         
         // Test clock-in from inside (should succeed)
         console.log('   Attempting clock-in from INSIDE geo-fence...');
@@ -114,11 +114,11 @@ async function runTests() {
                 COORDS_INSIDE,
                 { headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` } }
             );
-            console.log('   ✅ PASSED - Clock-in allowed');
+            console.log('   âœ… PASSED - Clock-in allowed');
             console.log('   Attendance Log:', attendanceInside.data.log);
             console.log('');
         } catch (error) {
-            console.log('   ❌ FAILED - Should have been allowed');
+            console.log('   âŒ FAILED - Should have been allowed');
             console.log('   Error:', error.response?.data);
             console.log('');
         }
@@ -131,22 +131,23 @@ async function runTests() {
                 COORDS_OUTSIDE,
                 { headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` } }
             );
-            console.log('   ❌ FAILED - Should have been rejected');
+            console.log('   âŒ FAILED - Should have been rejected');
             console.log('   Response:', attendanceOutside.data);
         } catch (error) {
             if (error.response?.status === 403) {
-                console.log('   ✅ PASSED - Correctly rejected with 403');
+                console.log('   âœ… PASSED - Correctly rejected with 403');
                 console.log('   Error Details:', error.response.data);
             } else {
-                console.log('   ❌ Unexpected error:', error.response?.data);
+                console.log('   âŒ Unexpected error:', error.response?.data);
             }
         }
 
-        console.log('\n✅ All tests completed!');
+        console.log('\nâœ… All tests completed!');
 
     } catch (error) {
-        console.error('\n❌ Test failed:', error.response?.data || error.message);
+        console.error('\nâŒ Test failed:', error.response?.data || error.message);
     }
 }
 
 runTests();
+

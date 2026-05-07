@@ -1,4 +1,4 @@
-/**
+﻿/**
  * RBAC & Granular Permission Middleware Test
  * 
  * This script tests the granular permission system:
@@ -176,3 +176,4 @@ async function testGranularRBAC() {
 }
 
 testGranularRBAC();
+

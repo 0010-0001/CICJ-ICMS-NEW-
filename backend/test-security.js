@@ -9,7 +9,7 @@
 const http = require('http');
 
 // Test configuration
-const BASE_URL = 'http://localhost:5000';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:5000';
 let authToken = '';
 
 // ANSI color codes
@@ -459,3 +459,4 @@ async function runAllTests() {
 
 // Run tests
 runAllTests();
+

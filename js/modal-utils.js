@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Custom Modal System - Replaces browser's alert() and confirm()
  * Matches the system design with Bootstrap Icons
  */

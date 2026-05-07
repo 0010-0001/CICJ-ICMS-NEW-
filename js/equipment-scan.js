@@ -1,3 +1,4 @@
+﻿const API_BASE = window.API_BASE || API_BASE + '';
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
     console.log('[Equipment Scan] Equipment Scanner - Initializing...');
@@ -169,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Lookup Equipment
     async function lookupEquipment(qrNumber) {
         try {
-            const response = await fetch(`http://localhost:5000/api/equipment/qr/${qrNumber}`, {
+            const response = await fetch(`${API_BASE}/api/equipment/qr/${qrNumber}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             
@@ -289,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude
                 };
-                gpsStatus.innerHTML = `<i class="bi bi-geo-alt-fill" style="color: #2dad50;"></i> Location acquired (±${Math.round(position.coords.accuracy)}m)`;
+                gpsStatus.innerHTML = `<i class="bi bi-geo-alt-fill" style="color: #2dad50;"></i> Location acquired (Â±${Math.round(position.coords.accuracy)}m)`;
             },
             (error) => {
                 console.warn('GPS Error:', error);
@@ -321,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
             confirmActionBtn.disabled = true;
             confirmActionBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Processing...';
             
-            const response = await fetch('http://localhost:5000/api/equipment/checkout', {
+            const response = await fetch(API_BASE + '/api/equipment/checkout', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -361,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
             confirmActionBtn.disabled = true;
             confirmActionBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Processing...';
             
-            const response = await fetch('http://localhost:5000/api/equipment/return', {
+            const response = await fetch(API_BASE + '/api/equipment/return', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -429,3 +430,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log('[Equipment Scan] Equipment Scanner - Ready!');
 });
+
+
+
