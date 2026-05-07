@@ -255,16 +255,7 @@ app.use(express.json({ limit: '10mb' })); // Limit payload size
 // 5. XSS Protection - Sanitize all inputs
 app.use(sanitizeInput);
 
-// 6. HTTPS Redirect (production only)
-if (process.env.NODE_ENV === 'production') {
-    app.use((req, res, next) => {
-        if (req.header('x-forwarded-proto') !== 'https') {
-            res.redirect(`https://${req.header('host')}${req.url}`);
-        } else {
-            next();
-        }
-    });
-}
+// 6. HTTPS Redirect — handled by Railway load balancer; skip in-app redirect to avoid breaking internal healthchecks
 
 // 7. Serve static files (HTML, CSS, JS) from parent directory
 const path = require('path');
@@ -5013,7 +5004,7 @@ console.log('[ENV] MFA_ENABLED:', process.env.MFA_ENABLED || 'MISSING');
 
 async function startServer() {
     try {
-        app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+        app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT} on 0.0.0.0`));
         ensureArchiveStore().catch((error) => {
             console.error('Archive store init failed:', error);
         });
