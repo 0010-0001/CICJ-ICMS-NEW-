@@ -9,6 +9,8 @@ COPY . .
 ARG DATABASE_URL=mysql://build:build@build:3306/build
 
 RUN cd backend && npm install && DATABASE_URL="${DATABASE_URL}" npx prisma generate
+# Install openssl for Prisma compatibility on slim/debian base
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8080
 
