@@ -1,5 +1,20 @@
 ﻿const API_BASE = window.API_BASE || API_BASE + '';
 document.addEventListener('DOMContentLoaded', async () => {
+    // Handle token injected via URL params from Google OAuth callback
+    const _up = new URLSearchParams(window.location.search);
+    const _oauthToken = _up.get('token');
+    if (_oauthToken) {
+        try {
+            const _r = await fetch(API_BASE + '/api/me', { headers: { 'Authorization': 'Bearer ' + _oauthToken } });
+            if (_r.ok) {
+                const _d = await _r.json();
+                localStorage.setItem('token', _oauthToken);
+                localStorage.setItem('user', JSON.stringify(_d.user || _d));
+            }
+        } catch (e) { /* ignore, auth check below will redirect */ }
+        window.history.replaceState({}, '', window.location.pathname);
+    }
+
     // Admin dashboard bootstrap: authenticate, refresh permissions, then wire UI.
     // --- 1. AUTHENTICATION CHECK ---
     const token = localStorage.getItem('token');
