@@ -1102,12 +1102,18 @@ app.post('/verify-otp', async (req, res) => {
 // ==========================================
 
 // Google OAuth - Initiate authentication
-app.get('/oauth/google', 
-    passport.authenticate('google', { 
+app.get('/oauth/google', (req, res, next) => {
+    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+        return res.status(503).json({
+            error: 'Google OAuth is not configured on this server.',
+            hint: 'Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_CALLBACK_URL environment variables.'
+        });
+    }
+    passport.authenticate('google', {
         scope: ['openid', 'email', 'profile'],
-        session: false 
-    })
-);
+        session: false
+    })(req, res, next);
+});
 
 // Google OAuth - Callback
 app.get('/oauth/google/callback',
