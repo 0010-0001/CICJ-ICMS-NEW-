@@ -6,7 +6,7 @@ WORKDIR /app
 COPY . .
 
 # Install backend dependencies and generate Prisma client
-RUN cd backend && npm install && npx prisma generate
+RUN cd backend && npm install && DATABASE_URL=mysql://build:build@build:3306/build npx prisma generate
 
 EXPOSE 8080
 
