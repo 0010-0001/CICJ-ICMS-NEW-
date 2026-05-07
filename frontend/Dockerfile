@@ -5,11 +5,10 @@ WORKDIR /app
 # Copy entire project (Express serves static HTML/CSS/JS via express.static)
 COPY . .
 
-# Dummy DATABASE_URL for prisma generate (no DB connection made during generate).
-# Railway's real DATABASE_URL env var overrides this at container runtime.
-ENV DATABASE_URL="mysql://build:build@build:3306/build"
+# ARG is build-time only — not baked into the image, so Railway's runtime vars are not blocked.
+ARG DATABASE_URL=mysql://build:build@build:3306/build
 
-RUN cd backend && npm install && npx prisma generate
+RUN cd backend && npm install && DATABASE_URL="${DATABASE_URL}" npx prisma generate
 
 EXPOSE 8080
 
