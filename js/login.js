@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const oauthError = urlParams.get('error');
     if (oauthError === 'oauth_failed' && errorBox) {
         errorBox.textContent = 'Google login failed. No account found for this Google address. Please contact your administrator.';
-        errorBox.style.display = 'block';
+        errorBox.classList.remove('hidden');
         window.history.replaceState({}, '', window.location.pathname);
     }
 });
