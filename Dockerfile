@@ -2,6 +2,9 @@ FROM node:20-slim
 
 WORKDIR /app
 
+# Install openssl BEFORE prisma generate so the engine binary targets the correct OpenSSL version
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
 # Copy entire project (Express serves static HTML/CSS/JS via express.static)
 COPY . .
 
@@ -9,8 +12,6 @@ COPY . .
 ARG DATABASE_URL=mysql://build:build@build:3306/build
 
 RUN cd backend && npm install && DATABASE_URL="${DATABASE_URL}" npx prisma generate
-# Install openssl for Prisma compatibility on slim/debian base
-RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8080
 
