@@ -1,0 +1,13 @@
+{
+  "name": "cicj-shcoms",
+  "version": "1.0.0",
+  "description": "CICJ Secure Hybrid Construction Management System",
+  "private": true,
+  "scripts": {
+    "start": "node backend/server.js",
+    "build": "cd backend && npm install && npx prisma generate && npx prisma migrate deploy"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
