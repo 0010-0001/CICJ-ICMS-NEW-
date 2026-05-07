@@ -4919,8 +4919,14 @@ app.get('/api/users/me/permissions', authenticateToken, async (req, res) => {
     }
 });
 
-// Health Check Endpoint (for Docker/Kubernetes health monitoring)
+// Health Check Endpoint — serves the login page in full-stack deployments,
+// falls back to JSON for API-only containers.
 app.get('/', (req, res) => {
+    const fs = require('fs');
+    const indexPath = path.join(__dirname, '..', 'index.html');
+    if (fs.existsSync(indexPath)) {
+        return res.sendFile(indexPath);
+    }
     res.status(200).json({
         status: 'ok',
         message: 'CICJ-SHCOMS API is running.'
