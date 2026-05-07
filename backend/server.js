@@ -1085,7 +1085,8 @@ app.get('/oauth/google', (req, res, next) => {
     }
     passport.authenticate('google', {
         scope: ['openid', 'email', 'profile'],
-        session: false
+        session: false,
+        prompt: 'select_account'
     })(req, res, next);
 });
 
