@@ -15,4 +15,5 @@ RUN cd backend && npm install && DATABASE_URL="${DATABASE_URL}" npx prisma gener
 
 EXPOSE 8080
 
+# Pre-deploy: cd backend && npx prisma migrate deploy
 CMD ["node", "backend/server.js"]
