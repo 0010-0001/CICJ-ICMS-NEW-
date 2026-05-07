@@ -1,6 +1,7 @@
 FROM nginx:alpine
 
-COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+# Template is processed by nginx entrypoint: BACKEND_URL env var is substituted
+COPY frontend/nginx.conf /etc/nginx/templates/default.conf.template
 
 WORKDIR /usr/share/nginx/html
 
