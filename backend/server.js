@@ -1025,8 +1025,8 @@ app.post('/login', validateLogin, handleValidationErrors, async (req, res) => {
         }
 
     } catch (error) {
-        console.error("Login Error:", error);
-        res.status(500).json({ error: "Server error" });
+        console.error("Login Error:", error.message || error);
+        res.status(500).json({ error: "Server error", detail: error.message });
     }
 });
 
@@ -4997,6 +4997,13 @@ app.post('/admin/seed', async (req, res) => {
 
 // Initialize email transporter on startup
 initializeEmailTransporter();
+
+// Startup env-var check (values masked, only SET/MISSING shown)
+console.log('[ENV] DATABASE_URL:', process.env.DATABASE_URL ? 'SET' : 'MISSING');
+console.log('[ENV] JWT_SECRET:', process.env.JWT_SECRET ? 'SET' : 'MISSING');
+console.log('[ENV] GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? 'SET' : 'MISSING');
+console.log('[ENV] GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'MISSING');
+console.log('[ENV] MFA_ENABLED:', process.env.MFA_ENABLED || 'MISSING');
 
 async function startServer() {
     try {
