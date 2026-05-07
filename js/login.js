@@ -383,6 +383,15 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = '/oauth/google';
         });
     }
+
+    // Show error if redirected back from failed OAuth
+    const urlParams = new URLSearchParams(window.location.search);
+    const oauthError = urlParams.get('error');
+    if (oauthError === 'oauth_failed' && errorBox) {
+        errorBox.textContent = 'Google login failed. No account found for this Google address. Please contact your administrator.';
+        errorBox.style.display = 'block';
+        window.history.replaceState({}, '', window.location.pathname);
+    }
 });
 
 

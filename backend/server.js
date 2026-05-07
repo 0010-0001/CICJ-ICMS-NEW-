@@ -99,24 +99,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
                 let user = await prisma.user.findUnique({ where: { email } });
 
                 if (!user) {
-                    // Create new user with OAuth
-                    user = await prisma.user.create({
-                        data: {
-                            email,
-                            full_name: fullName,
-                            password_hash: await bcrypt.hash(Math.random().toString(36), 10), // Random password for OAuth users
-                            role: 'EMPLOYEE',
-                            is_active: true
-                        }
-                    });
-
-                    await prisma.system_Health_Log.create({
-                        data: {
-                            event_type: 'OAUTH_USER_CREATED',
-                            description: `New user created via Google OAuth: ${email}`,
-                            ip_address: '0.0.0.0'
-                        }
-                    });
+                    return done(null, false, { message: 'No account found for this Google address. Please contact your administrator.' });
                 }
 
                 if (!user.is_active) {
