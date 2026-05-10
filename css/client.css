@@ -4631,14 +4631,14 @@ body::before {
         padding: 52px 16px;
     }
 
-    /* Single column for all main content grids */
+    /* 2-column grid for all card sections on mobile */
     .our-work-grid,
     .services-grid,
     .portfolio-grid,
     .reasons-grid,
     .contact-grid {
-        grid-template-columns: 1fr !important;
-        gap: 16px !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 14px !important;
     }
 
     /* who-highlight stats: 3-col horizontal strip */
@@ -4661,14 +4661,84 @@ body::before {
         max-height: 280px;
     }
 
+    /* Compact card styles for 2-col mobile layout */
+    .service-card,
+    .reason-card {
+        padding: 18px 14px !important;
+    }
+
+    .service-icon,
+    .reason-icon {
+        font-size: 32px;
+        margin-bottom: 12px;
+    }
+
+    .service-card h3 {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .service-card > p {
+        font-size: 13px;
+        line-height: 1.5;
+        margin-bottom: 0;
+    }
+
+    /* Hide feature list at 2-col — too cramped at small widths */
+    .service-features {
+        display: none;
+    }
+
+    .reason-card h4 {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .reason-card p {
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    /* Contact info cards */
+    .contact-item {
+        padding: 18px 12px;
+    }
+
+    .contact-item i {
+        font-size: 26px;
+        margin-bottom: 10px;
+    }
+
+    .contact-item h4 {
+        font-size: 15px;
+    }
+
+    .contact-item p {
+        font-size: 12px;
+    }
+
     /* Our work cards */
     .our-work-image {
-        height: 185px;
+        height: 150px;
     }
 
     /* Portfolio image */
     .portfolio-image {
-        height: 200px;
+        height: 155px;
+    }
+
+    .portfolio-info {
+        padding: 14px;
+    }
+
+    .portfolio-info h4 {
+        font-size: 15px;
+    }
+
+    .project-stats {
+        flex-wrap: wrap;
+        gap: 8px;
+        font-size: 12px;
     }
 
     /* Form */
@@ -4748,12 +4818,6 @@ body::before {
         top: 66px;
         max-height: 70vh;
         overflow-y: auto;
-    }
-
-    /* service / reason card padding */
-    .service-card,
-    .reason-card {
-        padding: 28px 20px;
     }
 
     /* section headings */

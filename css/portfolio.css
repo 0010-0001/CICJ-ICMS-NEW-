@@ -204,25 +204,34 @@
     }
 
     .portfolio-page .portfolio-grid {
-        grid-template-columns: 1fr;
-        gap: 18px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
     }
 
     .portfolio-page .portfolio-image {
-        height: 210px;
+        height: 155px;
     }
 
     .portfolio-page .portfolio-info {
-        padding: 18px;
+        padding: 14px;
     }
 
     .portfolio-page .portfolio-info h4 {
-        font-size: 17px;
+        font-size: 14px;
+    }
+
+    .portfolio-page .project-meta {
+        font-size: 11px;
+    }
+
+    .portfolio-page .project-desc {
+        font-size: 12px;
     }
 
     .portfolio-page .project-stats {
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 8px;
+        font-size: 11px;
     }
 }
 
@@ -232,10 +241,14 @@
     }
 
     .portfolio-page .portfolio-image {
-        height: 180px;
+        height: 130px;
     }
 
     .portfolio-page .portfolio-info {
-        padding: 14px;
+        padding: 12px;
+    }
+
+    .portfolio-page .portfolio-info h4 {
+        font-size: 13px;
     }
 }

@@ -114,15 +114,30 @@
         min-height: 0 !important;
     }
 
-    /* Force 1-col for story/mission/vision */
+    /* 2-column grid for cards on mobile */
     .about-page .services-grid {
-        grid-template-columns: 1fr !important;
-        gap: 16px !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 14px !important;
     }
 
     .about-page .service-card {
         min-height: auto;
-        padding: 22px 18px;
+        padding: 18px 14px;
+    }
+
+    .about-page .service-card .service-icon {
+        font-size: 30px;
+        margin-bottom: 10px;
+    }
+
+    .about-page .service-card h3 {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .about-page .service-card p {
+        font-size: 13px;
+        line-height: 1.5;
     }
 
     /* who-highlight stats 3-col on mobile */
