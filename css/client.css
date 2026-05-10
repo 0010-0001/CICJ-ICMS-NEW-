@@ -884,6 +884,16 @@ body::before {
     padding: 22px 22px 24px;
 }
 
+.our-work-tag {
+    display: inline-block;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #146649;
+}
+
 .our-work-content h3 {
     margin: 0 0 10px;
     color: #0f2d20;
