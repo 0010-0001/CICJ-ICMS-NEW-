@@ -3401,10 +3401,25 @@ app.post('/api/inquiries/public', publicInquiryLimiter, async (req, res) => {
     }
 
     try {
+        const normalizedEmail = String(client_email).trim().toLowerCase();
+        const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const EMAIL_LIMIT_PER_DAY = 3;
+
+        const recentCount = await prisma.client_Inquiry.count({
+            where: {
+                client_email: normalizedEmail,
+                submitted_at: { gte: since }
+            }
+        });
+
+        if (recentCount >= EMAIL_LIMIT_PER_DAY) {
+            return res.status(429).json({ error: 'You have reached the maximum of 3 inquiries per day. Please try again tomorrow.' });
+        }
+
         const newInquiry = await prisma.client_Inquiry.create({
             data: {
                 client_name: String(client_name).trim(),
-                client_email: String(client_email).trim().toLowerCase(),
+                client_email: normalizedEmail,
                 contact_number: phone_number ? String(phone_number).trim() : null,
                 subject: String(subject).trim(),
                 message_body: String(message).trim(),
