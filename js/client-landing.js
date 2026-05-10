@@ -478,9 +478,7 @@ window.filterPortfolio = function(category) {
     });
 
     buttons.forEach((button) => {
-        const action = String(button.getAttribute('onclick') || '');
-        const isActive = action.includes(`'${category}'`);
-        button.classList.toggle('active', isActive);
+        const btnCategory = button.getAttribute('data-category') || '';
+        button.classList.toggle('active', btnCategory === category);
     });
-
-    };
+};
