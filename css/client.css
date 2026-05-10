@@ -3792,8 +3792,6 @@ body::before {
     .who-highlight-top h2 {
         font-size: clamp(26px, 7vw, 34px);
         line-height: 1.2;
-        word-break: break-word;
-        hyphens: auto;
     }
 
     .who-highlight-copy p {
@@ -4561,6 +4559,27 @@ body::before {
     margin: 0 0 10px;
     font-size: 14px;
     color: #3f4248;
+}
+
+/* ============================================
+   GLOBAL HYPHENATION GUARD
+   Prevent browsers from auto-hyphenating any
+   heading or UI text across all pages.
+   ============================================ */
+
+h1, h2, h3, h4, h5, h6,
+.hero-title,
+.section-title,
+.section-header h2,
+.who-highlight-top h2,
+.contact-hero-title,
+.what-we-do-copy h3,
+.what-we-do-head h2,
+.pcl-footer-cta-copy h2 {
+    hyphens: none;
+    -webkit-hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
 }
 
 /* ============================================
