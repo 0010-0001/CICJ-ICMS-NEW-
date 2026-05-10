@@ -2109,7 +2109,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch (error) {
             console.error('Network error:', error);
-            showAlert('ERROR: Network error. Please ensure:\n\n1. Backend server is running (http://localhost:5000)\n2. You are logged in as admin\n3. Database is connected');
+            showAlert('ERROR: Network error. Please refresh the page and try again. If the problem persists, contact your system administrator.');
         }
     });
 
@@ -3000,7 +3000,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             } catch (error) {
                 console.error('Upload file error:', error);
                 if (String(error.message).includes('Failed to fetch')) {
-                    showAlert('Upload failed: Cannot reach backend API at http://localhost:5000.\n\nStart the backend with npm run dev, then try again.');
+                    showAlert('Upload failed: Could not reach the server. Please refresh the page and try again.');
                 } else {
                     showAlert(`Upload failed: ${error.message}`);
                 }

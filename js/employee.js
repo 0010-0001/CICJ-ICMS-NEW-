@@ -4187,7 +4187,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             } catch (error) {
                 console.error('Upload file error:', error);
                 if (String(error.message).includes('Failed to fetch')) {
-                    showAlert('Upload failed: Cannot reach backend API at http://localhost:5000. Start the backend and try again.');
+                    showAlert('Upload failed: Could not reach the server. Please refresh the page and try again.');
                 } else {
                     showAlert(`Upload failed: ${error.message}`);
                 }
