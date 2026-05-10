@@ -106,9 +106,10 @@
         const submitBtn    = document.getElementById('cf-submit-btn');
         const btnText      = document.getElementById('cf-btn-text');
         const btnSpinner   = document.getElementById('cf-btn-spinner');
-        const recaptchaWidget = document.getElementById('cf-recaptcha');
-        const formFields = [nameInput, emailInput, phoneInput, typeSelect, messageInput];
-        let recaptchaRendered = false;
+        const recaptchaWidget  = document.getElementById('cf-recaptcha');
+        const recaptchaWrap    = document.getElementById('cf-recaptcha-wrap');
+        let recaptchaRendered  = false;
+        let pendingSubmitData  = null;
 
         function showFormError(msg) {
             if (!errorDiv) return;
@@ -127,19 +128,9 @@
             if (btnSpinner) btnSpinner.hidden = !loading;
         }
 
-        function setFormEnabled(enabled) {
-            formFields.forEach((field) => {
-                if (field) field.disabled = !enabled;
-            });
-        }
-
-        if (recaptchaWidget) {
-            setFormEnabled(false);
-        }
-
-        renderRecaptcha = () => {
-            if (!recaptchaWidget || recaptchaRendered) return;
-            if (window.grecaptcha && recaptchaWidget.dataset.sitekey) {
+        function showCaptcha() {
+            if (recaptchaWrap) recaptchaWrap.hidden = false;
+            if (!recaptchaRendered && recaptchaWidget && window.grecaptcha && recaptchaWidget.dataset.sitekey) {
                 window.grecaptcha.render(recaptchaWidget, {
                     sitekey: recaptchaWidget.dataset.sitekey,
                     callback: 'onInquiryCaptchaSuccess',
@@ -147,23 +138,63 @@
                 });
                 recaptchaRendered = true;
             }
-        };
+            if (recaptchaWrap) recaptchaWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
 
-        window.onInquiryRecaptchaLoad = () => {
-            renderRecaptcha();
-        };
+        async function doSubmit(data, token) {
+            setLoading(true);
+            try {
+                const apiBase = typeof window.API_BASE === 'string' ? window.API_BASE.replace(/\/$/, '') : '';
+                const inquiryUrl = apiBase ? `${apiBase}/api/inquiries/public` : '/api/inquiries/public';
+                const res = await fetch(inquiryUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        client_name: data.name,
+                        client_email: data.email,
+                        phone_number: data.phone || undefined,
+                        subject: data.type,
+                        message: data.message,
+                        recaptchaToken: token
+                    })
+                });
 
-        window.onInquiryCaptchaSuccess = () => {
-            setFormEnabled(true);
+                const json = await res.json().catch(() => ({}));
+
+                if (!res.ok) {
+                    showFormError(json.error || 'Something went wrong. Please try again.');
+                    return;
+                }
+
+                inquiryForm.reset();
+                pendingSubmitData = null;
+                if (recaptchaWrap) recaptchaWrap.hidden = true;
+                openSuccessModal(data.name, data.email, data.type);
+            } catch (err) {
+                console.error('Inquiry submit error:', err);
+                showFormError('Network error. Please check your connection and try again.');
+            } finally {
+                setLoading(false);
+                if (window.grecaptcha) window.grecaptcha.reset();
+            }
+        }
+
+        renderRecaptcha = () => {};
+
+        window.onInquiryRecaptchaLoad = () => {};
+
+        window.onInquiryCaptchaSuccess = (token) => {
             clearFormError();
+            if (pendingSubmitData) {
+                doSubmit(pendingSubmitData, token);
+            }
         };
 
         window.onInquiryCaptchaExpired = () => {
-            setFormEnabled(false);
-            showFormError('reCAPTCHA expired. Please verify again.');
+            showFormError('Verification expired. Please complete the reCAPTCHA again.');
         };
 
-        inquiryForm.addEventListener('submit', async (event) => {
+        inquiryForm.addEventListener('submit', (event) => {
             event.preventDefault();
             clearFormError();
 
@@ -172,12 +203,6 @@
             const phone   = String(phoneInput?.value || '').trim();
             const type    = String(typeSelect?.value || '').trim();
             const message = String(messageInput?.value || '').trim();
-            const recaptchaToken = String(document.querySelector('[name="g-recaptcha-response"]')?.value || '').trim();
-
-            if (recaptchaWidget && !recaptchaToken) {
-                showFormError('Please verify that you are not a robot.');
-                return;
-            }
 
             if (!name)    { showFormError('Please enter your name.'); nameInput?.focus(); return; }
             if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -188,41 +213,14 @@
                 showFormError('Please write a message (at least 10 characters).'); messageInput?.focus(); return;
             }
 
-            setLoading(true);
-            try {
-                const apiBase = typeof window.API_BASE === 'string' ? window.API_BASE.replace(/\/$/, '') : '';
-                const inquiryUrl = apiBase ? `${apiBase}/api/inquiries/public` : '/api/inquiries/public';
-                const res = await fetch(inquiryUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        client_name: name,
-                        client_email: email,
-                        phone_number: phone || undefined,
-                        subject: type,
-                        message,
-                        recaptchaToken
-                    })
-                });
-
-                const data = await res.json().catch(() => ({}));
-
-                if (!res.ok) {
-                    showFormError(data.error || 'Something went wrong. Please try again.');
-                    return;
-                }
-
-                inquiryForm.reset();
-                openSuccessModal(name, email, type);
-            } catch (err) {
-                console.error('Inquiry submit error:', err);
-                showFormError('Network error. Please check your connection and try again.');
-            } finally {
-                setLoading(false);
-                if (window.grecaptcha) {
-                    window.grecaptcha.reset();
-                }
+            const existingToken = String(document.querySelector('[name="g-recaptcha-response"]')?.value || '').trim();
+            if (existingToken) {
+                doSubmit({ name, email, phone, type, message }, existingToken);
+                return;
             }
+
+            pendingSubmitData = { name, email, phone, type, message };
+            showCaptcha();
         });
     }
 

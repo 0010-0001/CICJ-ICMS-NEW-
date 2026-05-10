@@ -4556,3 +4556,9 @@ body::before {
 @keyframes cfSpin {
     to { transform: rotate(360deg); }
 }
+
+.cf-captcha-prompt {
+    margin: 0 0 10px;
+    font-size: 14px;
+    color: #3f4248;
+}

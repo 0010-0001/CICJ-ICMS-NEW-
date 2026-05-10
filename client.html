@@ -237,10 +237,11 @@
                                 </select>
                             </div>
                             <textarea id="cf-message" placeholder="Tell us about your project..." rows="6" required></textarea>
-                            <div class="form-row">
+                            <div id="cf-error" class="cf-error-msg" hidden></div>
+                            <div id="cf-recaptcha-wrap" hidden>
+                                <p class="cf-captcha-prompt">Please verify you are not a robot to send your message.</p>
                                 <div class="g-recaptcha" id="cf-recaptcha" data-sitekey="6Led19osAAAAAG16b4VTyMMq0uOQg4fTmstTXMGU"></div>
                             </div>
-                            <div id="cf-error" class="cf-error-msg" hidden></div>
                             <button type="submit" class="btn btn-primary" id="cf-submit-btn">
                                 <span id="cf-btn-text">Send Message</span>
                                 <span id="cf-btn-spinner" class="cf-spinner" hidden></span>
