@@ -7,6 +7,31 @@
     const topbar = document.querySelector('.navbar.pcl-header');
     const heroSection = document.querySelector('.hero');
 
+    // --- HERO VIDEO: reliable autoplay recovery ---
+    const heroVideo = document.querySelector('.hero-video');
+    if (heroVideo) {
+        const tryPlayVideo = () => {
+            if (heroVideo.paused && !heroVideo.ended) {
+                heroVideo.play().catch(() => {});
+            }
+        };
+        // Resume when user returns to this browser tab
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) tryPlayVideo();
+        });
+        // Network stall or browser suspension
+        heroVideo.addEventListener('stalled', () => setTimeout(tryPlayVideo, 400));
+        heroVideo.addEventListener('suspend', () => setTimeout(tryPlayVideo, 400));
+        // Trigger once data is available (covers slow first-load)
+        heroVideo.addEventListener('loadeddata', tryPlayVideo);
+        // If paused by anything other than the user (tab hide, power save…)
+        heroVideo.addEventListener('pause', () => {
+            if (!document.hidden) setTimeout(tryPlayVideo, 150);
+        });
+        // Best-effort initial attempt
+        tryPlayVideo();
+    }
+
     const syncTopbarState = () => {
         if (!topbar || !heroSection) return;
         const threshold = Math.max(heroSection.offsetHeight - topbar.offsetHeight, 0);
@@ -304,18 +329,34 @@
         }
     };
 
-    const applyWhatWeDoContent = (content) => {
-        if (!content) return;
+    const applyWhatWeDoContent = (content, onDone) => {
+        if (!content) { if (onDone) onDone(); return; }
 
-        if (whatWeDoHeading) {
-            whatWeDoHeading.textContent = content.heading;
-        }
-        if (whatWeDoDescription) {
-            whatWeDoDescription.textContent = content.description;
-        }
+        if (whatWeDoHeading) whatWeDoHeading.textContent = content.heading;
+        if (whatWeDoDescription) whatWeDoDescription.textContent = content.description;
+
         if (whatWeDoImage) {
-            whatWeDoImage.src = content.image;
             whatWeDoImage.alt = content.alt;
+            whatWeDoImage.src = content.image;
+
+            if (onDone) {
+                // Wait for the new image to decode so it's visible on fade-in
+                if (typeof whatWeDoImage.decode === 'function') {
+                    whatWeDoImage.decode().then(onDone, onDone);
+                } else if (whatWeDoImage.complete && whatWeDoImage.naturalWidth > 0) {
+                    onDone();
+                } else {
+                    const finish = () => {
+                        whatWeDoImage.removeEventListener('load', finish);
+                        whatWeDoImage.removeEventListener('error', finish);
+                        onDone();
+                    };
+                    whatWeDoImage.addEventListener('load', finish);
+                    whatWeDoImage.addEventListener('error', finish);
+                }
+            }
+        } else {
+            if (onDone) onDone();
         }
     };
 
@@ -332,15 +373,19 @@
         if (whatWeDoTransitionTimer) {
             clearTimeout(whatWeDoTransitionTimer);
             whatWeDoTransitionTimer = null;
+            // Rapid click: reset class so the CSS transition restarts cleanly
+            whatWeDoFeature.classList.remove('is-switching');
+            void whatWeDoFeature.offsetWidth; // force reflow
         }
 
         whatWeDoFeature.classList.add('is-switching');
         whatWeDoTransitionTimer = setTimeout(() => {
-            applyWhatWeDoContent(content);
-            requestAnimationFrame(() => {
-                whatWeDoFeature.classList.remove('is-switching');
-            });
             whatWeDoTransitionTimer = null;
+            applyWhatWeDoContent(content, () => {
+                requestAnimationFrame(() => {
+                    whatWeDoFeature.classList.remove('is-switching');
+                });
+            });
         }, 170);
     };
 
