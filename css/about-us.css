@@ -97,3 +97,93 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
+
+/* ============================================
+   ABOUT PAGE – MOBILE RESPONSIVE
+   ============================================ */
+
+@media (max-width: 767px) {
+    /* Remove full-viewport min-height lock */
+    .about-page .who-highlight {
+        min-height: 0 !important;
+    }
+
+    /* Reduce section padding */
+    .about-page .services-section {
+        padding: 52px 16px !important;
+        min-height: 0 !important;
+    }
+
+    /* Force 1-col for story/mission/vision */
+    .about-page .services-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    .about-page .service-card {
+        min-height: auto;
+        padding: 22px 18px;
+    }
+
+    /* who-highlight stats 3-col on mobile */
+    .about-page .who-highlight-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+        margin-top: 0 !important;
+    }
+
+    /* section title size */
+    .about-page .section-title {
+        font-size: clamp(22px, 6.5vw, 30px);
+    }
+
+    .about-page .section-subtitle {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 430px) {
+    .about-page .services-section {
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+    }
+
+    /* Core values: keep 2-col on small phones */
+    .about-page .core-values-section .services-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 12px !important;
+    }
+
+    .about-page .core-values-section .service-card {
+        padding: 18px 14px;
+    }
+
+    /* who-highlight stats: inline row on very small phones */
+    .about-page .who-highlight-stats {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+
+    .about-page .who-highlight-stat {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        border-bottom: 1px solid rgba(0,0,0,0.08);
+        padding-bottom: 10px;
+    }
+
+    .about-page .who-highlight-stat:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .about-page .who-highlight-stat h3 {
+        font-size: 30px;
+        margin: 0;
+    }
+
+    .about-page .who-highlight-stat p {
+        font-size: 15px;
+        margin: 0;
+    }
+}

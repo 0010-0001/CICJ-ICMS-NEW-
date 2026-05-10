@@ -171,3 +171,71 @@
 .portfolio-page .portfolio-item:hover .project-stats span {
     color: var(--primary);
 }
+
+/* ============================================
+   PORTFOLIO PAGE – RESPONSIVE
+   ============================================ */
+
+@media (max-width: 900px) {
+    .portfolio-page .portfolio-section {
+        padding: 72px 20px;
+    }
+
+    .portfolio-page .portfolio-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 24px;
+    }
+}
+
+@media (max-width: 767px) {
+    .portfolio-page .portfolio-section {
+        padding: 56px 16px;
+    }
+
+    .portfolio-page .portfolio-filters {
+        gap: 10px;
+        margin-bottom: 28px;
+        justify-content: flex-start;
+    }
+
+    .portfolio-page .filter-btn {
+        padding: 9px 16px;
+        font-size: 13px;
+    }
+
+    .portfolio-page .portfolio-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .portfolio-page .portfolio-image {
+        height: 210px;
+    }
+
+    .portfolio-page .portfolio-info {
+        padding: 18px;
+    }
+
+    .portfolio-page .portfolio-info h4 {
+        font-size: 17px;
+    }
+
+    .portfolio-page .project-stats {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .portfolio-page .portfolio-section {
+        padding: 44px 14px;
+    }
+
+    .portfolio-page .portfolio-image {
+        height: 180px;
+    }
+
+    .portfolio-page .portfolio-info {
+        padding: 14px;
+    }
+}
