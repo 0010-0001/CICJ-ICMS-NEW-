@@ -1864,8 +1864,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     configurePasswordToggle(addUserPasswordInput, addUserPasswordToggleBtn, 'password');
     configurePasswordToggle(addUserPasswordConfirmInput, addUserPasswordConfirmToggleBtn, 'confirm password');
-    configurePasswordToggle(editUserPasswordInput, editUserPasswordToggleBtn, 'password');
-    configurePasswordToggle(editUserPasswordConfirmInput, editUserPasswordConfirmToggleBtn, 'confirm password');
 
     if (addUserPasswordInput) {
         addUserPasswordInput.addEventListener('input', updatePasswordRequirementStates);
@@ -1876,18 +1874,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         addUserPasswordConfirmInput.addEventListener('change', updatePasswordRequirementStates);
     }
 
-    if (editUserPasswordInput) {
-        editUserPasswordInput.addEventListener('input', updateEditPasswordRequirementStates);
-        editUserPasswordInput.addEventListener('change', updateEditPasswordRequirementStates);
-    }
-
-    if (editUserPasswordConfirmInput) {
-        editUserPasswordConfirmInput.addEventListener('input', updateEditPasswordRequirementStates);
-        editUserPasswordConfirmInput.addEventListener('change', updateEditPasswordRequirementStates);
-    }
-
     updatePasswordRequirementStates();
-    updateEditPasswordRequirementStates();
 
     openUserModalBtn.addEventListener('click', () => {
         if (!hasPermission('can_add_users')) {
@@ -2705,9 +2692,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     let projectFilesCache = [];
 
     function resetProjectFilesSearch() {
-        if (!filesSearchInput) return;
-        filesSearchInput.value = '';
-        filesSearchInput.defaultValue = '';
+        const input = document.getElementById('files-search-input');
+        if (!input) return;
+        input.value = '';
+        input.defaultValue = '';
     }
 
     // Some browsers restore typed email values into text fields from history/autofill.
@@ -4611,6 +4599,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     const editPasswordRuleNumber = document.getElementById('edit-password-rule-number');
     const editPasswordRuleSpecial = document.getElementById('edit-password-rule-special');
     const editPasswordRuleMatch = document.getElementById('edit-password-rule-match');
+
+    configurePasswordToggle(editUserPasswordInput, editUserPasswordToggleBtn, 'password');
+    configurePasswordToggle(editUserPasswordConfirmInput, editUserPasswordConfirmToggleBtn, 'confirm password');
+
+    if (editUserPasswordInput) {
+        editUserPasswordInput.addEventListener('input', updateEditPasswordRequirementStates);
+        editUserPasswordInput.addEventListener('change', updateEditPasswordRequirementStates);
+    }
+
+    if (editUserPasswordConfirmInput) {
+        editUserPasswordConfirmInput.addEventListener('input', updateEditPasswordRequirementStates);
+        editUserPasswordConfirmInput.addEventListener('change', updateEditPasswordRequirementStates);
+    }
+
+    updateEditPasswordRequirementStates();
     
     closeEditUserModalBtns.forEach(btn => btn.addEventListener('click', () => editUserModal.classList.add('hidden')));
     
