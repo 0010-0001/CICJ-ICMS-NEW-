@@ -5016,6 +5016,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (response.ok) {
                 const result = await response.json();
                 showAlert(`SUCCESS: User updated successfully!\n\nPermissions updated for ${result.user.email}`);
+                if (isEditingSelf) {
+                    const refreshedUser = { ...user, ...result.user };
+                    localStorage.setItem('user', JSON.stringify(refreshedUser));
+                    user = refreshedUser;
+                    if (typeof renderProfileUserInfo === 'function') {
+                        renderProfileUserInfo();
+                    }
+                    const welcomeMessage = document.getElementById('welcome-message');
+                    if (welcomeMessage) {
+                        welcomeMessage.textContent = `Welcome, ${user.full_name}`;
+                    }
+                }
                 editUserModal.classList.add('hidden');
                 loadUsers(); // Reload the user table
             } else {

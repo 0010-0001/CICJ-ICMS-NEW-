@@ -4262,6 +4262,9 @@ body.theme-dark .attendance-photo-close-btn:hover {
     padding: 0 !important;
     border-radius: 16px !important;
     overflow: hidden;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .edit-modal .modal-header {
@@ -4269,13 +4272,14 @@ body.theme-dark .attendance-photo-close-btn:hover {
     top: 0;
     z-index: 10;
     background: #2dad50;
+    flex: 0 0 auto;
 }
 
 .edit-modal #edit-user-form {
     padding: 32px 40px 40px 40px;
-    max-height: calc(90vh - 140px);
+    flex: 1 1 auto;
     overflow-y: auto;
-    padding-bottom: 56px;
+    padding-bottom: 96px;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
 }
@@ -4540,10 +4544,18 @@ body.theme-dark .attendance-photo-close-btn:hover {
     display: flex;
     justify-content: flex-end;
     gap: 16px;
-    padding: 20px 0 0;
-    margin: 14px 0 0;
-    background: transparent;
-    border-top: none;
+    padding: 16px 0 12px;
+    margin: 18px 0 0;
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+}
+
+body.theme-dark .edit-modal-actions {
+    background: #0f0f0f;
+    border-top-color: #2a2a2a;
 }
 
 .edit-cancel-btn,

@@ -6304,6 +6304,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
 
                 showAlert('User updated successfully.');
+                if (isEditingSelf) {
+                    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+                    const refreshedUser = { ...currentUser, ...data.user };
+                    localStorage.setItem('user', JSON.stringify(refreshedUser));
+                }
                 closeEmployeeModal(editUserModalEmployee);
                 await window.loadEmployeeUsersData();
             } catch (error) {
