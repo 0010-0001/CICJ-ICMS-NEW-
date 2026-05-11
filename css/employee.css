@@ -744,15 +744,16 @@
     width: 100%;
 }
 
-/* Employee SIEM (5 cols): Timestamp | Event Type* | Severity | Description* | IP Address */
+/* Employee SIEM (5 cols): Timestamp | Event Type | Severity | Description | IP Address */
 /* NOTE: employee col order differs from admin (EventType=col2, Severity=col3) */
-/* *Description = auto flex column */
 #system-tab #siem-logs-scroll .data-table th:nth-child(1),
 #system-tab #siem-logs-scroll .data-table td:nth-child(1) { width: 145px; }
 #system-tab #siem-logs-scroll .data-table th:nth-child(2),
 #system-tab #siem-logs-scroll .data-table td:nth-child(2) { width: 128px; }
 #system-tab #siem-logs-scroll .data-table th:nth-child(3),
 #system-tab #siem-logs-scroll .data-table td:nth-child(3) { width: 88px; }
+#system-tab #siem-logs-scroll .data-table th:nth-child(4),
+#system-tab #siem-logs-scroll .data-table td:nth-child(4) { width: 200px; }
 #system-tab #siem-logs-scroll .data-table th:nth-child(5),
 #system-tab #siem-logs-scroll .data-table td:nth-child(5) { width: 125px; }
 #system-tab #siem-logs-scroll .data-table td:nth-child(4) {
@@ -760,8 +761,7 @@
     word-break: break-word;
 }
 
-/* Employee Backup (5 cols): Backup ID | Timestamp | Status | Size | Triggered By* */
-/* *Triggered By = auto flex column */
+/* Employee Backup (5 cols): Backup ID | Timestamp | Status | Size | Triggered By */
 #system-tab #backup-logs-scroll .data-table th:nth-child(1),
 #system-tab #backup-logs-scroll .data-table td:nth-child(1) { width: 95px; }
 #system-tab #backup-logs-scroll .data-table th:nth-child(2),
@@ -770,15 +770,18 @@
 #system-tab #backup-logs-scroll .data-table td:nth-child(3) { width: 90px; }
 #system-tab #backup-logs-scroll .data-table th:nth-child(4),
 #system-tab #backup-logs-scroll .data-table td:nth-child(4) { width: 85px; }
+#system-tab #backup-logs-scroll .data-table th:nth-child(5),
+#system-tab #backup-logs-scroll .data-table td:nth-child(5) { width: 148px; }
 
-/* Employee Activity (5 cols): Timestamp | User | Event Type | Description* | IP Address */
-/* *Description = auto flex column */
+/* Employee Activity (5 cols): Timestamp | User | Event Type | Description | IP Address */
 #system-tab #activity-logs-scroll .data-table th:nth-child(1),
 #system-tab #activity-logs-scroll .data-table td:nth-child(1) { width: 145px; }
 #system-tab #activity-logs-scroll .data-table th:nth-child(2),
 #system-tab #activity-logs-scroll .data-table td:nth-child(2) { width: 145px; }
 #system-tab #activity-logs-scroll .data-table th:nth-child(3),
 #system-tab #activity-logs-scroll .data-table td:nth-child(3) { width: 128px; }
+#system-tab #activity-logs-scroll .data-table th:nth-child(4),
+#system-tab #activity-logs-scroll .data-table td:nth-child(4) { width: 195px; }
 #system-tab #activity-logs-scroll .data-table th:nth-child(5),
 #system-tab #activity-logs-scroll .data-table td:nth-child(5) { width: 125px; }
 
@@ -4388,49 +4391,54 @@ body.theme-dark #reports-tab .tab-description { color: #9ca3af !important; }
    col auto, ACTIONS sized for icon-only buttons.
    ====================================================== */
 
-/* USER MANAGEMENT (7 cols): Name | Email* | Contact | Role | Status | Created | Actions */
-/* *Email = auto flex column (no nth-child(2) rule) */
+/* USER MANAGEMENT (7 cols): Name | Email | Contact | Role | Status | Created | Actions */
+/* All columns explicit — same proportions as admin user table */
 #user-management-shell .user-table-scroll .data-table th:nth-child(1),
-#user-management-shell .user-table-scroll .data-table td:nth-child(1) { width: 138px; }
+#user-management-shell .user-table-scroll .data-table td:nth-child(1) { width: 160px; }
+#user-management-shell .user-table-scroll .data-table th:nth-child(2),
+#user-management-shell .user-table-scroll .data-table td:nth-child(2) { width: 200px; }
 #user-management-shell .user-table-scroll .data-table th:nth-child(3),
-#user-management-shell .user-table-scroll .data-table td:nth-child(3) { width: 100px; }
+#user-management-shell .user-table-scroll .data-table td:nth-child(3) { width: 110px; }
 #user-management-shell .user-table-scroll .data-table th:nth-child(4),
-#user-management-shell .user-table-scroll .data-table td:nth-child(4) { width: 85px; }
+#user-management-shell .user-table-scroll .data-table td:nth-child(4) { width: 88px; }
 #user-management-shell .user-table-scroll .data-table th:nth-child(5),
 #user-management-shell .user-table-scroll .data-table td:nth-child(5) { width: 78px; }
 #user-management-shell .user-table-scroll .data-table th:nth-child(6),
-#user-management-shell .user-table-scroll .data-table td:nth-child(6) { width: 100px; }
+#user-management-shell .user-table-scroll .data-table td:nth-child(6) { width: 96px; }
 #user-management-shell .user-table-scroll .data-table th:nth-child(7),
-#user-management-shell .user-table-scroll .data-table td:nth-child(7) { width: 120px; }
+#user-management-shell .user-table-scroll .data-table td:nth-child(7) { width: 116px; }
 #user-management-shell .user-table-scroll .data-table { min-width: 700px; }
 
-/* PERSONAL ATTENDANCE (4 cols): Date | Time In* | Time Out | Status */
-/* *Time In = auto flex column */
+/* PERSONAL ATTENDANCE (4 cols): Date | Time In | Time Out | Status */
 #personal-attendance-table th:nth-child(1),
-#personal-attendance-table td:nth-child(1) { width: 108px; }
+#personal-attendance-table td:nth-child(1) { width: 24%; }
+#personal-attendance-table th:nth-child(2),
+#personal-attendance-table td:nth-child(2) { width: 26%; }
 #personal-attendance-table th:nth-child(3),
-#personal-attendance-table td:nth-child(3) { width: 108px; }
+#personal-attendance-table td:nth-child(3) { width: 26%; }
 #personal-attendance-table th:nth-child(4),
-#personal-attendance-table td:nth-child(4) { width: 86px; }
+#personal-attendance-table td:nth-child(4) { width: 24%; }
 
-/* TEAM ATTENDANCE (5 cols): Employee | Email* | Action | Timestamp | Location */
-/* *Email = auto flex column */
+/* TEAM ATTENDANCE (5 cols): Employee | Email | Action | Timestamp | Location */
 #team-attendance-table th:nth-child(1),
-#team-attendance-table td:nth-child(1) { width: 130px; }
+#team-attendance-table td:nth-child(1) { width: 18%; }
+#team-attendance-table th:nth-child(2),
+#team-attendance-table td:nth-child(2) { width: 23%; }
 #team-attendance-table th:nth-child(3),
-#team-attendance-table td:nth-child(3) { width: 88px; }
+#team-attendance-table td:nth-child(3) { width: 12%; }
 #team-attendance-table th:nth-child(4),
-#team-attendance-table td:nth-child(4) { width: 125px; }
+#team-attendance-table td:nth-child(4) { width: 17%; }
 #team-attendance-table th:nth-child(5),
-#team-attendance-table td:nth-child(5) { width: 130px; }
+#team-attendance-table td:nth-child(5) { width: 30%; }
 
-/* EQUIPMENT HISTORY (5 cols): Equipment* | QR Number | Checkout Date | Return Date | Status */
-/* *Equipment = auto flex column */
+/* EQUIPMENT HISTORY (5 cols): Equipment | QR Number | Checkout Date | Return Date | Status */
+#equipment-history-table th:nth-child(1),
+#equipment-history-table td:nth-child(1) { width: 30%; }
 #equipment-history-table th:nth-child(2),
-#equipment-history-table td:nth-child(2) { width: 110px; }
+#equipment-history-table td:nth-child(2) { width: 15%; }
 #equipment-history-table th:nth-child(3),
-#equipment-history-table td:nth-child(3) { width: 115px; }
+#equipment-history-table td:nth-child(3) { width: 19%; }
 #equipment-history-table th:nth-child(4),
-#equipment-history-table td:nth-child(4) { width: 115px; }
+#equipment-history-table td:nth-child(4) { width: 19%; }
 #equipment-history-table th:nth-child(5),
-#equipment-history-table td:nth-child(5) { width: 86px; }
+#equipment-history-table td:nth-child(5) { width: 17%; }

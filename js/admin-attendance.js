@@ -458,7 +458,7 @@ async function loadAttendanceLogs(filters = {}) {
         // Display logs
         tbody.innerHTML = logs.map(log => {
             const timestamp = new Date(log.timestamp).toLocaleString();
-            const action = log.action === 'clock_in' ? '<span class="badge success">Clock In</span>' : '<span class="badge">Clock Out</span>';
+            const action = log.action === 'clock_in' ? '<span class="badge success">Clock In</span>' : '<span class="badge warning">Clock Out</span>';
             const resolvedLocation = resolveAttendanceSiteName(log.location_lat, log.location_lng);
             const location = resolvedLocation === 'No GPS'
                 ? '<span style="color: #9ca3af;">No GPS</span>'

@@ -2854,140 +2854,152 @@ body.theme-dark .attendance-clocked-in-time {
 .data-table td:last-child { padding-right: 18px; }
 
 /*
-  Column layout strategy:
-  - First column: fixed width (prevents it from hogging all remaining space)
-  - One middle/content column per table: auto (absorbs leftover space naturally)
-  - ACTIONS column: sized to fit all icon buttons (each ~30px + gaps)
-    2 buttons ≈ 104px | 3 buttons ≈ 140px | 4 buttons ≈ 176px
+  Column layout: ALL columns have explicit widths so no single column
+  balloons to absorb all remaining space. Totals target ~840-860px.
+  With table-layout:fixed + width:100%, columns scale proportionally
+  to fill the container (no uneven gaps).
+
+  ACTIONS sizing with compact buttons (padding:5px 8px, ~31px each, gap:8px):
+    1 text btn ≈ 116px | 2 icon btns ≈ 104px | 3 ≈ 141px | 4 ≈ 188px
 */
 
-/* USER TABLE (7 cols): Name | Email* | Contact | Role | Status | Created | Actions */
-/* *Email = auto flex column */
+/* USER TABLE (7 cols): Name | Email | Contact | Role | Status | Created | Actions */
 #user-tab #user-table th:nth-child(1),
-#user-tab #user-table td:nth-child(1) { width: 138px; }
+#user-tab #user-table td:nth-child(1) { width: 160px; }
+#user-tab #user-table th:nth-child(2),
+#user-tab #user-table td:nth-child(2) { width: 200px; }
 #user-tab #user-table th:nth-child(3),
-#user-tab #user-table td:nth-child(3) { width: 100px; }
+#user-tab #user-table td:nth-child(3) { width: 110px; }
 #user-tab #user-table th:nth-child(4),
-#user-tab #user-table td:nth-child(4) { width: 85px; }
+#user-tab #user-table td:nth-child(4) { width: 88px; }
 #user-tab #user-table th:nth-child(5),
 #user-tab #user-table td:nth-child(5) { width: 78px; }
 #user-tab #user-table th:nth-child(6),
-#user-tab #user-table td:nth-child(6) { width: 100px; }
+#user-tab #user-table td:nth-child(6) { width: 96px; }
 #user-tab #user-table th:nth-child(7),
-#user-tab #user-table td:nth-child(7) { width: 120px; }
+#user-tab #user-table td:nth-child(7) { width: 116px; }
 #user-tab #user-table { min-width: 700px; }
 
 /* EQUIPMENT TABLE (7 cols): Name* | QR Code | QR# | Qty | Condition | Status | Actions */
-/* *Name = auto flex column */
+/* Name stays auto — equipment names vary widely and fill it well */
 #equipment-tab .table-scroll-shell .data-table th:nth-child(2),
 #equipment-tab .table-scroll-shell .data-table td:nth-child(2) { width: 68px; }
 #equipment-tab .table-scroll-shell .data-table th:nth-child(3),
 #equipment-tab .table-scroll-shell .data-table td:nth-child(3) { width: 110px; }
 #equipment-tab .table-scroll-shell .data-table th:nth-child(4),
-#equipment-tab .table-scroll-shell .data-table td:nth-child(4) { width: 70px; }
+#equipment-tab .table-scroll-shell .data-table td:nth-child(4) { width: 60px; }
 #equipment-tab .table-scroll-shell .data-table th:nth-child(5),
 #equipment-tab .table-scroll-shell .data-table td:nth-child(5) { width: 88px; }
 #equipment-tab .table-scroll-shell .data-table th:nth-child(6),
 #equipment-tab .table-scroll-shell .data-table td:nth-child(6) { width: 88px; }
 #equipment-tab .table-scroll-shell .data-table th:nth-child(7),
-#equipment-tab .table-scroll-shell .data-table td:nth-child(7) { width: 140px; }
+#equipment-tab .table-scroll-shell .data-table td:nth-child(7) { width: 141px; }
 #equipment-tab .table-scroll-shell .data-table { min-width: 660px; }
 
-/* FILES TABLE (7 cols): File | Type | Size | Storage | Uploaded | By* | Actions */
-/* *By = auto flex column */
+/* FILES TABLE (7 cols): File | Type | Size | Storage | Uploaded | By | Actions */
 #portfolio-tab .files-table-scroll .data-table th:nth-child(1),
-#portfolio-tab .files-table-scroll .data-table td:nth-child(1) { width: 172px; }
+#portfolio-tab .files-table-scroll .data-table td:nth-child(1) { width: 192px; }
 #portfolio-tab .files-table-scroll .data-table th:nth-child(2),
 #portfolio-tab .files-table-scroll .data-table td:nth-child(2) { width: 82px; }
 #portfolio-tab .files-table-scroll .data-table th:nth-child(3),
-#portfolio-tab .files-table-scroll .data-table td:nth-child(3) { width: 68px; }
+#portfolio-tab .files-table-scroll .data-table td:nth-child(3) { width: 65px; }
 #portfolio-tab .files-table-scroll .data-table th:nth-child(4),
-#portfolio-tab .files-table-scroll .data-table td:nth-child(4) { width: 84px; }
+#portfolio-tab .files-table-scroll .data-table td:nth-child(4) { width: 80px; }
 #portfolio-tab .files-table-scroll .data-table th:nth-child(5),
 #portfolio-tab .files-table-scroll .data-table td:nth-child(5) { width: 108px; }
+#portfolio-tab .files-table-scroll .data-table th:nth-child(6),
+#portfolio-tab .files-table-scroll .data-table td:nth-child(6) { width: 130px; }
 #portfolio-tab .files-table-scroll .data-table th:nth-child(7),
-#portfolio-tab .files-table-scroll .data-table td:nth-child(7) { width: 176px; }
-#portfolio-tab .files-table-scroll .data-table { min-width: 760px; }
+#portfolio-tab .files-table-scroll .data-table td:nth-child(7) { width: 188px; }
+#portfolio-tab .files-table-scroll .data-table { min-width: 840px; }
 
-/* INQUIRY TABLE (8 cols): Submitted | Client | Email | Type | Message* | Status | Assigned | Actions */
-/* *Message = auto flex column */
+/* INQUIRY TABLE (8 cols): Submitted | Client | Email | Type | Message | Status | Assigned | Actions */
 #inquiry-tab .inquiry-table-scroll .data-table th:nth-child(1),
-#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(1) { width: 100px; }
+#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(1) { width: 85px; }
 #inquiry-tab .inquiry-table-scroll .data-table th:nth-child(2),
-#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(2) { width: 115px; }
+#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(2) { width: 100px; }
 #inquiry-tab .inquiry-table-scroll .data-table th:nth-child(3),
-#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(3) { width: 145px; }
+#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(3) { width: 128px; }
 #inquiry-tab .inquiry-table-scroll .data-table th:nth-child(4),
-#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(4) { width: 115px; }
+#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(4) { width: 100px; }
+#inquiry-tab .inquiry-table-scroll .data-table th:nth-child(5),
+#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(5) { width: 155px; }
 #inquiry-tab .inquiry-table-scroll .data-table th:nth-child(6),
-#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(6) { width: 85px; }
+#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(6) { width: 78px; }
 #inquiry-tab .inquiry-table-scroll .data-table th:nth-child(7),
-#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(7) { width: 108px; }
+#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(7) { width: 96px; }
 #inquiry-tab .inquiry-table-scroll .data-table th:nth-child(8),
-#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(8) { width: 120px; }
-#inquiry-tab .inquiry-table-scroll .data-table { min-width: 820px; }
+#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(8) { width: 104px; }
+#inquiry-tab .inquiry-table-scroll .data-table { min-width: 848px; }
 
-/* ATTENDANCE LOGS (6 cols): Employee | Action | Timestamp | Location* | Status | Actions */
-/* *Location GPS = auto flex column */
+/* ATTENDANCE LOGS (6 cols): Employee | Action | Timestamp | Location (GPS) | Status | Actions */
+/* Action col widened to 112px: Clock Out badge = ~76px + 28px cell padding = 104px,
+   needs 112px so border-radius is visible (otherwise clip makes it look like a tab) */
 #attendance-tab #attendance-logs-shell .table-scroll-shell .data-table th:nth-child(1),
-#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(1) { width: 138px; }
+#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(1) { width: 148px; }
 #attendance-tab #attendance-logs-shell .table-scroll-shell .data-table th:nth-child(2),
-#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(2) { width: 88px; }
+#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(2) { width: 112px; }
 #attendance-tab #attendance-logs-shell .table-scroll-shell .data-table th:nth-child(3),
-#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(3) { width: 125px; }
+#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(3) { width: 128px; }
+#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table th:nth-child(4),
+#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(4) { width: 192px; }
 #attendance-tab #attendance-logs-shell .table-scroll-shell .data-table th:nth-child(5),
-#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(5) { width: 78px; }
+#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(5) { width: 80px; }
 #attendance-tab #attendance-logs-shell .table-scroll-shell .data-table th:nth-child(6),
 #attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(6) { width: 104px; }
 
-/* CONSTRUCTION SITES (6 cols): Site Name | Address* | GPS | Radius | Status | Actions */
-/* *Address = auto flex column */
+/* CONSTRUCTION SITES (6 cols): Site Name | Address | GPS | Radius | Status | Actions */
 #attendance-tab #attendance-sites-shell .sites-table-scroll .data-table th:nth-child(1),
-#attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(1) { width: 130px; }
+#attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(1) { width: 132px; }
+#attendance-tab #attendance-sites-shell .sites-table-scroll .data-table th:nth-child(2),
+#attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(2) { width: 192px; }
 #attendance-tab #attendance-sites-shell .sites-table-scroll .data-table th:nth-child(3),
 #attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(3) { width: 148px; }
 #attendance-tab #attendance-sites-shell .sites-table-scroll .data-table th:nth-child(4),
 #attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(4) { width: 82px; }
 #attendance-tab #attendance-sites-shell .sites-table-scroll .data-table th:nth-child(5),
-#attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(5) { width: 78px; }
+#attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(5) { width: 80px; }
 #attendance-tab #attendance-sites-shell .sites-table-scroll .data-table th:nth-child(6),
-#attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(6) { width: 120px; }
+#attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(6) { width: 118px; }
 
-/* ARCHIVES (8 cols): Archived At | Entity | Record ID | Source Table | Deleted By | Role | IP | Snapshot* */
-/* *Snapshot = auto flex column */
+/* ARCHIVES (8 cols): Archived At | Entity | Record ID | Source Table | Deleted By | Role | IP | Snapshot */
 #archives-tab .archives-table-scroll .data-table th:nth-child(1),
-#archives-tab .archives-table-scroll .data-table td:nth-child(1) { width: 125px; }
+#archives-tab .archives-table-scroll .data-table td:nth-child(1) { width: 122px; }
 #archives-tab .archives-table-scroll .data-table th:nth-child(2),
-#archives-tab .archives-table-scroll .data-table td:nth-child(2) { width: 88px; }
+#archives-tab .archives-table-scroll .data-table td:nth-child(2) { width: 86px; }
 #archives-tab .archives-table-scroll .data-table th:nth-child(3),
-#archives-tab .archives-table-scroll .data-table td:nth-child(3) { width: 86px; }
+#archives-tab .archives-table-scroll .data-table td:nth-child(3) { width: 84px; }
 #archives-tab .archives-table-scroll .data-table th:nth-child(4),
-#archives-tab .archives-table-scroll .data-table td:nth-child(4) { width: 108px; }
+#archives-tab .archives-table-scroll .data-table td:nth-child(4) { width: 106px; }
 #archives-tab .archives-table-scroll .data-table th:nth-child(5),
 #archives-tab .archives-table-scroll .data-table td:nth-child(5) { width: 108px; }
 #archives-tab .archives-table-scroll .data-table th:nth-child(6),
-#archives-tab .archives-table-scroll .data-table td:nth-child(6) { width: 74px; }
+#archives-tab .archives-table-scroll .data-table td:nth-child(6) { width: 72px; }
 #archives-tab .archives-table-scroll .data-table th:nth-child(7),
 #archives-tab .archives-table-scroll .data-table td:nth-child(7) { width: 108px; }
-#archives-tab .archives-table-scroll .data-table { min-width: 800px; }
+#archives-tab .archives-table-scroll .data-table th:nth-child(8),
+#archives-tab .archives-table-scroll .data-table td:nth-child(8) { width: 168px; }
+#archives-tab .archives-table-scroll .data-table { min-width: 855px; }
 
-/* SIEM (5 cols): Timestamp | Severity | Event Type | Description* | IP Address */
-/* *Description = auto flex column */
+/* SIEM (5 cols): Timestamp | Severity | Event Type | Description | IP Address */
 #health-tab #siem-logs-scroll .data-table th:nth-child(1),
 #health-tab #siem-logs-scroll .data-table td:nth-child(1) { width: 145px; }
 #health-tab #siem-logs-scroll .data-table th:nth-child(2),
 #health-tab #siem-logs-scroll .data-table td:nth-child(2) { width: 88px; }
 #health-tab #siem-logs-scroll .data-table th:nth-child(3),
 #health-tab #siem-logs-scroll .data-table td:nth-child(3) { width: 128px; }
+#health-tab #siem-logs-scroll .data-table th:nth-child(4),
+#health-tab #siem-logs-scroll .data-table td:nth-child(4) { width: 200px; }
 #health-tab #siem-logs-scroll .data-table th:nth-child(5),
 #health-tab #siem-logs-scroll .data-table td:nth-child(5) { width: 125px; }
 
-/* BACKUP (6 cols): Backup ID | Timestamp | Type* | Size | Status | Storage */
-/* *Type = auto flex column */
+/* BACKUP (6 cols): Backup ID | Timestamp | Type | Size | Status | Storage */
 #health-tab #backup-logs-scroll .data-table th:nth-child(1),
 #health-tab #backup-logs-scroll .data-table td:nth-child(1) { width: 95px; }
 #health-tab #backup-logs-scroll .data-table th:nth-child(2),
 #health-tab #backup-logs-scroll .data-table td:nth-child(2) { width: 142px; }
+#health-tab #backup-logs-scroll .data-table th:nth-child(3),
+#health-tab #backup-logs-scroll .data-table td:nth-child(3) { width: 108px; }
 #health-tab #backup-logs-scroll .data-table th:nth-child(4),
 #health-tab #backup-logs-scroll .data-table td:nth-child(4) { width: 85px; }
 #health-tab #backup-logs-scroll .data-table th:nth-child(5),
@@ -2995,12 +3007,13 @@ body.theme-dark .attendance-clocked-in-time {
 #health-tab #backup-logs-scroll .data-table th:nth-child(6),
 #health-tab #backup-logs-scroll .data-table td:nth-child(6) { width: 122px; }
 
-/* AUDIT LOGS (5 cols): Timestamp | Event Type | Activity* | IP Address | User */
-/* *Activity = auto flex column */
+/* AUDIT LOGS (5 cols): Timestamp | Event Type | Activity | IP Address | User */
 #health-tab #activity-logs-scroll .data-table th:nth-child(1),
 #health-tab #activity-logs-scroll .data-table td:nth-child(1) { width: 145px; }
 #health-tab #activity-logs-scroll .data-table th:nth-child(2),
 #health-tab #activity-logs-scroll .data-table td:nth-child(2) { width: 145px; }
+#health-tab #activity-logs-scroll .data-table th:nth-child(3),
+#health-tab #activity-logs-scroll .data-table td:nth-child(3) { width: 195px; }
 #health-tab #activity-logs-scroll .data-table th:nth-child(4),
 #health-tab #activity-logs-scroll .data-table td:nth-child(4) { width: 125px; }
 #health-tab #activity-logs-scroll .data-table th:nth-child(5),
@@ -3013,7 +3026,7 @@ body.theme-dark .attendance-clocked-in-time {
 .data-table tbody tr:nth-child(even) > td { background-color: #f1f5f9; }
 .data-table tbody tr:hover > td { background-color: #e8eef6; }
 .data-table tbody tr:last-child td { border-bottom: none; }
-.badge { padding: 4px 8px; border-radius: 9999px; font-size: 12px; font-weight: bold; }
+.badge { padding: 4px 8px; border-radius: 9999px; font-size: 12px; font-weight: bold; white-space: nowrap; display: inline-block; }
 .badge.success { background-color: #d4f4dd; color: #1a5d2e; }
 .badge.warning { background-color: #fef3c7; color: #92400e; }
 
