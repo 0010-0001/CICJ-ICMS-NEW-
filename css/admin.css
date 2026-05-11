@@ -4261,6 +4261,7 @@ body.theme-dark .attendance-photo-close-btn:hover {
     max-width: 1000px !important;
     padding: 0 !important;
     border-radius: 16px !important;
+    overflow: hidden;
 }
 
 .edit-modal .modal-header {
@@ -4272,8 +4273,11 @@ body.theme-dark .attendance-photo-close-btn:hover {
 
 .edit-modal #edit-user-form {
     padding: 32px 40px 40px 40px;
-    max-height: calc(90vh - 120px);
+    max-height: calc(90vh - 140px);
     overflow-y: auto;
+    padding-bottom: 56px;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 .edit-info-section {

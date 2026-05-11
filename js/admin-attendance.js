@@ -54,7 +54,8 @@ function getCurrentUser() {
 
 function hasPermission(permissionKey) {
     const user = getCurrentUser();
-    if (user?.role === 'ADMIN') return true;
+    const role = String(user?.role || '').toUpperCase().trim();
+    if (role === 'ADMIN') return true;
     return Boolean(user?.[permissionKey]);
 }
 

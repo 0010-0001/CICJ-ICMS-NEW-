@@ -240,7 +240,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function hasPermission(permissionKey) {
-        if (user?.role === 'ADMIN') return true;
+        const role = String(user?.role || '').toUpperCase().trim();
+        if (role === 'ADMIN') return true;
         return Boolean(user?.[permissionKey]);
     }
 
