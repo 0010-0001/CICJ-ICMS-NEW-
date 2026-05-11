@@ -1322,6 +1322,66 @@
                     </div>
                 </div>
 
+                <div class="form-section edit-details-section" id="employee-edit-details-section">
+                    <div class="section-header edit-section-header">
+                        <span class="section-number edit-section-number"><i class="bi bi-card-text"></i></span>
+                        <h3 class="section-title">Account Details</h3>
+                    </div>
+                    <p class="section-description edit-section-description">Update profile details for this user.</p>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label class="modern-label" for="employee-edit-user-fullname-input">Full Name</label>
+                            <input type="text" id="employee-edit-user-fullname-input" class="modern-input" placeholder="Full name">
+                        </div>
+                        <div class="input-group">
+                            <label class="modern-label" for="employee-edit-user-email-input">Email Address</label>
+                            <input type="email" id="employee-edit-user-email-input" class="modern-input" placeholder="email@cicj.com" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+                        </div>
+                        <div class="input-group">
+                            <label class="modern-label" for="employee-edit-user-contact-input">Contact Number</label>
+                            <input type="tel" id="employee-edit-user-contact-input" class="modern-input" placeholder="+63 912 345 6789">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section edit-credentials-section" id="employee-edit-credentials-section">
+                    <div class="section-header edit-section-header">
+                        <span class="section-number edit-section-number"><i class="bi bi-shield-check"></i></span>
+                        <h3 class="section-title">Credentials Update</h3>
+                    </div>
+                    <p class="section-description edit-section-description">Leave password fields empty to keep current credentials.</p>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label class="modern-label" for="employee-edit-user-password">New Password</label>
+                            <div class="password-input-wrap">
+                                <input type="password" id="employee-edit-user-password" class="modern-input" minlength="8" maxlength="128" placeholder="Set a new password" autocomplete="new-password">
+                                <button type="button" class="password-toggle-btn" id="employee-edit-user-password-toggle" aria-label="Show password" aria-pressed="false">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label class="modern-label" for="employee-edit-user-password-confirm">Confirm Password</label>
+                            <div class="password-input-wrap">
+                                <input type="password" id="employee-edit-user-password-confirm" class="modern-input" placeholder="Re-enter new password" autocomplete="new-password">
+                                <button type="button" class="password-toggle-btn" id="employee-edit-user-password-confirm-toggle" aria-label="Show confirm password" aria-pressed="false">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-group full-width password-requirements-group">
+                            <ul id="employee-edit-user-password-requirements" class="password-requirements" aria-live="polite">
+                                <li id="employee-edit-password-rule-length" class="password-rule unmet"><i class="bi bi-circle"></i> At least 8 characters</li>
+                                <li id="employee-edit-password-rule-uppercase" class="password-rule unmet"><i class="bi bi-circle"></i> 1 uppercase letter</li>
+                                <li id="employee-edit-password-rule-lowercase" class="password-rule unmet"><i class="bi bi-circle"></i> 1 lowercase letter</li>
+                                <li id="employee-edit-password-rule-number" class="password-rule unmet"><i class="bi bi-circle"></i> 1 number</li>
+                                <li id="employee-edit-password-rule-special" class="password-rule unmet"><i class="bi bi-circle"></i> 1 special character</li>
+                                <li id="employee-edit-password-rule-match" class="password-rule unmet"><i class="bi bi-circle"></i> Passwords match</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-section permissions-section edit-permissions-section">
                     <div class="section-header edit-section-header">
                         <span class="section-number edit-section-number"><i class="bi bi-shield-lock-fill"></i></span>

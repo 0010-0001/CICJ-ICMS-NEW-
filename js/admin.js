@@ -1806,6 +1806,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         setPasswordRuleState(passwordRuleMatch, value.length > 0 && confirmValue.length > 0 && value === confirmValue);
     }
 
+    function updateEditPasswordRequirementStates() {
+        const value = String(editUserPasswordInput?.value || '');
+        const confirmValue = String(editUserPasswordConfirmInput?.value || '');
+        setPasswordRuleState(editPasswordRuleLength, value.length >= 8);
+        setPasswordRuleState(editPasswordRuleUppercase, /[A-Z]/.test(value));
+        setPasswordRuleState(editPasswordRuleLowercase, /[a-z]/.test(value));
+        setPasswordRuleState(editPasswordRuleNumber, /\d/.test(value));
+        setPasswordRuleState(editPasswordRuleSpecial, /[^A-Za-z0-9]/.test(value));
+        setPasswordRuleState(editPasswordRuleMatch, value.length > 0 && confirmValue.length > 0 && value === confirmValue);
+    }
+
     function configurePasswordToggle(inputEl, toggleBtn, defaultLabel) {
         if (!inputEl || !toggleBtn) return;
         toggleBtn.addEventListener('click', () => {
@@ -1853,6 +1864,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     configurePasswordToggle(addUserPasswordInput, addUserPasswordToggleBtn, 'password');
     configurePasswordToggle(addUserPasswordConfirmInput, addUserPasswordConfirmToggleBtn, 'confirm password');
+    configurePasswordToggle(editUserPasswordInput, editUserPasswordToggleBtn, 'password');
+    configurePasswordToggle(editUserPasswordConfirmInput, editUserPasswordConfirmToggleBtn, 'confirm password');
 
     if (addUserPasswordInput) {
         addUserPasswordInput.addEventListener('input', updatePasswordRequirementStates);
@@ -1863,7 +1876,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         addUserPasswordConfirmInput.addEventListener('change', updatePasswordRequirementStates);
     }
 
+    if (editUserPasswordInput) {
+        editUserPasswordInput.addEventListener('input', updateEditPasswordRequirementStates);
+        editUserPasswordInput.addEventListener('change', updateEditPasswordRequirementStates);
+    }
+
+    if (editUserPasswordConfirmInput) {
+        editUserPasswordConfirmInput.addEventListener('input', updateEditPasswordRequirementStates);
+        editUserPasswordConfirmInput.addEventListener('change', updateEditPasswordRequirementStates);
+    }
+
     updatePasswordRequirementStates();
+    updateEditPasswordRequirementStates();
 
     openUserModalBtn.addEventListener('click', () => {
         if (!hasPermission('can_add_users')) {
@@ -4572,6 +4596,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- EDIT USER PERMISSIONS MODAL ---
     const editUserModal = document.getElementById('edit-user-modal');
     const closeEditUserModalBtns = document.querySelectorAll('#close-edit-user-modal-btn, #cancel-edit-user-modal-btn');
+    const editUserFullnameInput = document.getElementById('edit-user-fullname-input');
+    const editUserEmailInput = document.getElementById('edit-user-email-input');
+    const editUserContactInput = document.getElementById('edit-user-contact-input');
+    const editDetailsSection = document.getElementById('edit-details-section');
+    const editCredentialsSection = document.getElementById('edit-credentials-section');
+    const editUserPasswordInput = document.getElementById('edit-user-password');
+    const editUserPasswordConfirmInput = document.getElementById('edit-user-password-confirm');
+    const editUserPasswordToggleBtn = document.getElementById('edit-user-password-toggle');
+    const editUserPasswordConfirmToggleBtn = document.getElementById('edit-user-password-confirm-toggle');
+    const editPasswordRuleLength = document.getElementById('edit-password-rule-length');
+    const editPasswordRuleUppercase = document.getElementById('edit-password-rule-uppercase');
+    const editPasswordRuleLowercase = document.getElementById('edit-password-rule-lowercase');
+    const editPasswordRuleNumber = document.getElementById('edit-password-rule-number');
+    const editPasswordRuleSpecial = document.getElementById('edit-password-rule-special');
+    const editPasswordRuleMatch = document.getElementById('edit-password-rule-match');
     
     closeEditUserModalBtns.forEach(btn => btn.addEventListener('click', () => editUserModal.classList.add('hidden')));
     
@@ -4588,6 +4627,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             editUserModal.classList.add('hidden');
         }
     });
+
+    function syncEditUserInfoPreview() {
+        if (editUserFullnameInput) {
+            const fullNameValue = String(editUserFullnameInput.value || '').trim();
+            const fullNameEl = document.getElementById('edit-user-fullname');
+            if (fullNameEl) fullNameEl.textContent = fullNameValue || '-';
+        }
+        if (editUserEmailInput) {
+            const emailValue = String(editUserEmailInput.value || '').trim();
+            const emailEl = document.getElementById('edit-user-email-value');
+            if (emailEl) emailEl.textContent = emailValue || '-';
+        }
+    }
+
+    if (editUserFullnameInput) {
+        editUserFullnameInput.addEventListener('input', syncEditUserInfoPreview);
+    }
+    if (editUserEmailInput) {
+        editUserEmailInput.addEventListener('input', syncEditUserInfoPreview);
+    }
     
     // Permission categories structure
     const PERMISSION_CATEGORIES = {
@@ -4690,6 +4749,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('edit-user-email-value').textContent = user.email;
             document.getElementById('edit-user-role-value').textContent = user.role;
             document.getElementById('edit-user-active').checked = user.is_active;
+            if (editUserFullnameInput) editUserFullnameInput.value = user.full_name || '';
+            if (editUserEmailInput) editUserEmailInput.value = user.email || '';
+            if (editUserContactInput) editUserContactInput.value = user.contact_number || '';
             const editUserAvatar = document.getElementById('edit-user-avatar');
             const editUserAvatarImage = document.getElementById('edit-user-avatar-image');
             const hasProfilePhoto = Boolean(user.profile_photo);
@@ -4699,6 +4761,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (editUserAvatar) {
                 editUserAvatar.classList.toggle('has-image', hasProfilePhoto);
             }
+
+            const canEditProfile = hasPermission('can_edit_users');
+            if (editDetailsSection) editDetailsSection.classList.toggle('hidden', !canEditProfile);
+            if (editCredentialsSection) editCredentialsSection.classList.toggle('hidden', !canEditProfile);
+            if (editUserFullnameInput) editUserFullnameInput.disabled = !canEditProfile;
+            if (editUserEmailInput) editUserEmailInput.disabled = !canEditProfile;
+            if (editUserContactInput) editUserContactInput.disabled = !canEditProfile;
+            if (editUserPasswordInput) editUserPasswordInput.disabled = !canEditProfile;
+            if (editUserPasswordConfirmInput) editUserPasswordConfirmInput.disabled = !canEditProfile;
+
+            if (editUserPasswordInput) editUserPasswordInput.value = '';
+            if (editUserPasswordConfirmInput) editUserPasswordConfirmInput.value = '';
+            if (editUserPasswordInput) editUserPasswordInput.type = 'password';
+            if (editUserPasswordConfirmInput) editUserPasswordConfirmInput.type = 'password';
+            if (editUserPasswordToggleBtn) {
+                editUserPasswordToggleBtn.setAttribute('aria-pressed', 'false');
+                editUserPasswordToggleBtn.setAttribute('aria-label', 'Show password');
+                const icon = editUserPasswordToggleBtn.querySelector('i');
+                if (icon) icon.className = 'bi bi-eye';
+            }
+            if (editUserPasswordConfirmToggleBtn) {
+                editUserPasswordConfirmToggleBtn.setAttribute('aria-pressed', 'false');
+                editUserPasswordConfirmToggleBtn.setAttribute('aria-label', 'Show confirm password');
+                const icon = editUserPasswordConfirmToggleBtn.querySelector('i');
+                if (icon) icon.className = 'bi bi-eye';
+            }
+            updateEditPasswordRequirementStates();
             
             // Store contact_number in a data attribute (not displayed in edit modal but needed for update)
             const editForm = document.getElementById('edit-user-form');
@@ -4799,7 +4888,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     editUserForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        if (!hasPermission('can_manage_permissions') && !hasPermission('can_activate_users')) {
+        if (!hasPermission('can_manage_permissions') && !hasPermission('can_activate_users') && !hasPermission('can_edit_users')) {
             showAlert('You do not have permission to update this user.');
             return;
         }
@@ -4813,11 +4902,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             const isEditingSelf = Number(userId) === Number(currentUserData.user_id);
             const isActive = document.getElementById('edit-user-active').checked;
             
+            const canEditProfile = hasPermission('can_edit_users');
             // Get user data (need to preserve these fields)
-            const fullName = document.getElementById('edit-user-fullname').textContent;
-            const email = document.getElementById('edit-user-email-value').textContent;
-            const role = document.getElementById('edit-user-role-value').textContent;
-            const contactNumber = e.target.dataset.contactNumber || null;
+            const fullName = canEditProfile
+                ? String(editUserFullnameInput?.value || '').trim()
+                : String(document.getElementById('edit-user-fullname').textContent || '').trim();
+            const email = canEditProfile
+                ? String(editUserEmailInput?.value || '').trim()
+                : String(document.getElementById('edit-user-email-value').textContent || '').trim();
+            const role = String(document.getElementById('edit-user-role-value').textContent || '').trim();
+            const contactNumber = canEditProfile
+                ? (String(editUserContactInput?.value || '').trim() || null)
+                : (String(e.target.dataset.contactNumber || '').trim() || null);
+            const newPassword = String(editUserPasswordInput?.value || '').trim();
+            const confirmPassword = String(editUserPasswordConfirmInput?.value || '').trim();
             
             // Capture all permission checkboxes
             const permissions = {};
@@ -4843,14 +4941,58 @@ document.addEventListener('DOMContentLoaded', async () => {
                 completePermissions[perm] = permissions[perm] === true; // Convert undefined to false
             });
             
+            if (canEditProfile) {
+                const namePattern = /^[a-zA-Z\s\-.]{2,100}$/;
+                if (!namePattern.test(fullName)) {
+                    showAlert('Full name must be 2-100 characters and only contain letters, spaces, hyphens, and periods.');
+                    return;
+                }
+
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailPattern.test(email)) {
+                    showAlert('Please provide a valid email address.');
+                    return;
+                }
+
+                if (contactNumber && !/^\+?[\d\s\-()]+$/.test(contactNumber)) {
+                    showAlert('Contact number format is invalid.');
+                    return;
+                }
+
+                if (newPassword || confirmPassword) {
+                    const hasMinLength = newPassword.length >= 8;
+                    const hasUppercase = /[A-Z]/.test(newPassword);
+                    const hasLowercase = /[a-z]/.test(newPassword);
+                    const hasNumber = /\d/.test(newPassword);
+                    const hasSpecial = /[^A-Za-z0-9]/.test(newPassword);
+
+                    if (!hasMinLength || !hasUppercase || !hasLowercase || !hasNumber || !hasSpecial) {
+                        showAlert('Password must meet all requirements shown in the checklist.');
+                        return;
+                    }
+
+                    if (newPassword !== confirmPassword) {
+                        showAlert('Passwords do not match.');
+                        return;
+                    }
+                }
+            }
+
             const updateData = {
                 full_name: fullName,
                 email: email,
                 contact_number: contactNumber,
                 role: role,
-                is_active: isActive,
                 ...((hasPermission('can_manage_permissions') && !isEditingSelf) ? completePermissions : {})
             };
+
+            if (hasPermission('can_activate_users')) {
+                updateData.is_active = isActive;
+            }
+
+            if (canEditProfile && newPassword) {
+                updateData.new_password = newPassword;
+            }
 
             if (isEditingSelf && hasPermission('can_manage_permissions')) {
                 showAlert('Note: You cannot change your own permission settings. Other profile changes can still be saved.');

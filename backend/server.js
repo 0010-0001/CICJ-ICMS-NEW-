@@ -1630,7 +1630,7 @@ app.put('/api/users/:user_id', authenticateToken, requirePermission('can_edit_us
     const targetUserId = parseInt(user_id);
     const requesterUserId = parseInt(req.user.user_id);
     const { 
-        full_name, email, contact_number, role, is_active,
+        full_name, email, contact_number, role, is_active, new_password,
         // User Management
         can_view_users, can_add_users, can_edit_users, can_delete_users, can_activate_users,
         // Attendance
@@ -1665,6 +1665,21 @@ app.put('/api/users/:user_id', authenticateToken, requirePermission('can_edit_us
         });
     }
 
+    const trimmedPassword = typeof new_password === 'string' ? new_password.trim() : '';
+    if (trimmedPassword) {
+        const hasMinLength = trimmedPassword.length >= 8;
+        const hasUppercase = /[A-Z]/.test(trimmedPassword);
+        const hasLowercase = /[a-z]/.test(trimmedPassword);
+        const hasNumber = /\d/.test(trimmedPassword);
+        const hasSpecial = /[^A-Za-z0-9]/.test(trimmedPassword);
+
+        if (!hasMinLength || !hasUppercase || !hasLowercase || !hasNumber || !hasSpecial) {
+            return res.status(400).json({
+                error: 'Password must be at least 8 characters with uppercase, lowercase, number, and special character.'
+            });
+        }
+    }
+
     try {
         const targetUser = await prisma.user.findUnique({
             where: { user_id: targetUserId },
@@ -1696,18 +1711,24 @@ app.put('/api/users/:user_id', authenticateToken, requirePermission('can_edit_us
             });
         }
 
+        const updateData = {
+            full_name, email, contact_number, role, is_active,
+            can_view_users, can_add_users, can_edit_users, can_delete_users, can_activate_users,
+            can_view_own_attendance, can_view_all_attendance, can_edit_attendance, can_delete_attendance, can_export_attendance,
+            can_view_equipment, can_add_equipment, can_edit_equipment, can_delete_equipment, can_assign_equipment,
+            can_view_files, can_upload_files, can_edit_files, can_delete_files, can_download_files,
+            can_view_inquiries, can_add_inquiries, can_update_inquiries, can_delete_inquiries, can_assign_inquiries,
+            can_view_health_logs, can_export_health_logs, can_manage_permissions, can_view_audit_trail, can_backup_database,
+            can_view_reports, can_export_attendance_report, can_export_equipment_report, can_export_inquiry_report, can_export_files_report
+        };
+
+        if (trimmedPassword) {
+            updateData.password_hash = await bcrypt.hash(trimmedPassword, 10);
+        }
+
         const updatedUser = await prisma.user.update({
             where: { user_id: targetUserId },
-            data: { 
-                full_name, email, contact_number, role, is_active,
-                can_view_users, can_add_users, can_edit_users, can_delete_users, can_activate_users,
-                can_view_own_attendance, can_view_all_attendance, can_edit_attendance, can_delete_attendance, can_export_attendance,
-                can_view_equipment, can_add_equipment, can_edit_equipment, can_delete_equipment, can_assign_equipment,
-                can_view_files, can_upload_files, can_edit_files, can_delete_files, can_download_files,
-                can_view_inquiries, can_add_inquiries, can_update_inquiries, can_delete_inquiries, can_assign_inquiries,
-                can_view_health_logs, can_export_health_logs, can_manage_permissions, can_view_audit_trail, can_backup_database,
-                can_view_reports, can_export_attendance_report, can_export_equipment_report, can_export_inquiry_report, can_export_files_report
-            },
+            data: updateData,
             select: {
                 user_id: true,
                 full_name: true,
