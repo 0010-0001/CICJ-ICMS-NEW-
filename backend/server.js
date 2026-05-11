@@ -2341,6 +2341,21 @@ app.post('/api/equipment/assign', authenticateToken, requirePermission('can_assi
             }
         );
 
+        if (targetUser.email) {
+            sendNotificationEmail(
+                [targetUser.email],
+                `Equipment Assigned: ${equipment.name}`,
+                'Equipment Assigned to You',
+                [
+                    `You have been assigned: ${equipment.name}`,
+                    equipment.qr_number ? `QR Number: ${equipment.qr_number}` : null,
+                    notes ? `Notes: ${notes}` : null,
+                    `Assigned by: ${req.userPermissions?.full_name || 'Administrator'}`,
+                    `Time: ${new Date().toLocaleString('en-US')}`
+                ].filter(Boolean)
+            ).catch(err => console.warn('Equipment assign email warning:', err.message));
+        }
+
         res.json({
             message: `Equipment assigned to ${targetUser.full_name}.`,
             checkout
@@ -3433,7 +3448,7 @@ app.post('/api/inquiries/public', publicInquiryLimiter, async (req, res) => {
             'New Client Inquiry Submitted',
             `New inquiry from ${client_name} (${client_email}) submitted via the client page.`,
             req,
-            { inquiry_id: newInquiry.inquiry_id, client_name, client_email, submitted_status: 'Pending' },
+            { notification_type: 'new_inquiry', inquiry_id: newInquiry.inquiry_id, client_name, client_email, subject: String(subject).trim(), submitted_status: 'Pending' },
             `New Inquiry: ${client_name}`
         ).catch((notifyErr) => {
             console.warn('Notification warning (non-fatal):', notifyErr.message);
@@ -3494,9 +3509,11 @@ app.post('/api/inquiries', authenticateToken, requirePermission('can_add_inquiri
             `New inquiry from ${client_name} (${client_email}) has been submitted.`,
             req,
             {
+                notification_type: 'new_inquiry',
                 inquiry_id: newInquiry.inquiry_id,
                 client_name,
                 client_email,
+                subject,
                 submitted_status: status || 'Pending'
             },
             `New Inquiry: ${client_name}`
@@ -3612,6 +3629,21 @@ app.post('/api/inquiries/:inquiry_id/assign', authenticateToken, requirePermissi
             }
         );
 
+        if (assignee.email) {
+            sendNotificationEmail(
+                [assignee.email],
+                `Inquiry Assigned: ${inquiry.subject || 'New Inquiry'}`,
+                'Inquiry Assigned to You',
+                [
+                    `A new inquiry has been assigned to you.`,
+                    inquiry.subject ? `Subject: ${inquiry.subject}` : null,
+                    inquiry.client_name ? `From: ${inquiry.client_name} (${inquiry.client_email || ''})` : null,
+                    `Assigned by: ${req.userPermissions?.full_name || 'Administrator'}`,
+                    `Time: ${new Date().toLocaleString('en-US')}`
+                ].filter(Boolean)
+            ).catch(err => console.warn('Inquiry assign email warning:', err.message));
+        }
+
         res.json({
             message: `Inquiry assigned to ${assignee.full_name}.`,
             inquiry: updatedInquiry
@@ -3631,6 +3663,8 @@ app.get('/api/notifications', authenticateToken, async (req, res) => {
             : 25;
         const scope = String(req.query.scope || '').toLowerCase();
 
+        // Fetch a larger pool so per-user filtering doesn't drop recent targeted notifications
+        const dbFetchLimit = Math.min(limit * 10, 500);
         const logs = await prisma.system_Health_Log.findMany({
             where: {
                 event_type: {
@@ -3638,7 +3672,7 @@ app.get('/api/notifications', authenticateToken, async (req, res) => {
                 }
             },
             orderBy: { timestamp: 'desc' },
-            take: limit
+            take: dbFetchLimit
         });
 
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -3659,15 +3693,28 @@ app.get('/api/notifications', authenticateToken, async (req, res) => {
         const targetUserId = Number(req.user?.user_id || 0);
         const isAdmin = String(req.user?.role || '').toUpperCase() === 'ADMIN';
         const canManageEquipment = Boolean(req.userPermissions?.can_manage_equipment);
+        const canViewHealthLogs = Boolean(req.userPermissions?.can_view_health_logs);
+        const hasAdminAccess = isAdmin || canViewHealthLogs;
+        const isPersonalScope = scope === 'personal';
 
         notifications = notifications.filter(item => {
             const context = item.context || {};
-            const isTargeted = Number(context.target_user_id || 0) === targetUserId;
+            const notifTarget = Number(context.target_user_id || 0);
+            const isTargeted = notifTarget === targetUserId;
+            const isGlobal = notifTarget === 0;
             const isLowInventory = String(context.notification_type || '').toLowerCase() === 'low_inventory';
             const hasEquipmentAccess = isAdmin || canManageEquipment;
+
+            if (isPersonalScope) {
+                return isTargeted || (isLowInventory && hasEquipmentAccess);
+            }
+            if (hasAdminAccess) {
+                return isGlobal || isTargeted;
+            }
             return isTargeted || (isLowInventory && hasEquipmentAccess);
         });
 
+        notifications = notifications.slice(0, limit);
         const unreadCount = notifications.filter(item => new Date(item.timestamp) >= twentyFourHoursAgo).length;
 
         res.json({
