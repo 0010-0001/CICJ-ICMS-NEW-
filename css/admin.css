@@ -1211,24 +1211,18 @@ body.theme-dark .health-subtab-btn.active {
 .archives-table-scroll::-webkit-scrollbar { display: none; }
 
 .archive-json-preview {
-    display: inline-block;
-    max-width: 360px;
+    display: block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: 12px;
+    font-family: inherit;
     color: #475569;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    padding: 3px 6px;
+    background: none;
+    border: none;
+    padding: 0;
 }
 
-@media (max-width: 900px) {
-    .archive-json-preview {
-        max-width: 240px;
-    }
-}
 
 .modal-icon .bi,
 .section-number .bi,
@@ -5425,8 +5419,6 @@ body.theme-dark .archives-immutability-note {
 }
 
 body.theme-dark .archive-json-preview {
-    background: #0f0f0f;
-    border-color: #2a2a2a;
     color: #d1d5db;
 }
 

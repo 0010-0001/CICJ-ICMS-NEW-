@@ -5750,48 +5750,48 @@ document.addEventListener('DOMContentLoaded', async () => {
             const qr = payload.qr_number ? `QR ${payload.qr_number}` : `ID ${payload.equipment_id || item.record_id || '-'}`;
             const status = payload.status || 'Unknown status';
             const condition = payload.condition || 'Unknown condition';
-            return `${name} (${qr}) â€¢ ${status} â€¢ ${condition}`;
+            return `${name} (${qr}) | ${status} | ${condition}`;
         }
 
         if (entity === 'USER') {
             const fullName = payload.full_name || 'Unknown user';
             const email = payload.email || 'No email';
             const role = payload.role || 'UNKNOWN';
-            return `${fullName} â€¢ ${email} â€¢ ${role}`;
+            return `${fullName} | ${email} | ${role}`;
         }
 
         if (entity === 'ATTENDANCE_LOG') {
             const action = payload.action || 'Attendance action';
             const userId = payload.user_id ?? '-';
             const timestamp = payload.timestamp ? formatDateTime(payload.timestamp) : '-';
-            return `${action} â€¢ user #${userId} â€¢ ${timestamp}`;
+            return `${action} | user #${userId} | ${timestamp}`;
         }
 
         if (entity === 'PROJECT_FILE') {
             const fileName = payload.file_name || 'Unnamed file';
             const fileType = payload.file_type || 'Unknown type';
             const size = payload.file_size_mb != null ? `${Number(payload.file_size_mb).toFixed(2)} MB` : '-';
-            return `${fileName} â€¢ ${fileType} â€¢ ${size}`;
+            return `${fileName} | ${fileType} | ${size}`;
         }
 
         if (entity === 'CLIENT_INQUIRY') {
             const client = payload.client_name || 'Unknown client';
             const email = payload.client_email || 'No email';
             const status = payload.status || 'Pending';
-            return `${client} â€¢ ${email} â€¢ ${status}`;
+            return `${client} | ${email} | ${status}`;
         }
 
         if (entity === 'CONSTRUCTION_SITE') {
             const siteName = payload.site_name || 'Construction Site';
             const radius = payload.geo_fence_radius_meters != null ? `${payload.geo_fence_radius_meters}m` : '-';
             const active = payload.is_active ? 'Active' : 'Inactive';
-            return `${siteName} â€¢ Radius ${radius} â€¢ ${active}`;
+            return `${siteName} | Radius ${radius} | ${active}`;
         }
 
         const keys = Object.keys(payload);
         if (keys.length === 0) return '-';
 
-        const compactPreview = keys.slice(0, 3).map((key) => `${key}: ${String(payload[key])}`).join(' â€¢ ');
+        const compactPreview = keys.slice(0, 3).map((key) => `${key}: ${String(payload[key])}`).join(' | ');
         return compactPreview;
     }
 
