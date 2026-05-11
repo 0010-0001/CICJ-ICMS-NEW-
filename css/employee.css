@@ -694,7 +694,7 @@
 .stat-number { font-size: 32px; font-weight: bold; color: #2dad50; }
 
 /* Table Styling */
-.table-container { background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-top: 24px; }
+.table-container { background: white; padding: 20px 16px; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-top: 24px; }
 .table-container h2 { font-size: 18px; margin-bottom: 16px; color: #111827; }
 .attendance-team-header {
     display: flex;
@@ -712,9 +712,12 @@
 .attendance-team-toolbar {
     margin-bottom: 0;
 }
-.data-table { width: 100%; border-collapse: collapse; }
-.data-table th, .data-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #e5e7eb; }
-.data-table th { background-color: #f9fafb; color: #6b7280; font-weight: 600; font-size: 12px; text-transform: uppercase; }
+.data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.data-table thead th { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.data-table th:last-child,
+.data-table td:last-child { padding-right: 18px; }
+.data-table th, .data-table td { padding: 11px 14px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+.data-table th { background-color: #f9fafb; color: #6b7280; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
 .data-table tbody tr:nth-child(odd) > td { background-color: #ffffff; }
 .data-table tbody tr:nth-child(even) > td { background-color: #f1f5f9; }
 .data-table tbody tr:hover > td { background-color: #e8eef6; }
@@ -742,37 +745,37 @@
 }
 
 #system-tab #siem-logs-scroll .data-table th:nth-child(1),
-#system-tab #siem-logs-scroll .data-table td:nth-child(1) { width: 170px; }
+#system-tab #siem-logs-scroll .data-table td:nth-child(1) { width: 148px; }
 #system-tab #siem-logs-scroll .data-table th:nth-child(2),
-#system-tab #siem-logs-scroll .data-table td:nth-child(2) { width: 120px; }
+#system-tab #siem-logs-scroll .data-table td:nth-child(2) { width: 128px; }
 #system-tab #siem-logs-scroll .data-table th:nth-child(3),
-#system-tab #siem-logs-scroll .data-table td:nth-child(3) { width: 200px; }
+#system-tab #siem-logs-scroll .data-table td:nth-child(3) { width: 98px; }
 #system-tab #siem-logs-scroll .data-table th:nth-child(5),
-#system-tab #siem-logs-scroll .data-table td:nth-child(5) { width: 140px; }
+#system-tab #siem-logs-scroll .data-table td:nth-child(5) { width: 128px; }
 #system-tab #siem-logs-scroll .data-table td:nth-child(4) {
     white-space: normal;
     word-break: break-word;
 }
 
 #system-tab #backup-logs-scroll .data-table th:nth-child(1),
-#system-tab #backup-logs-scroll .data-table td:nth-child(1) { width: 120px; }
+#system-tab #backup-logs-scroll .data-table td:nth-child(1) { width: 98px; }
 #system-tab #backup-logs-scroll .data-table th:nth-child(2),
-#system-tab #backup-logs-scroll .data-table td:nth-child(2) { width: 170px; }
+#system-tab #backup-logs-scroll .data-table td:nth-child(2) { width: 145px; }
 #system-tab #backup-logs-scroll .data-table th:nth-child(3),
-#system-tab #backup-logs-scroll .data-table td:nth-child(3) { width: 120px; }
+#system-tab #backup-logs-scroll .data-table td:nth-child(3) { width: 98px; }
 #system-tab #backup-logs-scroll .data-table th:nth-child(4),
-#system-tab #backup-logs-scroll .data-table td:nth-child(4) { width: 110px; }
+#system-tab #backup-logs-scroll .data-table td:nth-child(4) { width: 88px; }
 #system-tab #backup-logs-scroll .data-table th:nth-child(5),
-#system-tab #backup-logs-scroll .data-table td:nth-child(5) { width: 130px; }
+#system-tab #backup-logs-scroll .data-table td:nth-child(5) { width: 118px; }
 
 #system-tab #activity-logs-scroll .data-table th:nth-child(1),
-#system-tab #activity-logs-scroll .data-table td:nth-child(1) { width: 170px; }
+#system-tab #activity-logs-scroll .data-table td:nth-child(1) { width: 148px; }
 #system-tab #activity-logs-scroll .data-table th:nth-child(2),
-#system-tab #activity-logs-scroll .data-table td:nth-child(2) { width: 170px; }
+#system-tab #activity-logs-scroll .data-table td:nth-child(2) { width: 148px; }
 #system-tab #activity-logs-scroll .data-table th:nth-child(4),
-#system-tab #activity-logs-scroll .data-table td:nth-child(4) { width: 140px; }
+#system-tab #activity-logs-scroll .data-table td:nth-child(4) { width: 128px; }
 #system-tab #activity-logs-scroll .data-table th:nth-child(5),
-#system-tab #activity-logs-scroll .data-table td:nth-child(5) { width: 170px; }
+#system-tab #activity-logs-scroll .data-table td:nth-child(5) { width: 148px; }
 
 #health-audit-shell .health-logs-scroll .data-table th:nth-child(1),
 #health-audit-shell .health-logs-scroll .data-table td:nth-child(1) {
@@ -1268,6 +1271,7 @@
 .notification-detail-inquiry.is-collapsed .notification-detail-inquiry-text {
     display: -webkit-box;
     -webkit-line-clamp: 4;
+    line-clamp: 4;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -3717,36 +3721,39 @@ body.theme-dark .password-field .help-text {
 #equipment-inventory-shell .data-table {
     table-layout: fixed;
     width: 100%;
+    min-width: 520px;
 }
 
 #equipment-inventory-shell .table-scroll-shell {
     overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
+#equipment-inventory-shell .table-scroll-shell::-webkit-scrollbar { display: none; }
 
 #equipment-inventory-shell .data-table th:nth-child(1),
 #equipment-inventory-shell .data-table td:nth-child(1) {
-    width: 34%;
-    white-space: nowrap;
+    width: auto;
 }
 
 #equipment-inventory-shell .data-table th:nth-child(2),
 #equipment-inventory-shell .data-table td:nth-child(2) {
-    width: 22%;
-    white-space: nowrap;
+    width: 120px;
 }
 
 #equipment-inventory-shell .data-table th:nth-child(3),
-#equipment-inventory-shell .data-table td:nth-child(3),
+#equipment-inventory-shell .data-table td:nth-child(3) {
+    width: 88px;
+}
+
 #equipment-inventory-shell .data-table th:nth-child(4),
 #equipment-inventory-shell .data-table td:nth-child(4) {
-    width: 14%;
-    white-space: nowrap;
+    width: 88px;
 }
 
 #equipment-inventory-shell .data-table th:nth-child(5),
 #equipment-inventory-shell .data-table td:nth-child(5) {
-    width: 16%;
-    white-space: nowrap;
+    width: 108px;
 }
 
 #equipment-inventory-shell .data-table td:nth-child(5) > div {

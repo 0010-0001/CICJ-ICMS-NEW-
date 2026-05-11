@@ -581,7 +581,10 @@ body.theme-dark .fup-label {
     overflow-x: auto;
     border: 1px solid #d8dee8;
     border-radius: 8px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
+.inquiry-table-scroll::-webkit-scrollbar { display: none; }
 
 #inquiry-tab .data-table th {
     background-color: #f8fafc;
@@ -881,7 +884,10 @@ body.theme-dark .attendance-subtab-btn.active {
     overflow-x: auto;
     border: 1px solid #eef2f7;
     border-radius: 10px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
+.health-logs-scroll::-webkit-scrollbar { display: none; }
 
 #health-tab .health-subtab-shell {
     display: flex;
@@ -1193,7 +1199,10 @@ body.theme-dark .health-subtab-btn.active {
     overflow-x: auto;
     border: 1px solid #eef2f7;
     border-radius: 10px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
+.archives-table-scroll::-webkit-scrollbar { display: none; }
 
 .archive-json-preview {
     display: inline-block;
@@ -2827,138 +2836,146 @@ body.theme-dark .attendance-clocked-in-time {
 .legend-dot.red { background: #ef4444; }
 
 /* Table Styling */
-.table-container { background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.table-container { background: white; padding: 20px 16px; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
 .table-container h2 { font-size: 18px; margin-bottom: 16px; color: #111827; }
 
 /* Prevent column reflow when paginating: keep widths based on the header row. */
 .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .data-table thead th { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Admin tables: set predictable column widths (leave primary text columns flexible). */
+/* Right-edge breathing room: action buttons are never flush against the container */
+.data-table th:last-child,
+.data-table td:last-child { padding-right: 18px; }
+
+/* Admin tables: compact column widths that fit in ~650px (1024px laptop after sidebar) */
 #user-tab #user-table th:nth-child(2),
-#user-tab #user-table td:nth-child(2) { width: 260px; }
+#user-tab #user-table td:nth-child(2) { width: 155px; }
 #user-tab #user-table th:nth-child(3),
-#user-tab #user-table td:nth-child(3) { width: 140px; }
+#user-tab #user-table td:nth-child(3) { width: 100px; }
 #user-tab #user-table th:nth-child(4),
-#user-tab #user-table td:nth-child(4) { width: 150px; }
+#user-tab #user-table td:nth-child(4) { width: 85px; }
 #user-tab #user-table th:nth-child(5),
-#user-tab #user-table td:nth-child(5) { width: 120px; }
+#user-tab #user-table td:nth-child(5) { width: 78px; }
 #user-tab #user-table th:nth-child(6),
-#user-tab #user-table td:nth-child(6) { width: 160px; }
+#user-tab #user-table td:nth-child(6) { width: 100px; }
 #user-tab #user-table th:nth-child(7),
-#user-tab #user-table td:nth-child(7) { width: 170px; }
+#user-tab #user-table td:nth-child(7) { width: 108px; }
+#user-tab #user-table { min-width: 700px; }
 
 #equipment-tab .table-scroll-shell .data-table th:nth-child(2),
-#equipment-tab .table-scroll-shell .data-table td:nth-child(2) { width: 140px; }
+#equipment-tab .table-scroll-shell .data-table td:nth-child(2) { width: 70px; }
 #equipment-tab .table-scroll-shell .data-table th:nth-child(3),
-#equipment-tab .table-scroll-shell .data-table td:nth-child(3) { width: 140px; }
+#equipment-tab .table-scroll-shell .data-table td:nth-child(3) { width: 110px; }
 #equipment-tab .table-scroll-shell .data-table th:nth-child(4),
-#equipment-tab .table-scroll-shell .data-table td:nth-child(4) { width: 100px; }
+#equipment-tab .table-scroll-shell .data-table td:nth-child(4) { width: 70px; }
 #equipment-tab .table-scroll-shell .data-table th:nth-child(5),
-#equipment-tab .table-scroll-shell .data-table td:nth-child(5) { width: 140px; }
+#equipment-tab .table-scroll-shell .data-table td:nth-child(5) { width: 88px; }
 #equipment-tab .table-scroll-shell .data-table th:nth-child(6),
-#equipment-tab .table-scroll-shell .data-table td:nth-child(6) { width: 130px; }
+#equipment-tab .table-scroll-shell .data-table td:nth-child(6) { width: 88px; }
 #equipment-tab .table-scroll-shell .data-table th:nth-child(7),
-#equipment-tab .table-scroll-shell .data-table td:nth-child(7) { width: 160px; }
+#equipment-tab .table-scroll-shell .data-table td:nth-child(7) { width: 108px; }
+#equipment-tab .table-scroll-shell .data-table { min-width: 640px; }
 
 #portfolio-tab .files-table-scroll .data-table th:nth-child(2),
-#portfolio-tab .files-table-scroll .data-table td:nth-child(2) { width: 110px; }
+#portfolio-tab .files-table-scroll .data-table td:nth-child(2) { width: 82px; }
 #portfolio-tab .files-table-scroll .data-table th:nth-child(3),
-#portfolio-tab .files-table-scroll .data-table td:nth-child(3) { width: 110px; }
+#portfolio-tab .files-table-scroll .data-table td:nth-child(3) { width: 68px; }
 #portfolio-tab .files-table-scroll .data-table th:nth-child(4),
-#portfolio-tab .files-table-scroll .data-table td:nth-child(4) { width: 130px; }
+#portfolio-tab .files-table-scroll .data-table td:nth-child(4) { width: 84px; }
 #portfolio-tab .files-table-scroll .data-table th:nth-child(5),
-#portfolio-tab .files-table-scroll .data-table td:nth-child(5) { width: 170px; }
+#portfolio-tab .files-table-scroll .data-table td:nth-child(5) { width: 108px; }
 #portfolio-tab .files-table-scroll .data-table th:nth-child(6),
-#portfolio-tab .files-table-scroll .data-table td:nth-child(6) { width: 170px; }
+#portfolio-tab .files-table-scroll .data-table td:nth-child(6) { width: 120px; }
 #portfolio-tab .files-table-scroll .data-table th:nth-child(7),
-#portfolio-tab .files-table-scroll .data-table td:nth-child(7) { width: 160px; }
+#portfolio-tab .files-table-scroll .data-table td:nth-child(7) { width: 148px; }
+#portfolio-tab .files-table-scroll .data-table { min-width: 640px; }
 
 #inquiry-tab .inquiry-table-scroll .data-table th:nth-child(1),
-#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(1) { width: 160px; }
+#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(1) { width: 100px; }
 #inquiry-tab .inquiry-table-scroll .data-table th:nth-child(2),
-#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(2) { width: 160px; }
+#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(2) { width: 118px; }
 #inquiry-tab .inquiry-table-scroll .data-table th:nth-child(3),
-#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(3) { width: 210px; }
+#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(3) { width: 148px; }
 #inquiry-tab .inquiry-table-scroll .data-table th:nth-child(4),
-#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(4) { width: 240px; }
+#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(4) { width: 120px; }
 #inquiry-tab .inquiry-table-scroll .data-table th:nth-child(6),
-#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(6) { width: 150px; }
+#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(6) { width: 88px; }
 #inquiry-tab .inquiry-table-scroll .data-table th:nth-child(7),
-#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(7) { width: 180px; }
+#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(7) { width: 110px; }
 #inquiry-tab .inquiry-table-scroll .data-table th:nth-child(8),
-#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(8) { width: 150px; }
+#inquiry-tab .inquiry-table-scroll .data-table td:nth-child(8) { width: 120px; }
+#inquiry-tab .inquiry-table-scroll .data-table { min-width: 820px; }
 
 #attendance-tab #attendance-logs-shell .table-scroll-shell .data-table th:nth-child(2),
-#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(2) { width: 120px; }
+#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(2) { width: 118px; }
 #attendance-tab #attendance-logs-shell .table-scroll-shell .data-table th:nth-child(3),
-#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(3) { width: 170px; }
+#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(3) { width: 128px; }
 #attendance-tab #attendance-logs-shell .table-scroll-shell .data-table th:nth-child(4),
-#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(4) { width: 240px; }
+#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(4) { width: 128px; }
 #attendance-tab #attendance-logs-shell .table-scroll-shell .data-table th:nth-child(5),
-#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(5) { width: 120px; }
+#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(5) { width: 100px; }
 #attendance-tab #attendance-logs-shell .table-scroll-shell .data-table th:nth-child(6),
-#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(6) { width: 170px; }
+#attendance-tab #attendance-logs-shell .table-scroll-shell .data-table td:nth-child(6) { width: 138px; }
 
 #attendance-tab #attendance-sites-shell .sites-table-scroll .data-table th:nth-child(2),
-#attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(2) { width: 240px; }
+#attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(2) { width: 178px; }
 #attendance-tab #attendance-sites-shell .sites-table-scroll .data-table th:nth-child(3),
-#attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(3) { width: 240px; }
+#attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(3) { width: 178px; }
 #attendance-tab #attendance-sites-shell .sites-table-scroll .data-table th:nth-child(4),
-#attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(4) { width: 120px; }
+#attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(4) { width: 100px; }
 #attendance-tab #attendance-sites-shell .sites-table-scroll .data-table th:nth-child(5),
-#attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(5) { width: 120px; }
+#attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(5) { width: 100px; }
 #attendance-tab #attendance-sites-shell .sites-table-scroll .data-table th:nth-child(6),
-#attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(6) { width: 170px; }
+#attendance-tab #attendance-sites-shell .sites-table-scroll .data-table td:nth-child(6) { width: 138px; }
 
 #archives-tab .archives-table-scroll .data-table th:nth-child(1),
-#archives-tab .archives-table-scroll .data-table td:nth-child(1) { width: 170px; }
+#archives-tab .archives-table-scroll .data-table td:nth-child(1) { width: 138px; }
 #archives-tab .archives-table-scroll .data-table th:nth-child(2),
-#archives-tab .archives-table-scroll .data-table td:nth-child(2) { width: 120px; }
+#archives-tab .archives-table-scroll .data-table td:nth-child(2) { width: 100px; }
 #archives-tab .archives-table-scroll .data-table th:nth-child(3),
-#archives-tab .archives-table-scroll .data-table td:nth-child(3) { width: 150px; }
+#archives-tab .archives-table-scroll .data-table td:nth-child(3) { width: 120px; }
 #archives-tab .archives-table-scroll .data-table th:nth-child(4),
-#archives-tab .archives-table-scroll .data-table td:nth-child(4) { width: 170px; }
+#archives-tab .archives-table-scroll .data-table td:nth-child(4) { width: 138px; }
 #archives-tab .archives-table-scroll .data-table th:nth-child(5),
-#archives-tab .archives-table-scroll .data-table td:nth-child(5) { width: 150px; }
+#archives-tab .archives-table-scroll .data-table td:nth-child(5) { width: 120px; }
 #archives-tab .archives-table-scroll .data-table th:nth-child(6),
-#archives-tab .archives-table-scroll .data-table td:nth-child(6) { width: 100px; }
+#archives-tab .archives-table-scroll .data-table td:nth-child(6) { width: 88px; }
 #archives-tab .archives-table-scroll .data-table th:nth-child(7),
-#archives-tab .archives-table-scroll .data-table td:nth-child(7) { width: 150px; }
+#archives-tab .archives-table-scroll .data-table td:nth-child(7) { width: 138px; }
 
 #health-tab #siem-logs-scroll .data-table th:nth-child(1),
-#health-tab #siem-logs-scroll .data-table td:nth-child(1) { width: 170px; }
+#health-tab #siem-logs-scroll .data-table td:nth-child(1) { width: 148px; }
 #health-tab #siem-logs-scroll .data-table th:nth-child(2),
-#health-tab #siem-logs-scroll .data-table td:nth-child(2) { width: 120px; }
+#health-tab #siem-logs-scroll .data-table td:nth-child(2) { width: 128px; }
 #health-tab #siem-logs-scroll .data-table th:nth-child(3),
-#health-tab #siem-logs-scroll .data-table td:nth-child(3) { width: 200px; }
+#health-tab #siem-logs-scroll .data-table td:nth-child(3) { width: 98px; }
 #health-tab #siem-logs-scroll .data-table th:nth-child(5),
-#health-tab #siem-logs-scroll .data-table td:nth-child(5) { width: 140px; }
+#health-tab #siem-logs-scroll .data-table td:nth-child(5) { width: 128px; }
 
 #health-tab #backup-logs-scroll .data-table th:nth-child(1),
-#health-tab #backup-logs-scroll .data-table td:nth-child(1) { width: 120px; }
+#health-tab #backup-logs-scroll .data-table td:nth-child(1) { width: 98px; }
 #health-tab #backup-logs-scroll .data-table th:nth-child(2),
-#health-tab #backup-logs-scroll .data-table td:nth-child(2) { width: 170px; }
+#health-tab #backup-logs-scroll .data-table td:nth-child(2) { width: 145px; }
 #health-tab #backup-logs-scroll .data-table th:nth-child(3),
-#health-tab #backup-logs-scroll .data-table td:nth-child(3) { width: 120px; }
+#health-tab #backup-logs-scroll .data-table td:nth-child(3) { width: 98px; }
 #health-tab #backup-logs-scroll .data-table th:nth-child(4),
-#health-tab #backup-logs-scroll .data-table td:nth-child(4) { width: 110px; }
+#health-tab #backup-logs-scroll .data-table td:nth-child(4) { width: 88px; }
 #health-tab #backup-logs-scroll .data-table th:nth-child(5),
-#health-tab #backup-logs-scroll .data-table td:nth-child(5) { width: 130px; }
+#health-tab #backup-logs-scroll .data-table td:nth-child(5) { width: 118px; }
 #health-tab #backup-logs-scroll .data-table th:nth-child(6),
-#health-tab #backup-logs-scroll .data-table td:nth-child(6) { width: 140px; }
+#health-tab #backup-logs-scroll .data-table td:nth-child(6) { width: 128px; }
 
 #health-tab #activity-logs-scroll .data-table th:nth-child(1),
-#health-tab #activity-logs-scroll .data-table td:nth-child(1) { width: 170px; }
+#health-tab #activity-logs-scroll .data-table td:nth-child(1) { width: 148px; }
 #health-tab #activity-logs-scroll .data-table th:nth-child(2),
-#health-tab #activity-logs-scroll .data-table td:nth-child(2) { width: 170px; }
+#health-tab #activity-logs-scroll .data-table td:nth-child(2) { width: 148px; }
 #health-tab #activity-logs-scroll .data-table th:nth-child(4),
-#health-tab #activity-logs-scroll .data-table td:nth-child(4) { width: 140px; }
+#health-tab #activity-logs-scroll .data-table td:nth-child(4) { width: 128px; }
 #health-tab #activity-logs-scroll .data-table th:nth-child(5),
-#health-tab #activity-logs-scroll .data-table td:nth-child(5) { width: 170px; }
+#health-tab #activity-logs-scroll .data-table td:nth-child(5) { width: 148px; }
 
-.data-table th, .data-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #e5e7eb; }
-.data-table th { background-color: #f9fafb; color: #6b7280; font-weight: 600; font-size: 12px; text-transform: uppercase; }
+.data-table th, .data-table td { padding: 11px 14px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+.data-table th { background-color: #f9fafb; color: #6b7280; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
 .data-table tbody tr { transition: background-color 0.2s ease; cursor: default; }
 .data-table tbody tr:nth-child(odd) > td { background-color: #ffffff; }
 .data-table tbody tr:nth-child(even) > td { background-color: #f1f5f9; }
@@ -5240,20 +5257,31 @@ body.theme-dark .attendance-photo-close-btn:hover {
     max-height: none;
     overflow-y: auto;
     overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
+.table-scroll-shell::-webkit-scrollbar { display: none; }
 
 .user-table-scroll {
     max-height: none;
     border: 1px solid #d8dee8;
     border-radius: 8px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
+.user-table-scroll::-webkit-scrollbar { display: none; }
 
 .files-table-scroll,
 .backup-table-scroll,
 .sites-table-scroll {
     border: 1px solid #d8dee8;
     border-radius: 8px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
+.files-table-scroll::-webkit-scrollbar,
+.backup-table-scroll::-webkit-scrollbar,
+.sites-table-scroll::-webkit-scrollbar { display: none; }
 
 .files-table-scroll {
     max-height: none;
