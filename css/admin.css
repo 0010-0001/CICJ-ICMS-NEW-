@@ -4261,10 +4261,8 @@ body.theme-dark .attendance-photo-close-btn:hover {
     max-width: 1000px !important;
     padding: 0 !important;
     border-radius: 16px !important;
-    overflow: hidden;
+    overflow: auto;
     max-height: 90vh;
-    display: flex;
-    flex-direction: column;
 }
 
 .edit-modal .modal-header {
@@ -4272,16 +4270,12 @@ body.theme-dark .attendance-photo-close-btn:hover {
     top: 0;
     z-index: 10;
     background: #2dad50;
-    flex: 0 0 auto;
 }
 
 .edit-modal #edit-user-form {
     padding: 32px 40px 40px 40px;
-    flex: 1 1 auto;
-    overflow-y: auto;
-    padding-bottom: 96px;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
+    padding-bottom: 40px;
 }
 
 .edit-info-section {
@@ -4324,13 +4318,6 @@ body.theme-dark .attendance-photo-close-btn:hover {
     padding: 20px 24px;
     border-radius: 12px;
     border: 2px solid #e2e8f0;
-    transition: all 0.3s ease;
-}
-
-.info-card:hover {
-    border-color: #cbd5e1;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .info-icon {
@@ -4411,12 +4398,6 @@ body.theme-dark .attendance-photo-close-btn:hover {
     border: 2px solid #e2e8f0;
     border-radius: 12px;
     padding: 24px;
-    transition: all 0.3s ease;
-}
-
-.edit-permissions-grid .permission-category:hover {
-    border-color: #2dad50;
-    box-shadow: 0 4px 16px rgba(45, 173, 80, 0.15);
 }
 
 .edit-permissions-grid .category-title {
@@ -4482,12 +4463,6 @@ body.theme-dark .attendance-photo-close-btn:hover {
     justify-content: space-between;
     align-items: center;
     gap: 24px;
-    transition: all 0.3s ease;
-}
-
-.edit-status-toggle:hover {
-    border-color: #86efac;
-    box-shadow: 0 4px 16px rgba(45, 173, 80, 0.15);
 }
 
 .toggle-label-wrapper {
@@ -4544,18 +4519,11 @@ body.theme-dark .attendance-photo-close-btn:hover {
     display: flex;
     justify-content: flex-end;
     gap: 16px;
-    padding: 16px 0 12px;
-    margin: 18px 0 0;
-    background: #ffffff;
-    border-top: 1px solid #e5e7eb;
-    position: sticky;
-    bottom: 0;
-    z-index: 2;
-}
-
-body.theme-dark .edit-modal-actions {
-    background: #0f0f0f;
-    border-top-color: #2a2a2a;
+    padding: 20px 0 0;
+    margin: 14px 0 0;
+    background: transparent;
+    border-top: none;
+    position: static;
 }
 
 .edit-cancel-btn,
