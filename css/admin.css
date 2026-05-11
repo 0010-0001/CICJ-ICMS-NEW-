@@ -4274,9 +4274,9 @@ body.theme-dark .attendance-photo-close-btn:hover {
 
 .edit-modal #edit-user-form {
     padding: 32px 40px 40px 40px;
-    max-height: calc(90vh - 120px);
+    max-height: calc(90vh - 140px);
     overflow-y: auto;
-    padding-bottom: 56px;
+    padding-bottom: 120px;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
 }
