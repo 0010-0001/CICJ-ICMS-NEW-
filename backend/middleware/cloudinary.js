@@ -126,16 +126,18 @@ function isImageType(mimetype) {
 }
 
 /**
- * Determine storage location based on file type and size.
- * Images → Cloudinary (CLOUD)
- * Documents/Blueprints → LOCAL_FTP
+ * Determine storage location based on file type, size, and optional user preference.
+ * @param {string} mimetype
+ * @param {number} fileSizeBytes
+ * @param {string|null} preferredStorage - 'CLOUD' | 'LOCAL_FTP' | null (auto)
  */
-function resolveStorageLocation(mimetype, fileSizeBytes) {
-    // Rule of thumb: images can go to cloud; big docs stay on local FTP storage.
+function resolveStorageLocation(mimetype, fileSizeBytes, preferredStorage = null) {
+    const pref = String(preferredStorage || '').toUpperCase();
+    if (pref === 'CLOUD') return 'CLOUD';
+    if (pref === 'LOCAL_FTP') return 'LOCAL_FTP';
+    // Auto: images ≤25 MB → Cloudinary; docs/large files → LOCAL_FTP
     const isImage = isImageType(mimetype);
-    // Blueprints and large docs go to LOCAL_FTP
     if (!isImage) return 'LOCAL_FTP';
-    // Large files (> 25 MB) also go to LOCAL FTP
     if (fileSizeBytes > 25 * 1024 * 1024) return 'LOCAL_FTP';
     return 'CLOUD';
 }

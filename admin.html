@@ -7,7 +7,7 @@
     <title>Admin Dashboard | CICJ-SHCOMS</title>
     <link rel="stylesheet" href="css/bootstrap-icons/bootstrap-icons.min.css">
     <link rel="stylesheet" href="css/global.css?v=20260402a">
-    <link rel="stylesheet" href="css/admin.css?v=20260505d">
+    <link rel="stylesheet" href="css/admin.css?v=20260512a">
     <link rel="stylesheet" href="css/leaflet.css">
     <link rel="stylesheet" href="css/logout-modal.css?v=20260328a">
     <link rel="stylesheet" href="css/system-typography.css?v=20260329a">
@@ -456,15 +456,32 @@
 
                     <div class="table-container file-upload-panel hidden" id="file-upload-panel">
                         <h2 class="panel-title-tight">Upload New File</h2>
-                        <p class="files-help-text">Images are optimized and stored in Cloudinary. Large blueprints/documents are tagged for Local FTP.</p>
+                        <p class="files-help-text">Select your storage destination, choose a file, and upload.</p>
                         <form id="project-file-upload-form" class="file-upload-form">
+
+                            <div class="fup-storage-row">
+                                <label class="fup-label">Storage Destination</label>
+                                <div class="fup-storage-toggle" id="upload-storage-toggle">
+                                    <button type="button" class="fup-storage-btn active" data-storage="AUTO"><i class="bi bi-magic"></i> Auto</button>
+                                    <button type="button" class="fup-storage-btn" data-storage="CLOUD"><i class="bi bi-cloud-upload"></i> Cloud</button>
+                                    <button type="button" class="fup-storage-btn" data-storage="LOCAL_FTP"><i class="bi bi-hdd-network"></i> Local FTP</button>
+                                </div>
+                                <input type="hidden" id="upload-preferred-storage" value="AUTO">
+                                <p class="fup-storage-hint" id="upload-storage-hint">Auto — images go to Cloudinary, documents go to Local FTP</p>
+                            </div>
+
                             <div class="file-upload-row">
                                 <div>
-                                    <label for="project-file-input">Choose File</label>
+                                    <label for="project-file-input" class="fup-label">Choose File</label>
                                     <input type="file" id="project-file-input" required>
+                                    <div class="fup-file-info hidden" id="file-upload-info">
+                                        <i class="bi bi-file-earmark"></i>
+                                        <span id="file-upload-name"></span>
+                                        <span class="fup-file-size" id="file-upload-size"></span>
+                                    </div>
                                 </div>
                                 <div>
-                                    <label for="project-file-category">Category</label>
+                                    <label for="project-file-category" class="fup-label">Category</label>
                                     <select id="project-file-category">
                                         <option value="project_progress">Project Progress Photo</option>
                                         <option value="portfolio">Portfolio Image</option>
@@ -473,6 +490,12 @@
                                     </select>
                                 </div>
                             </div>
+
+                            <div class="fup-progress-wrap hidden" id="file-upload-progress">
+                                <div class="fup-progress-track"><div class="fup-progress-bar" id="file-upload-progress-bar"></div></div>
+                                <span class="fup-progress-label" id="file-upload-progress-label">Uploading… 0%</span>
+                            </div>
+
                             <div class="file-upload-actions">
                                 <button type="button" class="btn-outline" id="cancel-file-upload-btn">Cancel</button>
                                 <button type="submit" class="btn-primary" id="submit-file-upload-btn"><i class="bi bi-upload"></i> Upload</button>
@@ -1938,7 +1961,7 @@
     <script src="js/modal-utils.js?v=20260402a"></script>
     <script src="js/validation.js?v=20260315b"></script>
     <script src="js/permissions-map.js?v=20260315b"></script>
-    <script src="js/admin.js?v=20260505a"></script>
+    <script src="js/admin.js?v=20260512a"></script>
     <script src="js/leaflet.js"></script>
     <script src="js/admin-attendance.js?v=20260505c"></script>
 </body>

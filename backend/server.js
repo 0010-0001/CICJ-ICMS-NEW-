@@ -3152,7 +3152,8 @@ app.post('/api/files',
 
         const { originalname, mimetype, size, buffer } = req.file;
         const fileSizeMb = parseFloat((size / (1024 * 1024)).toFixed(2));
-        const storageLocation = resolveStorageLocation(mimetype, size);
+        const preferredStorage = String(req.body.preferred_storage || '').toUpperCase() || null;
+        const storageLocation = resolveStorageLocation(mimetype, size, preferredStorage);
 
         try {
             let cloudinaryUrl = null;
@@ -3160,17 +3161,19 @@ app.post('/api/files',
             let localFtpPath = null;
 
             if (storageLocation === 'CLOUD') {
-                // Upload image to Cloudinary with auto optimization
-                const result = await uploadToCloudinary(buffer, {
+                const resourceType = isImageType(mimetype) ? 'image' : 'raw';
+                const uploadOptions = {
                     folder: 'cicj-shcoms/project-files',
-                    resource_type: 'image',
-                    transformation: [{ quality: 'auto', fetch_format: 'auto' }],
+                    resource_type: resourceType,
                     public_id: `project_${Date.now()}_${originalname.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9]/g, '_')}`
-                });
+                };
+                if (resourceType === 'image') {
+                    uploadOptions.transformation = [{ quality: 'auto', fetch_format: 'auto' }];
+                }
+                const result = await uploadToCloudinary(buffer, uploadOptions);
                 cloudinaryUrl = result.secure_url;
                 cloudinaryPublicId = result.public_id;
             } else {
-                // Large files / documents → LOCAL_FTP path placeholder
                 localFtpPath = `/ftp/project-files/${Date.now()}_${originalname}`;
             }
 
@@ -3187,7 +3190,14 @@ app.post('/api/files',
                 }
             });
 
-            await notifyAdmins(
+            res.status(201).json({
+                message: "File uploaded successfully.",
+                file: newFile,
+                storage: storageLocation,
+                url: cloudinaryUrl || localFtpPath
+            });
+
+            notifyAdmins(
                 'NOTIFICATION_FILE_UPLOAD',
                 'LOW',
                 'New Project File Uploaded',
@@ -3200,14 +3210,7 @@ app.post('/api/files',
                     uploader_id: req.user.user_id
                 },
                 `File Uploaded: ${originalname}`
-            );
-
-            res.status(201).json({
-                message: "File uploaded successfully.",
-                file: newFile,
-                storage: storageLocation,
-                url: cloudinaryUrl || localFtpPath
-            });
+            ).catch(err => console.warn('File upload notification warning:', err.message));
         } catch (error) {
             console.error("Upload File Error:", error);
             res.status(500).json({ error: "Failed to upload file." });

@@ -143,6 +143,159 @@ body.theme-dark .files-help-text {
     margin-top: 14px;
 }
 
+/* ============================================================
+   FILE UPLOAD PANEL ENHANCEMENTS
+   Storage toggle · File info chip · Progress bar
+   ============================================================ */
+
+.fup-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+.fup-storage-row {
+    margin-bottom: 18px;
+}
+
+.fup-storage-toggle {
+    display: inline-flex;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f3f4f6;
+}
+
+.fup-storage-btn {
+    padding: 7px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s, color 0.15s;
+}
+
+.fup-storage-btn:not(:last-child) {
+    border-right: 1px solid #d1d5db;
+}
+
+.fup-storage-btn:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.fup-storage-btn.active {
+    background: #2dad50;
+    color: #ffffff;
+}
+
+.fup-storage-hint {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 6px;
+    margin-bottom: 0;
+}
+
+.fup-file-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 7px 12px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #15803d;
+    font-weight: 500;
+}
+
+.fup-file-size {
+    font-size: 11px;
+    color: #6b7280;
+    font-weight: 400;
+    margin-left: 4px;
+}
+
+.fup-progress-wrap {
+    margin-top: 14px;
+    margin-bottom: 4px;
+}
+
+.fup-progress-track {
+    width: 100%;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.fup-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #2dad50, #22c55e);
+    border-radius: 99px;
+    transition: width 0.2s ease;
+}
+
+.fup-progress-label {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Dark-mode overrides */
+body.theme-dark .fup-storage-toggle {
+    background: #1e2530;
+    border-color: #374151;
+}
+
+body.theme-dark .fup-storage-btn {
+    color: #9ca3af;
+}
+
+body.theme-dark .fup-storage-btn:not(:last-child) {
+    border-right-color: #374151;
+}
+
+body.theme-dark .fup-storage-btn:hover {
+    background: #2d3748;
+    color: #f9fafb;
+}
+
+body.theme-dark .fup-storage-btn.active {
+    background: #2dad50;
+    color: #ffffff;
+}
+
+body.theme-dark .fup-storage-hint {
+    color: #6b7280;
+}
+
+body.theme-dark .fup-file-info {
+    background: #052e16;
+    border-color: #166534;
+    color: #4ade80;
+}
+
+body.theme-dark .fup-progress-track {
+    background: #374151;
+}
+
+body.theme-dark .fup-label {
+    color: #9ca3af;
+}
+
 .files-toolbar {
     display: grid;
     grid-template-columns: 220px 1fr;

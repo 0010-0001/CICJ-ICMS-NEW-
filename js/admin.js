@@ -2948,8 +2948,47 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    const uploadStorageToggle = document.getElementById('upload-storage-toggle');
+    const uploadPreferredStorage = document.getElementById('upload-preferred-storage');
+    const uploadStorageHint = document.getElementById('upload-storage-hint');
+    const fileUploadInfo = document.getElementById('file-upload-info');
+    const fileUploadNameEl = document.getElementById('file-upload-name');
+    const fileUploadSizeEl = document.getElementById('file-upload-size');
+    const fileUploadProgress = document.getElementById('file-upload-progress');
+    const fileUploadProgressBar = document.getElementById('file-upload-progress-bar');
+    const fileUploadProgressLabel = document.getElementById('file-upload-progress-label');
+
+    const storageHints = {
+        AUTO: 'Auto \u2014 images go to Cloudinary, documents go to Local FTP',
+        CLOUD: 'Force upload to Cloudinary (images optimized; PDFs stored as raw)',
+        LOCAL_FTP: 'Force save to Local FTP storage'
+    };
+
+    if (uploadStorageToggle) {
+        uploadStorageToggle.addEventListener('click', (e) => {
+            const btn = e.target.closest('.fup-storage-btn');
+            if (!btn) return;
+            uploadStorageToggle.querySelectorAll('.fup-storage-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const val = btn.dataset.storage || 'AUTO';
+            if (uploadPreferredStorage) uploadPreferredStorage.value = val;
+            if (uploadStorageHint) uploadStorageHint.textContent = storageHints[val] || '';
+        });
+    }
+
+    if (projectFileInput) {
+        projectFileInput.addEventListener('change', () => {
+            const file = projectFileInput.files?.[0];
+            if (!file || !fileUploadInfo) return;
+            const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+            if (fileUploadNameEl) fileUploadNameEl.textContent = file.name;
+            if (fileUploadSizeEl) fileUploadSizeEl.textContent = `${sizeMb} MB`;
+            fileUploadInfo.classList.remove('hidden');
+        });
+    }
+
     if (projectFileUploadForm) {
-        projectFileUploadForm.addEventListener('submit', async (e) => {
+        projectFileUploadForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
             if (!hasPermission('can_upload_files')) {
@@ -2969,42 +3008,72 @@ document.addEventListener('DOMContentLoaded', async () => {
                 submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Uploading...';
             }
 
-            try {
-                const formData = new FormData();
-                formData.append('file', selectedFile);
-                formData.append('category', projectFileCategory?.value || 'project_progress');
+            if (fileUploadProgress) {
+                fileUploadProgress.classList.remove('hidden');
+                if (fileUploadProgressBar) fileUploadProgressBar.style.width = '0%';
+                if (fileUploadProgressLabel) fileUploadProgressLabel.textContent = 'Uploading\u2026 0%';
+            }
 
-                const response = await fetch(API_BASE + '/api/files', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: formData
-                });
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('category', projectFileCategory?.value || 'project_progress');
+            const pref = uploadPreferredStorage?.value || 'AUTO';
+            if (pref !== 'AUTO') formData.append('preferred_storage', pref);
 
-                const data = await response.json().catch(() => ({}));
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', API_BASE + '/api/files');
+            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
 
-                if (!response.ok) {
-                    throw new Error(data.error || 'Upload failed');
-                }
+            xhr.upload.addEventListener('progress', (evt) => {
+                if (!evt.lengthComputable) return;
+                const pct = Math.round((evt.loaded / evt.total) * 90);
+                if (fileUploadProgressBar) fileUploadProgressBar.style.width = `${pct}%`;
+                if (fileUploadProgressLabel) fileUploadProgressLabel.textContent = `Uploading\u2026 ${pct}%`;
+            });
 
-                showAlert('File uploaded successfully.');
-                projectFileUploadForm.reset();
-                fileUploadPanel.classList.add('hidden');
+            xhr.addEventListener('load', async () => {
+                if (fileUploadProgressBar) fileUploadProgressBar.style.width = '100%';
+                if (fileUploadProgressLabel) fileUploadProgressLabel.textContent = 'Processing\u2026';
 
-                // Reset filters so the newly uploaded file is visible immediately.
-                if (filesStorageFilter) filesStorageFilter.value = 'ALL';
-                if (filesSearchInput) filesSearchInput.value = '';
+                let data = {};
+                try { data = JSON.parse(xhr.responseText); } catch (_) {}
 
-                await loadProjectFiles();
-            } catch (error) {
-                console.error('Upload file error:', error);
-                if (String(error.message).includes('Failed to fetch')) {
-                    showAlert('Upload failed: Could not reach the server. Please refresh the page and try again.');
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    if (fileUploadProgressLabel) fileUploadProgressLabel.textContent = 'Upload complete!';
+                    setTimeout(() => {
+                        if (fileUploadProgress) fileUploadProgress.classList.add('hidden');
+                        if (fileUploadInfo) fileUploadInfo.classList.add('hidden');
+                    }, 800);
+                    showAlert('File uploaded successfully.');
+                    projectFileUploadForm.reset();
+                    fileUploadPanel.classList.add('hidden');
+                    if (filesStorageFilter) filesStorageFilter.value = 'ALL';
+                    if (filesSearchInput) filesSearchInput.value = '';
+                    await loadProjectFiles();
                 } else {
-                    showAlert(`Upload failed: ${error.message}`);
+                    if (fileUploadProgress) fileUploadProgress.classList.add('hidden');
+                    showAlert(`Upload failed: ${data.error || 'Server error'}`);
                 }
-            } finally {
+
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-upload"></i> Upload';
+                }
+            });
+
+            xhr.addEventListener('error', () => {
+                if (fileUploadProgress) fileUploadProgress.classList.add('hidden');
+                showAlert('Upload failed: Could not reach the server. Please check your connection.');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-upload"></i> Upload';
+                }
+            });
+
+            xhr.send(formData);
+
+            /* dummy block to keep original finally shape */
+            if (false) {
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="bi bi-upload"></i> Upload';

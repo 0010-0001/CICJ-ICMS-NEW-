@@ -4141,8 +4141,47 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    const empUploadStorageToggle = document.getElementById('upload-storage-toggle');
+    const empUploadPreferredStorage = document.getElementById('upload-preferred-storage');
+    const empUploadStorageHint = document.getElementById('upload-storage-hint');
+    const empFileUploadInfo = document.getElementById('file-upload-info');
+    const empFileUploadNameEl = document.getElementById('file-upload-name');
+    const empFileUploadSizeEl = document.getElementById('file-upload-size');
+    const empFileUploadProgress = document.getElementById('file-upload-progress');
+    const empFileUploadProgressBar = document.getElementById('file-upload-progress-bar');
+    const empFileUploadProgressLabel = document.getElementById('file-upload-progress-label');
+
+    const empStorageHints = {
+        AUTO: 'Auto \u2014 images go to Cloudinary, documents go to Local FTP',
+        CLOUD: 'Force upload to Cloudinary (images optimized; PDFs stored as raw)',
+        LOCAL_FTP: 'Force save to Local FTP storage'
+    };
+
+    if (empUploadStorageToggle) {
+        empUploadStorageToggle.addEventListener('click', (e) => {
+            const btn = e.target.closest('.fup-storage-btn');
+            if (!btn) return;
+            empUploadStorageToggle.querySelectorAll('.fup-storage-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const val = btn.dataset.storage || 'AUTO';
+            if (empUploadPreferredStorage) empUploadPreferredStorage.value = val;
+            if (empUploadStorageHint) empUploadStorageHint.textContent = empStorageHints[val] || '';
+        });
+    }
+
+    if (projectFileInput) {
+        projectFileInput.addEventListener('change', () => {
+            const file = projectFileInput.files?.[0];
+            if (!file || !empFileUploadInfo) return;
+            const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+            if (empFileUploadNameEl) empFileUploadNameEl.textContent = file.name;
+            if (empFileUploadSizeEl) empFileUploadSizeEl.textContent = `${sizeMb} MB`;
+            empFileUploadInfo.classList.remove('hidden');
+        });
+    }
+
     if (projectFileUploadForm) {
-        projectFileUploadForm.addEventListener('submit', async (event) => {
+        projectFileUploadForm.addEventListener('submit', (event) => {
             event.preventDefault();
 
             if (!hasPermission('can_upload_files')) {
@@ -4162,36 +4201,71 @@ document.addEventListener('DOMContentLoaded', async () => {
                 submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Uploading...';
             }
 
-            try {
-                const formData = new FormData();
-                formData.append('file', selectedFile);
-                formData.append('category', projectFileCategory?.value || 'project_progress');
+            if (empFileUploadProgress) {
+                empFileUploadProgress.classList.remove('hidden');
+                if (empFileUploadProgressBar) empFileUploadProgressBar.style.width = '0%';
+                if (empFileUploadProgressLabel) empFileUploadProgressLabel.textContent = 'Uploading\u2026 0%';
+            }
 
-                const response = await fetch(API_BASE + '/api/files', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` },
-                    body: formData
-                });
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('category', projectFileCategory?.value || 'project_progress');
+            const pref = empUploadPreferredStorage?.value || 'AUTO';
+            if (pref !== 'AUTO') formData.append('preferred_storage', pref);
 
-                const data = await response.json().catch(() => ({}));
-                if (!response.ok) {
-                    throw new Error(data.error || 'Upload failed');
-                }
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', API_BASE + '/api/files');
+            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
 
-                showAlert('File uploaded successfully.');
-                projectFileUploadForm.reset();
-                fileUploadPanel.classList.add('hidden');
-                if (filesStorageFilter) filesStorageFilter.value = 'ALL';
-                if (filesSearchInput) filesSearchInput.value = '';
-                await window.loadEmployeeFilesData();
-            } catch (error) {
-                console.error('Upload file error:', error);
-                if (String(error.message).includes('Failed to fetch')) {
-                    showAlert('Upload failed: Could not reach the server. Please refresh the page and try again.');
+            xhr.upload.addEventListener('progress', (evt) => {
+                if (!evt.lengthComputable) return;
+                const pct = Math.round((evt.loaded / evt.total) * 90);
+                if (empFileUploadProgressBar) empFileUploadProgressBar.style.width = `${pct}%`;
+                if (empFileUploadProgressLabel) empFileUploadProgressLabel.textContent = `Uploading\u2026 ${pct}%`;
+            });
+
+            xhr.addEventListener('load', async () => {
+                if (empFileUploadProgressBar) empFileUploadProgressBar.style.width = '100%';
+                if (empFileUploadProgressLabel) empFileUploadProgressLabel.textContent = 'Processing\u2026';
+
+                let data = {};
+                try { data = JSON.parse(xhr.responseText); } catch (_) {}
+
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    if (empFileUploadProgressLabel) empFileUploadProgressLabel.textContent = 'Upload complete!';
+                    setTimeout(() => {
+                        if (empFileUploadProgress) empFileUploadProgress.classList.add('hidden');
+                        if (empFileUploadInfo) empFileUploadInfo.classList.add('hidden');
+                    }, 800);
+                    showAlert('File uploaded successfully.');
+                    projectFileUploadForm.reset();
+                    fileUploadPanel.classList.add('hidden');
+                    if (filesStorageFilter) filesStorageFilter.value = 'ALL';
+                    if (filesSearchInput) filesSearchInput.value = '';
+                    await window.loadEmployeeFilesData();
                 } else {
-                    showAlert(`Upload failed: ${error.message}`);
+                    if (empFileUploadProgress) empFileUploadProgress.classList.add('hidden');
+                    showAlert(`Upload failed: ${data.error || 'Server error'}`);
                 }
-            } finally {
+
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-upload"></i> Upload';
+                }
+            });
+
+            xhr.addEventListener('error', () => {
+                if (empFileUploadProgress) empFileUploadProgress.classList.add('hidden');
+                showAlert('Upload failed: Could not reach the server. Please check your connection.');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-upload"></i> Upload';
+                }
+            });
+
+            xhr.send(formData);
+
+            if (false) {
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="bi bi-upload"></i> Upload';
