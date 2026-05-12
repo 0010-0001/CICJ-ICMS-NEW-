@@ -528,9 +528,14 @@ const clearFilterBtn = document.getElementById('clear-attendance-filter');
 
 if (attendanceSearchInput) {
     attendanceSearchInput.value = '';
+    setTimeout(() => { if (attendanceSearchInput) attendanceSearchInput.value = ''; }, 0);
 }
+window.addEventListener('load', () => {
+    if (attendanceSearchInput) attendanceSearchInput.value = '';
+});
 window.addEventListener('pageshow', () => {
     if (attendanceSearchInput) attendanceSearchInput.value = '';
+    setTimeout(() => { if (attendanceSearchInput) attendanceSearchInput.value = ''; }, 0);
 });
 
 function enforceAttendancePermissionUi() {
