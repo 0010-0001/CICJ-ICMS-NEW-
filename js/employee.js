@@ -6196,6 +6196,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const userId = Number(editUserIdEmployee?.value || 0);
             if (!userId) return;
 
+            const currentUserData = JSON.parse(localStorage.getItem('user') || '{}');
+            const isEditingSelf = userId === Number(currentUserData.user_id);
+
             const allPermissions = [
                 'can_view_users', 'can_add_users', 'can_edit_users', 'can_delete_users', 'can_activate_users',
                 'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance', 'can_delete_attendance', 'can_export_attendance',

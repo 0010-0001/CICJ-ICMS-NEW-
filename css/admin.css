@@ -3706,7 +3706,8 @@ body.theme-dark .attendance-photo-close-btn:hover {
 }
 
 /* Edit User Permissions modal: remove section divider lines */
-#edit-user-form .form-section {
+#edit-user-form .form-section,
+#edit-user-form-employee .form-section {
     border-bottom: none !important;
 }
 
@@ -4263,6 +4264,8 @@ body.theme-dark .attendance-photo-close-btn:hover {
     border-radius: 16px !important;
     overflow: hidden;
     max-height: 90vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .edit-modal .modal-header {
@@ -4272,11 +4275,12 @@ body.theme-dark .attendance-photo-close-btn:hover {
     background: #2dad50;
 }
 
-.edit-modal #edit-user-form {
-    padding: 32px 40px 40px 40px;
-    max-height: calc(90vh - 140px);
+.edit-modal #edit-user-form,
+.edit-modal #edit-user-form-employee {
+    padding: 32px 40px 24px 40px;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
-    padding-bottom: 120px;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
 }
@@ -5845,7 +5849,8 @@ body.theme-dark #add-user-form .modal-actions {
     border-top: none !important;
 }
 
-body.theme-dark #edit-user-form .edit-modal-actions {
+body.theme-dark #edit-user-form .edit-modal-actions,
+body.theme-dark #edit-user-form-employee .edit-modal-actions {
     background: transparent !important;
     border-top: none !important;
 }
