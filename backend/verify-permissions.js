@@ -30,7 +30,6 @@ async function verifyPermissions() {
     console.log('\n[Attendance]:');
     console.log('  can_view_all_attendance:', user.can_view_all_attendance);
     console.log('  can_edit_attendance:', user.can_edit_attendance);
-    console.log('  can_export_attendance:', user.can_export_attendance);
     
     console.log('\n[Equipment]:');
     console.log('  can_add_equipment:', user.can_add_equipment);
@@ -49,7 +48,7 @@ async function verifyPermissions() {
     console.log('  can_view_audit_trail:', user.can_view_audit_trail);
     console.log('  can_backup_database:', user.can_backup_database);
     
-    console.log('\n[SUCCESS] Task 3 Complete: All 30 permission flags verified!');
+    console.log('\n[SUCCESS] Task 3 Complete: All permission flags verified!');
     console.log('─────────────────────────────────────────\n');
     
   } catch (error) {

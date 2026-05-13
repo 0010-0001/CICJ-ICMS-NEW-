@@ -23,7 +23,6 @@ async function grantAdminPermissions() {
                 can_view_all_attendance: true,
                 can_edit_attendance: true,
                 can_delete_attendance: true,
-                can_export_attendance: true,
                 
                 // Equipment Permissions
                 can_view_equipment: true,
@@ -62,7 +61,7 @@ async function grantAdminPermissions() {
         console.log('   - Name:', updatedUser.full_name);
         console.log('   - Email:', updatedUser.email);
         console.log('   - Role:', updatedUser.role);
-        console.log('\n[Permissions] All 30 permissions have been enabled.');
+        console.log('\n[Permissions] All permissions have been enabled.');
         console.log('\n[You can now]:');
         console.log('   - View all users in the User Management tab');
         console.log('   - Create new users with the Add New Hire button');

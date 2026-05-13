@@ -54,7 +54,6 @@ async function testUserProvisioning() {
             can_view_all_attendance: false,
             can_edit_attendance: false,
             can_delete_attendance: false,
-            can_export_attendance: false,
 
             can_view_equipment: true,  // [GRANTED]
             can_add_equipment: false,
@@ -89,7 +88,7 @@ async function testUserProvisioning() {
         const permissionsToGrant = Object.keys(newUserData)
             .filter(key => key.startsWith('can_') && newUserData[key] === true);
         
-        console.log('   Permissions to grant: ' + permissionsToGrant.length + ' / 30\n');
+        console.log('   Permissions to grant: ' + permissionsToGrant.length + ' / 29\n');
 
         // 3. Delete test user if exists (from previous runs)
         await prisma.user.deleteMany({
@@ -120,7 +119,6 @@ async function testUserProvisioning() {
                 can_view_all_attendance: newUserData.can_view_all_attendance || false,
                 can_edit_attendance: newUserData.can_edit_attendance || false,
                 can_delete_attendance: newUserData.can_delete_attendance || false,
-                can_export_attendance: newUserData.can_export_attendance || false,
 
                 can_view_equipment: newUserData.can_view_equipment !== undefined ? newUserData.can_view_equipment : true,
                 can_add_equipment: newUserData.can_add_equipment || false,
@@ -171,7 +169,7 @@ async function testUserProvisioning() {
             ],
             'Attendance': [
                 'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance',
-                'can_delete_attendance', 'can_export_attendance'
+                'can_delete_attendance'
             ],
             'Equipment': [
                 'can_view_equipment', 'can_add_equipment', 'can_edit_equipment',
@@ -210,7 +208,7 @@ async function testUserProvisioning() {
         }
 
         console.log('==========================================');
-        console.log(`[Summary] Total Permissions Granted: ${totalGranted} / 30`);
+        console.log(`[Summary] Total Permissions Granted: ${totalGranted} / 29`);
         console.log('==========================================\n');
 
         // 6. Verify password encryption

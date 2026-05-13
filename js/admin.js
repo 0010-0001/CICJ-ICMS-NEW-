@@ -296,7 +296,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const canViewInquiries = hasPermission('can_view_inquiries');
         const canAddInquiries = hasPermission('can_add_inquiries');
         const canViewAttendance = hasPermission('can_view_all_attendance');
-        const canExportAttendance = hasPermission('can_export_attendance');
         const canEditAttendance = hasPermission('can_edit_attendance');
         const canBackupDatabase = hasPermission('can_backup_database');
         const canExportHealthLogs = hasPermission('can_export_health_logs');
@@ -399,7 +398,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const reportPermissionMap = {
-            attendance: canExportAttendance,
+            attendance: hasPermission('can_export_attendance_report'),
             'attendance-sites': canViewAttendance || canEditAttendance,
             'equipment-usage': canViewEquipment,
             'equipment-inventory': canViewEquipment,
@@ -459,7 +458,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTabPermissionNotice('equipment-tab', !canViewEquipment, 'You do not have permission to view equipment records.');
         setTabPermissionNotice('inquiry-tab', !canViewInquiries && !canAddInquiries, 'You do not have permission to view or submit inquiry data.');
         setTabPermissionNotice('portfolio-tab', !canViewFiles && !canUploadFiles, 'You do not have permission to view or upload project files.');
-        setTabPermissionNotice('attendance-tab', !canViewAttendance && !canExportAttendance && !canEditAttendance, 'You do not have permission to access attendance sections.');
+        setTabPermissionNotice('attendance-tab', !canViewAttendance && !canEditAttendance, 'You do not have permission to access attendance sections.');
         setTabPermissionNotice('health-tab', !canViewHealthLogs && !canViewAuditTrail && !canBackupDatabase && !canExportHealthLogs, 'You do not have permission to access system health sections.');
         setTabPermissionNotice('reports-tab', !canViewReports, 'You do not have permission to access reports.');
         setTabPermissionNotice('archives-tab', !canViewArchives, 'You do not have permission to view immutable archive records.');
@@ -1937,7 +1936,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         'supervisor': {
             description: 'Field Supervisor (Team Management)',
             permissions: [
-                'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance', 'can_export_attendance',
+                'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance',
                 'can_view_equipment', 'can_add_equipment', 'can_assign_equipment',
                 'can_view_files', 'can_upload_files', 'can_download_files',
                 'can_view_inquiries',
@@ -1948,7 +1947,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             description: 'HR Admin (People Operations)',
             permissions: [
                 'can_view_users', 'can_add_users', 'can_edit_users', 'can_activate_users',
-                'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance', 'can_delete_attendance', 'can_export_attendance',
+                'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance', 'can_delete_attendance',
                 'can_view_equipment',
                 'can_view_files', 'can_download_files',
                 'can_view_audit_trail',
@@ -1968,7 +1967,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             description: 'Select All (Full Access)',
             permissions: [
                 'can_view_users', 'can_add_users', 'can_edit_users', 'can_delete_users', 'can_activate_users',
-                'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance', 'can_delete_attendance', 'can_export_attendance',
+                'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance', 'can_delete_attendance',
                 'can_view_equipment', 'can_add_equipment', 'can_edit_equipment', 'can_delete_equipment', 'can_assign_equipment',
                 'can_view_files', 'can_upload_files', 'can_edit_files', 'can_delete_files', 'can_download_files',
                 'can_view_inquiries', 'can_add_inquiries', 'can_update_inquiries', 'can_delete_inquiries', 'can_assign_inquiries',
@@ -3847,7 +3846,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function canDownloadReportType(reportType) {
         const reportPermissionMap = {
-            attendance: hasPermission('can_export_attendance'),
+            attendance: hasPermission('can_export_attendance_report'),
             'attendance-sites': hasPermission('can_view_all_attendance') || hasPermission('can_edit_attendance'),
             'equipment-usage': hasPermission('can_view_equipment'),
             'equipment-inventory': hasPermission('can_view_equipment'),
@@ -4665,8 +4664,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             { value: 'can_view_own_attendance', label: 'View Own Attendance' },
             { value: 'can_view_all_attendance', label: 'View All Attendance' },
             { value: 'can_edit_attendance', label: 'Edit/Correct Logs' },
-            { value: 'can_delete_attendance', label: 'Delete Logs' },
-            { value: 'can_export_attendance', label: 'Export Reports' }
+            { value: 'can_delete_attendance', label: 'Delete Logs' }
         ],
         'Equipment': [
             { value: 'can_view_equipment', label: 'View Inventory' },
@@ -4931,7 +4929,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // List of ALL permissions in the system (must match database schema)
             const allPermissions = [
                 'can_view_users', 'can_add_users', 'can_edit_users', 'can_delete_users', 'can_activate_users',
-                'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance', 'can_delete_attendance', 'can_export_attendance',
+                'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance', 'can_delete_attendance',
                 'can_view_equipment', 'can_add_equipment', 'can_edit_equipment', 'can_delete_equipment', 'can_assign_equipment',
                 'can_view_files', 'can_upload_files', 'can_edit_files', 'can_delete_files', 'can_download_files',
                 'can_view_inquiries', 'can_add_inquiries', 'can_update_inquiries', 'can_delete_inquiries', 'can_assign_inquiries',

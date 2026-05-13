@@ -130,7 +130,6 @@ function buildAdminPermissions() {
         can_view_all_attendance: true,
         can_edit_attendance: true,
         can_delete_attendance: true,
-        can_export_attendance: true,
         can_view_equipment: true,
         can_add_equipment: true,
         can_edit_equipment: true,
@@ -1252,7 +1251,7 @@ app.post('/register', authenticateToken, requirePermission('can_add_users'), val
         contact_number, 
         is_active,
         
-        // ===== GRANULAR PERMISSIONS MATRIX (30 flags) =====
+        // ===== GRANULAR PERMISSIONS MATRIX =====
         // User Management Permissions
         can_view_users,
         can_add_users,
@@ -1265,7 +1264,6 @@ app.post('/register', authenticateToken, requirePermission('can_add_users'), val
         can_view_all_attendance,
         can_edit_attendance,
         can_delete_attendance,
-        can_export_attendance,
         
         // Equipment Permissions
         can_view_equipment,
@@ -1327,12 +1325,11 @@ app.post('/register', authenticateToken, requirePermission('can_add_users'), val
                 can_delete_users: can_delete_users || false,
                 can_activate_users: can_activate_users || false,
                 
-                // Attendance (5 permissions)
+                // Attendance
                 can_view_own_attendance: can_view_own_attendance !== undefined ? can_view_own_attendance : true, // Default true
                 can_view_all_attendance: can_view_all_attendance || false,
                 can_edit_attendance: can_edit_attendance || false,
                 can_delete_attendance: can_delete_attendance || false,
-                can_export_attendance: can_export_attendance || false,
                 
                 // Equipment (5 permissions)
                 can_view_equipment: can_view_equipment !== undefined ? can_view_equipment : true, // Default true
@@ -1435,7 +1432,6 @@ app.get('/api/me', authenticateToken, async (req, res) => {
                 can_view_all_attendance: true,
                 can_edit_attendance: true,
                 can_delete_attendance: true,
-                can_export_attendance: true,
                 // Equipment Management permissions
                 can_add_equipment: true,
                 can_edit_equipment: true,
@@ -1578,7 +1574,6 @@ app.get('/api/users/:user_id', authenticateToken, requirePermission('can_view_us
                 can_view_all_attendance: true,
                 can_edit_attendance: true,
                 can_delete_attendance: true,
-                can_export_attendance: true,
                 can_view_equipment: true,
                 can_add_equipment: true,
                 can_edit_equipment: true,
@@ -1634,7 +1629,7 @@ app.put('/api/users/:user_id', authenticateToken, requirePermission('can_edit_us
         // User Management
         can_view_users, can_add_users, can_edit_users, can_delete_users, can_activate_users,
         // Attendance
-        can_view_own_attendance, can_view_all_attendance, can_edit_attendance, can_delete_attendance, can_export_attendance,
+        can_view_own_attendance, can_view_all_attendance, can_edit_attendance, can_delete_attendance,
         // Equipment
         can_view_equipment, can_add_equipment, can_edit_equipment, can_delete_equipment, can_assign_equipment,
         // Files
@@ -1649,7 +1644,7 @@ app.put('/api/users/:user_id', authenticateToken, requirePermission('can_edit_us
 
     const permissionFieldNames = [
         'can_view_users', 'can_add_users', 'can_edit_users', 'can_delete_users', 'can_activate_users',
-        'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance', 'can_delete_attendance', 'can_export_attendance',
+        'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance', 'can_delete_attendance',
         'can_view_equipment', 'can_add_equipment', 'can_edit_equipment', 'can_delete_equipment', 'can_assign_equipment',
         'can_view_files', 'can_upload_files', 'can_edit_files', 'can_delete_files', 'can_download_files',
         'can_view_inquiries', 'can_add_inquiries', 'can_update_inquiries', 'can_delete_inquiries', 'can_assign_inquiries',
@@ -1714,7 +1709,7 @@ app.put('/api/users/:user_id', authenticateToken, requirePermission('can_edit_us
         const updateData = {
             full_name, email, contact_number, role, is_active,
             can_view_users, can_add_users, can_edit_users, can_delete_users, can_activate_users,
-            can_view_own_attendance, can_view_all_attendance, can_edit_attendance, can_delete_attendance, can_export_attendance,
+            can_view_own_attendance, can_view_all_attendance, can_edit_attendance, can_delete_attendance,
             can_view_equipment, can_add_equipment, can_edit_equipment, can_delete_equipment, can_assign_equipment,
             can_view_files, can_upload_files, can_edit_files, can_delete_files, can_download_files,
             can_view_inquiries, can_add_inquiries, can_update_inquiries, can_delete_inquiries, can_assign_inquiries,
@@ -3826,7 +3821,7 @@ function resolveReportFormat(req, res) {
 }
 
 // Weekly Attendance Logs Report
-app.get('/api/reports/attendance', authenticateToken, requirePermission('can_export_attendance'), async (req, res) => {
+app.get('/api/reports/attendance', authenticateToken, requirePermission('can_export_attendance_report'), async (req, res) => {
     try {
         const format = resolveReportFormat(req, res);
         if (!format) return;
@@ -4057,7 +4052,7 @@ app.get('/api/reports/user-access', authenticateToken, requirePermission('can_ma
 
         const permissionKeys = [
             'can_view_users', 'can_add_users', 'can_edit_users', 'can_delete_users', 'can_activate_users',
-            'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance', 'can_delete_attendance', 'can_export_attendance',
+            'can_view_own_attendance', 'can_view_all_attendance', 'can_edit_attendance', 'can_delete_attendance',
             'can_view_equipment', 'can_add_equipment', 'can_edit_equipment', 'can_delete_equipment', 'can_assign_equipment',
             'can_view_files', 'can_upload_files', 'can_edit_files', 'can_delete_files', 'can_download_files',
             'can_view_inquiries', 'can_add_inquiries', 'can_update_inquiries', 'can_delete_inquiries', 'can_assign_inquiries',
@@ -4937,7 +4932,6 @@ app.get('/api/users/me/permissions', authenticateToken, async (req, res) => {
                 can_view_all_attendance: true,
                 can_edit_attendance: true,
                 can_delete_attendance: true,
-                can_export_attendance: true,
                 
                 // Equipment
                 can_view_equipment: true,

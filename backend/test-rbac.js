@@ -64,8 +64,7 @@ async function testGranularRBAC() {
                 'can_view_own_attendance',
                 'can_view_all_attendance',
                 'can_edit_attendance',
-                'can_delete_attendance',
-                'can_export_attendance'
+                'can_delete_attendance'
             ],
             'Equipment': [
                 'can_view_equipment',

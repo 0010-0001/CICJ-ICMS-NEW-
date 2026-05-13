@@ -22,7 +22,6 @@ function buildAdminPermissions() {
     can_view_all_attendance: true,
     can_edit_attendance: true,
     can_delete_attendance: true,
-    can_export_attendance: true,
     can_view_equipment: true,
     can_add_equipment: true,
     can_edit_equipment: true,

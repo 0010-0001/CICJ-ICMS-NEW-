@@ -100,9 +100,9 @@ const authorizeRole = (role) => {
  *   app.post('/api/users', authenticateToken, requirePermission('can_add_users'), handler);
  *   app.get('/api/equipment', authenticateToken, requirePermission('can_view_equipment'), handler);
  * 
- * Available Permissions (30 total):
+ * Available Permissions (core set):
  *   - User Management: can_view_users, can_add_users, can_edit_users, can_delete_users, can_activate_users
- *   - Attendance: can_view_own_attendance, can_view_all_attendance, can_edit_attendance, can_delete_attendance, can_export_attendance
+ *   - Attendance: can_view_own_attendance, can_view_all_attendance, can_edit_attendance, can_delete_attendance
  *   - Equipment: can_view_equipment, can_add_equipment, can_edit_equipment, can_delete_equipment, can_assign_equipment
  *   - Files: can_view_files, can_upload_files, can_edit_files, can_delete_files, can_download_files
  *   - Inquiries: can_view_inquiries, can_add_inquiries, can_update_inquiries, can_delete_inquiries, can_assign_inquiries
@@ -141,7 +141,6 @@ const requirePermission = (permissionFlag) => {
                     can_view_all_attendance: true,
                     can_edit_attendance: true,
                     can_delete_attendance: true,
-                    can_export_attendance: true,
                     
                     // Equipment Permissions
                     can_view_equipment: true,
@@ -274,7 +273,7 @@ const requireAllPermissions = (permissionFlags) => {
  * User needs at least ONE of the specified permissions
  * 
  * Usage:
- *   requireAnyPermission(['can_view_all_attendance', 'can_export_attendance'])
+ *   requireAnyPermission(['can_view_all_attendance', 'can_edit_attendance'])
  */
 const requireAnyPermission = (permissionFlags) => {
     return async (req, res, next) => {
