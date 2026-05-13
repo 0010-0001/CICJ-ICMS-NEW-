@@ -21,12 +21,21 @@ const xss = require('xss');
  * ==========================================
  * Sanitizes all string inputs to prevent XSS attacks
  */
+const DATA_URL_PREFIX = /^data:image\/(png|jpe?g|webp|gif);base64,/i;
+const DATA_URL_KEYS = new Set(['photo', 'profile_photo']);
+
+function shouldSkipSanitize(key, value) {
+    if (!DATA_URL_KEYS.has(key)) return false;
+    if (typeof value !== 'string') return false;
+    return DATA_URL_PREFIX.test(value.trim());
+}
+
 const sanitizeInput = (req, res, next) => {
     // Clean request strings early to reduce XSS risk across the app.
     // Sanitize body
     if (req.body) {
         Object.keys(req.body).forEach(key => {
-            if (typeof req.body[key] === 'string') {
+            if (typeof req.body[key] === 'string' && !shouldSkipSanitize(key, req.body[key])) {
                 req.body[key] = xss(req.body[key]);
             }
         });

@@ -2605,7 +2605,7 @@ app.get('/api/attendance/:log_id', authenticateToken, requirePermission('can_vie
 });
 
 // Clock In/Out - All authenticated users can log attendance
-app.post('/api/attendance', authenticateToken, async (req, res) => {
+app.post('/api/attendance', authenticateToken, validateAttendance, handleValidationErrors, async (req, res) => {
     const { action, location_lat, location_lng } = req.body;
     
     if (!action || !['clock_in', 'clock_out'].includes(action)) {
@@ -2621,6 +2621,17 @@ app.post('/api/attendance', authenticateToken, async (req, res) => {
     }
 
     try {
+        const photoPayload = req.body.photo;
+        if (photoPayload) {
+            const photoCheck = validateProfilePhotoDataUrl(photoPayload);
+            if (!photoCheck.valid) {
+                return res.status(400).json({
+                    error: photoCheck.error || 'Invalid attendance photo.'
+                });
+            }
+            req.body.photo = photoCheck.normalized;
+        }
+
         const userLat = parseFloat(location_lat);
         const userLon = parseFloat(location_lng);
 
