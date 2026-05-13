@@ -46,6 +46,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         return false;
     }
+
+    function clearSearchAutofill() {
+        const inputs = Array.from(document.querySelectorAll('input'));
+        const searchInputs = inputs.filter((input) => {
+            if (!input || input.type === 'password') return false;
+            const id = String(input.id || '').toLowerCase();
+            const name = String(input.name || '').toLowerCase();
+            const classes = String(input.className || '').toLowerCase();
+            const placeholder = String(input.placeholder || '').toLowerCase();
+            return id.includes('search') || name.includes('search') || classes.includes('search') || placeholder.includes('search');
+        });
+
+        searchInputs.forEach((input) => {
+            input.value = '';
+            input.defaultValue = '';
+        });
+    }
+
+    function scheduleSearchAutofillClear() {
+        clearSearchAutofill();
+        setTimeout(clearSearchAutofill, 0);
+        setTimeout(clearSearchAutofill, 180);
+    }
     
     // DEBUG: Show what's in localStorage
     console.log('[Employee Dashboard] DEBUG - User from localStorage:', {
@@ -103,6 +126,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     user = await refreshUserPermissions();
     if (!user) return;
     if (redirectToAuthorizedDashboard(user, 'post-refresh check')) return;
+
+    scheduleSearchAutofillClear();
+    window.addEventListener('pageshow', scheduleSearchAutofillClear);
 
     // Collect topbar controls once so all handlers share the same references.
     const topbarThemeRoot = document.getElementById('topbar-theme-root');

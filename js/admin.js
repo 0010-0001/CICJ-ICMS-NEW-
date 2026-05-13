@@ -41,6 +41,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         return false;
     }
+
+    function clearSearchAutofill() {
+        const inputs = Array.from(document.querySelectorAll('input'));
+        const searchInputs = inputs.filter((input) => {
+            if (!input || input.type === 'password') return false;
+            const id = String(input.id || '').toLowerCase();
+            const name = String(input.name || '').toLowerCase();
+            const classes = String(input.className || '').toLowerCase();
+            const placeholder = String(input.placeholder || '').toLowerCase();
+            return id.includes('search') || name.includes('search') || classes.includes('search') || placeholder.includes('search');
+        });
+
+        searchInputs.forEach((input) => {
+            input.value = '';
+            input.defaultValue = '';
+        });
+    }
+
+    function scheduleSearchAutofillClear() {
+        clearSearchAutofill();
+        setTimeout(clearSearchAutofill, 0);
+        setTimeout(clearSearchAutofill, 180);
+    }
     
     // --- 2. FETCH FRESH PERMISSIONS FROM SERVER ---
     async function refreshUserPermissions() {
@@ -96,6 +119,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // On admin page, always render admin feature set.
     renderDynamicNavigation(user, sidebarNav, true);
+
+    scheduleSearchAutofillClear();
+    window.addEventListener('pageshow', scheduleSearchAutofillClear);
     
     // --- 4. PERIODIC PERMISSION REFRESH (Check every 30 seconds for changes) ---
     setInterval(async () => {
