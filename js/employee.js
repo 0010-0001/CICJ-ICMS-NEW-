@@ -1136,6 +1136,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    function humanizeNotificationType(value) {
+        const raw = String(value || '').trim();
+        if (!raw) return '';
+        return raw
+            .replace(/[_-]+/g, ' ')
+            .replace(/\b\w/g, (match) => match.toUpperCase());
+    }
+
+    function parseNotificationContext(description) {
+        if (typeof description !== 'string') return null;
+        const markerIndex = description.indexOf('Context:');
+        if (markerIndex === -1) return null;
+        const contextText = description.slice(markerIndex + 8).trim();
+        if (!contextText) return null;
+        try {
+            return JSON.parse(contextText);
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function normalizeNotificationActivity(item) {
+        const description = typeof item?.description === 'string' ? item.description.trim() : '';
+        const parts = description.split('|').map(part => part.trim()).filter(Boolean);
+        const parsedContext = parseNotificationContext(description);
+        const payload = parsedContext || (item?.context && typeof item.context === 'object' ? item.context : null);
+
+        let title = parts[0] || item?.title || 'System Notification';
+        title = String(title).replace(/^(\[[^\]]+\]\s*)+/g, '').trim();
+        if (payload?.notification_type) {
+            title = humanizeNotificationType(payload.notification_type) || title;
+        }
+
+        let message = payload?.message_body || payload?.message || '';
+        if (!message && parts.length >= 2) {
+            message = parts[1];
+        }
+        if (!message) {
+            message = description || item?.message || 'A system update was recorded.';
+        }
+
+        const severity = String(payload?.severity || item?.severity || 'low').toLowerCase();
+        return {
+            title,
+            message,
+            timestamp: item?.timestamp,
+            severity: ['high', 'medium', 'low'].includes(severity) ? severity : 'low'
+        };
+    }
+
     function getCurrentUserProfilePhoto() {
         const value = typeof user?.profile_photo === 'string' ? user.profile_photo.trim() : '';
         return value || '';
@@ -1308,12 +1358,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (response.ok) {
                 const data = await response.json();
                 const notifications = Array.isArray(data.notifications) ? data.notifications : [];
-                const mapped = notifications.map(item => ({
-                    title: 'System Notification',
-                    message: String(item.description || 'A system update was recorded.'),
-                    timestamp: item.timestamp,
-                    severity: 'low'
-                }));
+                const mapped = notifications.map(normalizeNotificationActivity);
                 renderProfileActivity(mapped);
                 return;
             }
