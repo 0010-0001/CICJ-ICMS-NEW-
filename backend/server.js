@@ -2644,8 +2644,27 @@ app.post('/api/attendance', authenticateToken, async (req, res) => {
             });
         }
 
+        const validSites = sites.filter((site) => {
+            const siteLat = parseFloat(site.center_lat);
+            const siteLon = parseFloat(site.center_lng);
+            return isValidCoordinates(siteLat, siteLon);
+        });
+
+        if (validSites.length === 0) {
+            return res.status(503).json({
+                error: "Construction site coordinates missing",
+                message: "No active construction site has valid GPS coordinates. Please contact your administrator."
+            });
+        }
+
         // Find nearest site and check if user is within geo-fence
-        const nearestSite = findNearestSite(userLat, userLon, sites);
+        const nearestSite = findNearestSite(userLat, userLon, validSites);
+        if (!nearestSite) {
+            return res.status(503).json({
+                error: "Unable to resolve nearest construction site",
+                message: "Please contact your administrator to verify site GPS configuration."
+            });
+        }
         const geoFenceCheck = isWithinGeoFence(
             userLat,
             userLon,
