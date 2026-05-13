@@ -693,6 +693,10 @@
 .stat-card h3 { color: #6b7280; font-size: 14px; margin-bottom: 8px; text-transform: uppercase; }
 .stat-number { font-size: 32px; font-weight: bold; color: #2dad50; }
 
+#files-tab .stat-number {
+    color: #111827;
+}
+
 /* Table Styling */
 .table-container { background: white; padding: 20px 16px; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-top: 24px; }
 .table-container h2 { font-size: 18px; margin-bottom: 16px; color: #111827; }
