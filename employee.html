@@ -375,8 +375,13 @@
                             <p class="overview-kpi-trend">Items not yet returned</p>
                         </div>
                     </div>
+
+                    <nav class="attendance-subtabs equipment-subtabs" aria-label="Equipment sections" role="tablist">
+                        <button type="button" class="attendance-subtab-btn equipment-subtab-btn active" id="equipment-tab-btn-history" data-equipment-shell="equipment-history-shell" role="tab" aria-selected="true" aria-controls="equipment-history-shell" tabindex="0">My Equipment History</button>
+                        <button type="button" class="attendance-subtab-btn equipment-subtab-btn" id="equipment-tab-btn-inventory" data-equipment-shell="equipment-inventory-shell" role="tab" aria-selected="false" aria-controls="equipment-inventory-shell" tabindex="-1">Equipment Inventory</button>
+                    </nav>
                     
-                    <div class="table-container" id="equipment-history-shell">
+                    <div class="table-container equipment-subtab-shell" id="equipment-history-shell" role="tabpanel" aria-labelledby="equipment-tab-btn-history" aria-hidden="false">
                         <h2>My Equipment History</h2>
                         <div class="table-scroll-shell">
                         <table class="data-table" id="equipment-history-table">
@@ -400,7 +405,7 @@
                         </div>
                     </div>
 
-                    <div class="table-container section-top-gap-xl" id="equipment-inventory-shell">
+                    <div class="table-container equipment-subtab-shell equipment-subtab-hidden" id="equipment-inventory-shell" role="tabpanel" aria-labelledby="equipment-tab-btn-inventory" aria-hidden="true">
                         <h2>Equipment Inventory</h2>
                         <div class="table-scroll-shell">
                         <table class="data-table">

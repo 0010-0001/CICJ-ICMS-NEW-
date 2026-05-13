@@ -733,6 +733,17 @@
     display: none;
 }
 
+/* Equipment subtabs (employee only). */
+#equipment-tab .equipment-subtab-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+#equipment-tab .equipment-subtab-shell.equipment-subtab-hidden {
+    display: none;
+}
+
 /* Keep audit trail rows readable: fixed columns + wrapped description text. */
 #health-audit-shell .health-logs-scroll .data-table {
     table-layout: fixed;

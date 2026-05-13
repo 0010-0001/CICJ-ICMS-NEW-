@@ -568,7 +568,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         paginationContainer.classList.remove('hidden');
         paginationContainer.innerHTML = `
-            <div class="table-pagination-meta">Showing ${startIndex + 1}â€“${endIndex} of ${totalItems}</div>
+            <div class="table-pagination-meta">Showing ${startIndex + 1}-${endIndex} of ${totalItems}</div>
             <div class="table-pagination-controls">
                 <button type="button" class="table-page-btn" data-generic-action="prev" ${prevDisabled}>Previous</button>
                 <div class="table-page-numbers">${numberButtons}</div>
@@ -729,6 +729,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    function setActiveEquipmentSubtab(targetShellId) {
+        if (!targetShellId) return;
+        const buttons = document.querySelectorAll('.equipment-subtab-btn');
+        const shells = document.querySelectorAll('.equipment-subtab-shell');
+        if (buttons.length === 0 || shells.length === 0) return;
+        buttons.forEach((button) => {
+            const isActive = button.dataset.equipmentShell === targetShellId;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            button.setAttribute('tabindex', isActive ? '0' : '-1');
+        });
+        shells.forEach((shell) => {
+            const shouldShow = shell.id === targetShellId;
+            shell.classList.toggle('equipment-subtab-hidden', !shouldShow);
+            shell.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+        });
+        requestAnimationFrame(() => {
+            refreshAllTablePaginations({ captureFromDom: false, onlyVisible: true });
+        });
+    }
+
     function syncAttendanceSubtabsWithPermissions() {
         const buttons = Array.from(document.querySelectorAll('.attendance-subtab-btn'));
         if (buttons.length === 0) return;
@@ -744,6 +765,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         const activeVisible = visibleButtons.find((b) => b.classList.contains('active'));
         const target = activeVisible || visibleButtons[0];
         setActiveAttendanceSubtab(target.dataset.attendanceShell || '');
+    }
+
+    function syncEquipmentSubtabsWithPermissions() {
+        const buttons = Array.from(document.querySelectorAll('.equipment-subtab-btn'));
+        if (buttons.length === 0) return;
+        const visibleButtons = [];
+        buttons.forEach((button) => {
+            const shellId = button.dataset.equipmentShell || '';
+            const shell = document.getElementById(shellId);
+            const allowed = !!shell && !shell.classList.contains('hidden');
+            button.classList.toggle('hidden', !allowed);
+            if (allowed) visibleButtons.push(button);
+        });
+        if (visibleButtons.length === 0) return;
+        const activeVisible = visibleButtons.find((b) => b.classList.contains('active'));
+        const target = activeVisible || visibleButtons[0];
+        setActiveEquipmentSubtab(target.dataset.equipmentShell || '');
     }
 
     function enforceEmployeePermissionUi() {
@@ -877,6 +915,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         syncHealthSubtabsWithPermissions();
         syncInquirySubtabsWithPermissions();
         syncAttendanceSubtabsWithPermissions();
+        syncEquipmentSubtabsWithPermissions();
     }
 
     // On employee page, always render employee features only.
@@ -908,6 +947,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     document.querySelectorAll('.attendance-subtab-btn').forEach((button) => {
         button.addEventListener('click', () => setActiveAttendanceSubtab(button.dataset.attendanceShell || ''));
+    });
+    document.querySelectorAll('.equipment-subtab-btn').forEach((button) => {
+        button.addEventListener('click', () => setActiveEquipmentSubtab(button.dataset.equipmentShell || ''));
     });
 
     initializeGenericTablePaginationObservers();
