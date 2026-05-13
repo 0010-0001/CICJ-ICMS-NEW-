@@ -3885,6 +3885,14 @@ body.theme-dark #equipment-inventory-shell .data-table thead th {
 .emp-dashboard-panels {
     grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)) !important;
 }
+
+#dashboard-tab .overview-kpi-grid[data-kpi-columns="1"] { grid-template-columns: minmax(0, 1fr); }
+#dashboard-tab .overview-kpi-grid[data-kpi-columns="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#dashboard-tab .overview-kpi-grid[data-kpi-columns="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+#dashboard-tab .overview-kpi-grid[data-kpi-columns="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+#dashboard-tab .overview-panels-grid[data-grid-columns="1"] { grid-template-columns: minmax(0, 1fr); }
+#dashboard-tab .overview-panels-grid[data-grid-columns="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 /* Slot icons inline with overview panel headings */
 .overview-panel-head h3 .bi {
     color: #2dad50;

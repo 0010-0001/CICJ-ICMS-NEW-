@@ -6649,7 +6649,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             container.innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">${gridLines}${svgDatasets}${xLabels}</svg>`;
         }
 
-        // ---- Attendance bar chart (mirrors admin.js buildAttendanceBars, uses employee-only logs) ----
+        // ---- Attendance bar chart (mirrors admin.js buildAttendanceBars) ----
         function buildEmpAttendanceBars(logs, periodRange) {
             const barsEl  = document.getElementById('emp-attendance-bars');
             const scaleEl = document.getElementById('emp-attendance-scale');
@@ -6711,21 +6711,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // ---- Permission gates for chart rows ----
         const sectionGates = {
-            'attendance':    () => hasPermission('can_view_own_attendance'),
-            'equipment':     () => hasPermission('can_view_equipment'),
-            'my-tasks':      () => hasPermission('can_view_inquiries') || hasPermission('can_add_inquiries'),
-            'team':          () => hasPermission('can_view_inquiries'),
-            'quick-actions': () => (
+            'attendance':       () => hasPermission('can_view_own_attendance'),
+            'attendance-chart': () => hasPermission('can_view_all_attendance'),
+            'equipment':        () => hasPermission('can_view_equipment'),
+            'my-tasks':         () => hasPermission('can_view_inquiries') || hasPermission('can_add_inquiries'),
+            'team':             () => hasPermission('can_view_inquiries'),
+            'quick-actions':    () => (
                 hasPermission('can_view_own_attendance') || hasPermission('can_view_equipment') ||
                 hasPermission('can_assign_equipment') || hasPermission('can_add_inquiries') || hasPermission('can_upload_files')
             )
         };
 
         function applyDashboardPermissions() {
-            const canAtt  = sectionGates.attendance();
-            const canEq   = sectionGates.equipment();
-            const canInq  = sectionGates['my-tasks']();
-            const canTeam = sectionGates.team();
+            const canAtt      = sectionGates.attendance();
+            const canAttChart = sectionGates['attendance-chart']();
+            const canEq       = sectionGates.equipment();
+            const canInq      = sectionGates['my-tasks']();
+            const canTeam     = sectionGates.team();
 
             // KPI cards
             const attCard  = document.getElementById('emp-kpi-attendance');
@@ -6744,9 +6746,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const eqChartCard  = document.getElementById('emp-equipment-chart-card');
             const inqChartCard = document.getElementById('emp-inquiry-chart-card');
             const actChartCard = document.getElementById('emp-activity-chart-card');
-            if (attChartCard) attChartCard.classList.toggle('hidden', !canAtt);
+            if (attChartCard) attChartCard.classList.toggle('hidden', !canAttChart);
             if (eqChartCard)  eqChartCard.classList.toggle('hidden', !canEq);
-            if (row1) row1.classList.toggle('hidden', !canAtt && !canEq);
+            if (row1) row1.classList.toggle('hidden', !canAttChart && !canEq);
             if (inqChartCard) inqChartCard.classList.toggle('hidden', !canInq && !canTeam);
             if (actChartCard) actChartCard.classList.toggle('hidden', !canAtt);
             if (row2) row2.classList.toggle('hidden', !canInq && !canTeam && !canAtt);
@@ -6759,8 +6761,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             const tasksCard = document.getElementById('emp-recent-inquiries-card');
             if (tasksCard) tasksCard.classList.toggle('hidden', !canInq && !canTeam);
 
+            // Grid cleanup for missing permissions
+            const kpiGrid = document.querySelector('#dashboard-tab .overview-kpi-grid');
+            if (kpiGrid) {
+                const visibleKpis = kpiGrid.querySelectorAll('.overview-kpi-card:not(.hidden)').length;
+                kpiGrid.dataset.kpiColumns = String(Math.min(Math.max(visibleKpis, 1), 4));
+            }
+
+            if (row1) {
+                const visibleRow1 = row1.querySelectorAll('.overview-panel-card:not(.hidden)').length;
+                row1.dataset.gridColumns = String(visibleRow1 <= 1 ? 1 : 2);
+            }
+
+            if (row2) {
+                const visibleRow2 = row2.querySelectorAll('.overview-panel-card:not(.hidden)').length;
+                row2.dataset.gridColumns = String(visibleRow2 <= 1 ? 1 : 2);
+            }
+
             // Empty state
-            const anyVisible = canAtt || canEq || canInq || canTeam || sectionGates['quick-actions']();
+                const anyVisible = canAtt || canAttChart || canEq || canInq || canTeam || sectionGates['quick-actions']();
             if (emptyStateEl) emptyStateEl.classList.toggle('hidden', anyVisible);
         }
 
@@ -6854,9 +6873,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 setText('emp-dashboard-attendance-status', statusText);
                 setText('emp-dashboard-attendance-sub', subText);
 
-                // Bar chart + line chart
+                // Line chart (my daily check-ins)
                 if (periodRange) {
-                    buildEmpAttendanceBars(logs, periodRange);
                     const actContainer = document.getElementById('emp-activity-chart');
                     if (actContainer) {
                         const { start: pS, end: pE, labels: pL, daysCount, isWeekly } = periodRange;
@@ -6878,6 +6896,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                 setText('emp-dashboard-attendance-status', '\u2014');
                 setText('emp-dashboard-attendance-sub', 'Unable to load attendance.');
                 return [];
+            }
+        }
+
+        // ---- Team Attendance Trend ----
+        async function loadTeamAttendanceTrend(periodRange) {
+            if (!sectionGates['attendance-chart']() || !periodRange) return;
+            try {
+                const res = await fetch(API_BASE + '/api/attendance', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                const logs = Array.isArray(data.attendance)
+                    ? data.attendance
+                    : (Array.isArray(data.logs) ? data.logs : (Array.isArray(data) ? data : []));
+
+                buildEmpAttendanceBars(logs, periodRange);
+            } catch (err) {
+                console.error('[Dashboard] Failed to load team attendance trend:', err);
+                renderEmpty('emp-attendance-bars', 'Unable to load team attendance.');
             }
         }
 
@@ -7027,6 +7065,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             await Promise.allSettled([
                 loadMyAttendance(periodRange),
+                loadTeamAttendanceTrend(periodRange),
                 loadMyEquipment(),
                 loadInquiriesData()
             ]);
