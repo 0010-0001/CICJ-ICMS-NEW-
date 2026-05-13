@@ -724,6 +724,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             shell.classList.toggle('attendance-subtab-hidden', !shouldShow);
             shell.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
         });
+        requestAnimationFrame(() => {
+            refreshAllTablePaginations({ captureFromDom: false, onlyVisible: true });
+        });
     }
 
     function syncAttendanceSubtabsWithPermissions() {
