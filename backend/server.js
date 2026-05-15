@@ -11,8 +11,7 @@ const nodemailer = require('nodemailer');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const PDFDocument = require('pdfkit');
-const { PassThrough, Readable } = require('stream');
-const { Client } = require('basic-ftp');
+const { PassThrough } = require('stream');
 const fs = require('fs');
 const { 
     authenticateToken, 
@@ -3221,22 +3220,25 @@ app.post('/api/files',
                 cloudinaryUrl = result.secure_url;
                 cloudinaryPublicId = result.public_id;
             } else if (storageLocation === 'LOCAL_FTP') {
+                const { Client } = require('basic-ftp');
+                const { Readable } = require('stream');
                 const ftpClient = new Client();
+                ftpClient.ftp.verbose = true;
+
                 const ftpHost = process.env.FTP_HOST;
                 const ftpPort = parseInt(process.env.FTP_PORT, 10);
                 const ftpUser = process.env.FTP_USER;
 
                 const safeName = `${Date.now()}_${originalname.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
                 const ftpBaseDir = '/CICJ_Blueprints';
-                const remotePath = `${ftpBaseDir}/${safeName}`;
-                localFtpPath = remotePath;
+                localFtpPath = `${ftpBaseDir}/${safeName}`;
 
-                console.log('[FTP] Starting FTP upload via Pinggy tunnel.');
+                console.log('[FTP] Attempting Pinggy connection...');
                 console.log('[FTP] Host:', ftpHost);
                 console.log('[FTP] Port:', ftpPort);
                 console.log('[FTP] User:', ftpUser);
                 console.log('[FTP] Remote base dir:', ftpBaseDir);
-                console.log('[FTP] Remote path:', remotePath);
+                console.log('[FTP] Remote path:', localFtpPath);
                 console.log('[FTP] File size (bytes):', size);
 
                 try {
@@ -3254,7 +3256,7 @@ app.post('/api/files',
                     const uploadStream = Readable.from(buffer);
                     console.log('[FTP] Upload stream created.');
 
-                    await ftpClient.uploadFrom(uploadStream, remotePath);
+                    await ftpClient.uploadFrom(uploadStream, localFtpPath);
                     console.log('[FTP] Upload completed successfully.');
                 } catch (ftpError) {
                     console.error('[FTP] Upload failed:', ftpError);
