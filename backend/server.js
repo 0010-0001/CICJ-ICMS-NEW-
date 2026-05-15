@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const axios = require('axios');
+const FormData = require('form-data');
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -3220,50 +3221,35 @@ app.post('/api/files',
                 cloudinaryUrl = result.secure_url;
                 cloudinaryPublicId = result.public_id;
             } else if (storageLocation === 'LOCAL_FTP') {
-                const { Client } = require('basic-ftp');
-                const { Readable } = require('stream');
-                const ftpClient = new Client();
-                ftpClient.ftp.verbose = true;
+                const targetFileName = `${Date.now()}_${originalname.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+                const webhookHost = process.env.FTP_HOST;
+                const webhookUrl = `https://${webhookHost}/upload`;
+                localFtpPath = `/webhook/project-files/${targetFileName}`;
 
-                const ftpHost = process.env.FTP_HOST;
-                const ftpPort = parseInt(process.env.FTP_PORT, 10);
-                const ftpUser = process.env.FTP_USER;
+                console.log('[WEBHOOK] Initiating REST Webhook Transfer...');
+                console.log('[WEBHOOK] Host:', webhookHost);
+                console.log('[WEBHOOK] Target URL:', webhookUrl);
+                console.log('[WEBHOOK] Target filename:', targetFileName);
+                console.log('[WEBHOOK] File size (bytes):', size);
 
-                const safeName = `${Date.now()}_${originalname.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-                const ftpBaseDir = '/CICJ_Blueprints';
-                localFtpPath = `${ftpBaseDir}/${safeName}`;
-
-                console.log('[FTP] Attempting Pinggy connection...');
-                console.log('[FTP] Host:', ftpHost);
-                console.log('[FTP] Port:', ftpPort);
-                console.log('[FTP] User:', ftpUser);
-                console.log('[FTP] Remote base dir:', ftpBaseDir);
-                console.log('[FTP] Remote path:', localFtpPath);
-                console.log('[FTP] File size (bytes):', size);
+                const form = new FormData();
+                form.append('file', buffer, { filename: targetFileName, contentType: mimetype });
 
                 try {
-                    await ftpClient.access({
-                        host: ftpHost,
-                        port: ftpPort,
-                        user: ftpUser,
-                        password: process.env.FTP_PASS
+                    console.log('[WEBHOOK] Sending multipart payload...');
+                    const webhookResponse = await axios.post(webhookUrl, form, {
+                        headers: {
+                            ...form.getHeaders()
+                        },
+                        maxBodyLength: Infinity,
+                        maxContentLength: Infinity
                     });
-                    console.log('[FTP] Connection established.');
-
-                    await ftpClient.ensureDir(ftpBaseDir);
-                    console.log('[FTP] Ensured remote directory.');
-
-                    const uploadStream = Readable.from(buffer);
-                    console.log('[FTP] Upload stream created.');
-
-                    await ftpClient.uploadFrom(uploadStream, localFtpPath);
-                    console.log('[FTP] Upload completed successfully.');
-                } catch (ftpError) {
-                    console.error('[FTP] Upload failed:', ftpError);
-                    throw ftpError;
-                } finally {
-                    ftpClient.close();
-                    console.log('[FTP] Connection closed.');
+                    console.log('[WEBHOOK] Transfer complete. Status:', webhookResponse.status);
+                    console.log('[WEBHOOK] Response payload:', webhookResponse.data);
+                    console.log('[WEBHOOK] Webhook Transfer 100% Complete!');
+                } catch (webhookError) {
+                    console.error('[WEBHOOK] Transfer failed:', webhookError?.response?.data || webhookError.message);
+                    throw webhookError;
                 }
             } else {
                 localFtpPath = `/ftp/project-files/${Date.now()}_${originalname}`;
