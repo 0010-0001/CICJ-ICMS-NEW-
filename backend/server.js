@@ -3329,9 +3329,42 @@ app.put('/api/files/:file_id', authenticateToken, requirePermission('can_edit_fi
     const { file_id } = req.params;
     const { file_name } = req.body;
     try {
+        const fileId = parseInt(file_id);
+        const file = await prisma.project_File.findUnique({
+            where: { file_id: fileId }
+        });
+        if (!file) return res.status(404).json({ error: "File not found." });
+
+        const updateData = { file_name };
+
+        if (file.storage_location === 'LOCAL_FTP' && file.local_ftp_path) {
+            const oldFilename = path.basename(file.local_ftp_path);
+            const timestampPrefixMatch = oldFilename.match(/^\d+_/);
+            const timestampPrefix = timestampPrefixMatch ? timestampPrefixMatch[0] : '';
+            const sanitizedName = String(file_name || '').trim().replace(/[^a-zA-Z0-9._-]/g, '_');
+            const fallbackName = oldFilename.replace(/^\d+_/, '');
+            const newFilename = `${timestampPrefix}${sanitizedName || fallbackName}`;
+            const webhookUrl = `https://${process.env.FTP_HOST}/rename`;
+
+            console.log('[WEBHOOK] Initiating rename for LOCAL_FTP file...');
+            console.log('[WEBHOOK] Old filename:', oldFilename);
+            console.log('[WEBHOOK] New filename:', newFilename);
+            console.log('[WEBHOOK] Target URL:', webhookUrl);
+
+            try {
+                await axios.put(webhookUrl, { oldFilename, newFilename });
+                console.log('[WEBHOOK] Successfully renamed physical file.');
+            } catch (webhookError) {
+                console.error('[WEBHOOK] Rename failed:', webhookError?.response?.data || webhookError.message);
+                throw webhookError;
+            }
+
+            updateData.local_ftp_path = `/webhook/project-files/${newFilename}`;
+        }
+
         const updatedFile = await prisma.project_File.update({
-            where: { file_id: parseInt(file_id) },
-            data: { file_name }
+            where: { file_id: fileId },
+            data: updateData
         });
         res.json({ message: "File metadata updated successfully.", file: updatedFile });
     } catch (error) {
@@ -3355,6 +3388,23 @@ app.delete('/api/files/:file_id', authenticateToken, requirePermission('can_dele
             await deleteFromCloudinary(file.cloudinary_public_id, 'image').catch(err =>
                 console.warn("Cloudinary delete warning:", err.message)
             );
+        }
+
+        if (file.storage_location === 'LOCAL_FTP' && file.local_ftp_path) {
+            const filename = path.basename(file.local_ftp_path);
+            const webhookUrl = `https://${process.env.FTP_HOST}/delete`;
+
+            console.log('[WEBHOOK] Initiating delete for LOCAL_FTP file...');
+            console.log('[WEBHOOK] Filename:', filename);
+            console.log('[WEBHOOK] Target URL:', webhookUrl);
+
+            try {
+                await axios.delete(webhookUrl, { data: { filename } });
+                console.log('[WEBHOOK] Successfully deleted physical file.');
+            } catch (webhookError) {
+                console.error('[WEBHOOK] Delete failed:', webhookError?.response?.data || webhookError.message);
+                throw webhookError;
+            }
         }
 
         const archiveActor = getArchiveActorFromRequest(req);
