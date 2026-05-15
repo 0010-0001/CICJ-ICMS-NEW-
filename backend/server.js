@@ -3305,6 +3305,14 @@ app.get('/api/files/:file_id/download', authenticateToken, requirePermission('ca
         });
         if (!file) return res.status(404).json({ error: "File not found." });
 
+        let downloadUrl = file.cloudinary_url;
+        if (file.storage_location === 'LOCAL_FTP' && file.local_ftp_path) {
+            const filename = file.local_ftp_path.split('/').pop();
+            if (filename) {
+                downloadUrl = `https://${process.env.FTP_HOST}/download/${filename}`;
+            }
+        }
+
         res.json({
             message: "File ready.",
             file: {
@@ -3313,7 +3321,7 @@ app.get('/api/files/:file_id/download', authenticateToken, requirePermission('ca
                 file_type: file.file_type,
                 file_size_mb: file.file_size_mb,
                 storage_location: file.storage_location,
-                url: file.cloudinary_url || file.local_ftp_path,
+                url: downloadUrl || file.local_ftp_path,
                 cloudinary_url: file.cloudinary_url,
                 local_ftp_path: file.local_ftp_path
             }
