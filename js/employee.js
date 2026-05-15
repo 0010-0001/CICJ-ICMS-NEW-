@@ -4308,6 +4308,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const formData = new FormData();
             formData.append('file', selectedFile);
+            formData.append('preferred_storage', 'LOCAL_FTP');
             formData.append('category', projectFileCategory?.value || 'project_progress');
             const pref = empUploadPreferredStorage?.value || 'AUTO';
             if (pref !== 'AUTO') formData.append('preferred_storage', pref);
