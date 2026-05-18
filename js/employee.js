@@ -3981,8 +3981,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let projectFilesCache = [];
     const filesTableBody = document.getElementById('files-table-body');
-    const archivedFilesTableBody = document.getElementById('archived-files-table-body');
-    const refreshArchivedFilesBtn = document.getElementById('refresh-archived-files-btn');
     const syncCloudinaryBtn = document.getElementById('sync-cloudinary-btn');
     const openFileUploadBtn = document.getElementById('open-file-upload-btn');
     const cancelFileUploadBtn = document.getElementById('cancel-file-upload-btn');
@@ -4118,83 +4116,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }).join('');
     }
 
-    function renderArchivedFilesTable(files) {
-        if (!archivedFilesTableBody) return;
-
-        if (files.length === 0) {
-            archivedFilesTableBody.innerHTML = `
-                <tr>
-                    <td colspan="7" style="text-align: center; padding: 36px; color: #9ca3af;">
-                        <div style="font-size: 42px; margin-bottom: 10px;"><i class="bi bi-archive"></i></div>
-                        <div style="font-size: 15px; font-weight: 600; color: #374151;">No archived files</div>
-                        <div style="font-size: 13px; margin-top: 6px;">Archived files will appear here.</div>
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-
-        const canDeleteFiles = hasPermission('can_delete_files');
-
-        archivedFilesTableBody.innerHTML = files.map(file => {
-            const storage = file.storage_location || 'UNKNOWN';
-            const isCloud = storage === 'CLOUD';
-            const storageClass = isCloud ? 'storage-cloud' : 'storage-ftp';
-            const storageIcon = isCloud ? 'bi-cloud-check' : 'bi-hdd-network';
-            const uploadedBy = file.uploader?.full_name || 'Unknown';
-            const uploadedAt = file.uploaded_at
-                ? new Date(file.uploaded_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                : '-';
-
-            return `
-                <tr>
-                    <td class="file-name-cell">
-                        <div class="file-name-primary" title="${escapeHtml(file.file_name)}">${escapeHtml(file.file_name)}</div>
-                        <div class="file-name-secondary">ID #${Number(file.file_id || 0)}</div>
-                    </td>
-                    <td>${escapeHtml(file.file_type || '-')}</td>
-                    <td>${Number(file.file_size_mb || 0).toFixed(2)}</td>
-                    <td>
-                        <span class="storage-badge ${storageClass}">
-                            <i class="bi ${storageIcon}"></i>${escapeHtml(storage)}
-                        </span>
-                    </td>
-                    <td>${escapeHtml(uploadedAt)}</td>
-                    <td>${escapeHtml(uploadedBy)}</td>
-                    <td>
-                        <div class="files-actions">
-                            ${canDeleteFiles ? `<button class="btn-small btn-retrieve-file" data-file-id="${Number(file.file_id || 0)}" title="Retrieve File">
-                                <i class="bi bi-arrow-up-circle"></i> Retrieve
-                            </button>` : ''}
-                        </div>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-    }
-
-    async function loadArchivedFiles() {
-        if (!archivedFilesTableBody) return;
-        if (!hasPermission('can_view_files') && !hasPermission('can_download_files')) return;
-
-        try {
-            const response = await fetch(API_BASE + '/api/files/archived', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || 'Failed to load archived files');
-            }
-            const data = await response.json();
-            renderArchivedFilesTable(data.files || []);
-        } catch (error) {
-            console.error('Load archived files error:', error);
-            if (archivedFilesTableBody) {
-                archivedFilesTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:24px; color:#ef4444;">Failed to load archived files: ${escapeHtml(error.message)}</td></tr>`;
-            }
-        }
-    }
-
     function applyProjectFilesFilters() {
         const storageFilter = (filesStorageFilter?.value || 'ALL').trim();
         const searchText = (filesSearchInput?.value || '').trim().toLowerCase();
@@ -4245,7 +4166,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateFilesStats(projectFilesCache);
             await loadStorageSummary();
             applyProjectFilesFilters();
-            await loadArchivedFiles();
         } catch (error) {
             console.error('Load files error:', error);
             filesTableBody.innerHTML = `
@@ -4259,50 +4179,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             `;
         }
     };
-
-    if (refreshArchivedFilesBtn) {
-        refreshArchivedFilesBtn.addEventListener('click', async () => {
-            await loadArchivedFiles();
-        });
-    }
-
-    if (archivedFilesTableBody) {
-        archivedFilesTableBody.addEventListener('click', async (event) => {
-            const retrieveBtn = event.target.closest('.btn-retrieve-file');
-            if (!retrieveBtn) return;
-
-            if (!hasPermission('can_delete_files')) {
-                showAlert('You do not have permission to retrieve files.');
-                return;
-            }
-            const fileId = Number(retrieveBtn.getAttribute('data-file-id'));
-            if (!fileId) return;
-
-            const confirmed = await openSharedConfirmModal({
-                title: 'Retrieve File',
-                subtitle: 'Move back to active files.',
-                message: 'Retrieve this file back to active files?',
-                confirmText: 'Retrieve',
-                danger: false
-            });
-            if (!confirmed) return;
-
-            try {
-                const response = await fetch(`${API_BASE}/api/files/${fileId}/retrieve`, {
-                    method: 'PUT',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await response.json().catch(() => ({}));
-                if (!response.ok) throw new Error(data.error || 'Retrieve failed');
-
-                showAlert('File retrieved from archive successfully.');
-                await window.loadEmployeeFilesData();
-            } catch (error) {
-                console.error('Retrieve file error:', error);
-                showAlert(`Retrieve failed: ${error.message}`);
-            }
-        });
-    }
 
     if (openFileUploadBtn && fileUploadPanel) {
         openFileUploadBtn.addEventListener('click', () => {
