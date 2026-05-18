@@ -3039,25 +3039,6 @@ app.get('/api/files', authenticateToken, requirePermission('can_view_files'), as
     }
 });
 
-// Get Archived Files - Requires can_view_files permission
-app.get('/api/files/archived', authenticateToken, requirePermission('can_view_files'), async (req, res) => {
-    try {
-        const files = await prisma.project_File.findMany({
-            where: { is_archived: true },
-            include: {
-                uploader: {
-                    select: { full_name: true, email: true }
-                }
-            },
-            orderBy: { uploaded_at: 'desc' }
-        });
-        res.json({ files });
-    } catch (error) {
-        console.error("Fetch Archived Files Error:", error);
-        res.status(500).json({ error: "Failed to retrieve archived files." });
-    }
-});
-
 // Sync Cloudinary folder assets into Project_File records
 app.post('/api/files/sync-cloudinary', authenticateToken, requirePermission('can_upload_files'), async (req, res) => {
     try {
@@ -3402,7 +3383,7 @@ app.put('/api/files/:file_id', authenticateToken, requirePermission('can_edit_fi
     }
 });
 
-// Delete File - Also removes from Cloudinary if stored there
+// Archive File - moves to archive_records + hard-deletes Project_File record
 app.delete('/api/files/:file_id', authenticateToken, requirePermission('can_delete_files'), async (req, res) => {
     const { file_id } = req.params;
     try {
@@ -3424,60 +3405,31 @@ app.delete('/api/files/:file_id', authenticateToken, requirePermission('can_dele
                 await axios.post(webhookUrl, { filename });
                 console.log('[WEBHOOK] Physical file moved to Archive');
             } catch (webhookError) {
-                console.error('[WEBHOOK] Archive failed:', webhookError?.response?.data || webhookError.message);
+                console.error('[WEBHOOK] Archive webhook failed:', webhookError?.response?.data || webhookError.message);
                 throw webhookError;
             }
         }
 
-        await prisma.project_File.update({
-            where: { file_id: fileId },
-            data: { is_archived: true }
+        const archiveActor = getArchiveActorFromRequest(req);
+        const deletedIp = getClientIp(req);
+
+        await prisma.$transaction(async (tx) => {
+            await archiveDeletedRecord(tx, {
+                entityType: 'PROJECT_FILE',
+                sourceTable: 'Project_File',
+                recordId: file.file_id,
+                ...archiveActor,
+                deletedIp,
+                deleteReason: 'Archived from project files',
+                payload: file
+            });
+            await tx.project_File.delete({ where: { file_id: fileId } });
         });
 
         res.json({ message: 'File archived successfully.' });
     } catch (error) {
         console.error("Delete File Error:", error);
-        res.status(500).json({ error: "Failed to delete file." });
-    }
-});
-
-// Retrieve File from Archive - Requires can_delete_files permission
-app.put('/api/files/:file_id/retrieve', authenticateToken, requirePermission('can_delete_files'), async (req, res) => {
-    const { file_id } = req.params;
-    try {
-        const fileId = parseInt(file_id);
-        const file = await prisma.project_File.findUnique({
-            where: { file_id: fileId }
-        });
-        if (!file) return res.status(404).json({ error: "File not found." });
-        if (!file.is_archived) return res.status(400).json({ error: "File is not archived." });
-
-        if (file.storage_location === 'LOCAL_FTP' && file.local_ftp_path) {
-            const filename = path.basename(file.local_ftp_path);
-            const webhookUrl = `https://${process.env.FTP_HOST}/retrieve`;
-
-            console.log('[WEBHOOK] Initiating retrieve for LOCAL_FTP file...');
-            console.log('[WEBHOOK] Filename:', filename);
-            console.log('[WEBHOOK] Target URL:', webhookUrl);
-
-            try {
-                await axios.post(webhookUrl, { filename });
-                console.log('[WEBHOOK] Physical file retrieved from Archive');
-            } catch (webhookError) {
-                console.error('[WEBHOOK] Retrieve failed:', webhookError?.response?.data || webhookError.message);
-                throw webhookError;
-            }
-        }
-
-        await prisma.project_File.update({
-            where: { file_id: fileId },
-            data: { is_archived: false }
-        });
-
-        res.json({ message: 'File retrieved from archive successfully.' });
-    } catch (error) {
-        console.error("Retrieve File Error:", error);
-        res.status(500).json({ error: "Failed to retrieve file from archive." });
+        res.status(500).json({ error: "Failed to archive file." });
     }
 });
 
@@ -4975,8 +4927,8 @@ app.get('/api/archives', authenticateToken, requirePermission('can_view_audit_tr
     }
 });
 
-// Restore Project File from Archive Snapshot - Requires can_delete_files permission
-app.post('/api/archives/:archive_id/restore-file', authenticateToken, requirePermission('can_delete_files'), async (req, res) => {
+// Restore Any Archived Record - Handles PROJECT_FILE, EQUIPMENT, USER, CLIENT_INQUIRY, ATTENDANCE_LOG, CONSTRUCTION_SITE
+app.post('/api/archives/:archive_id/restore', authenticateToken, requirePermission('can_view_audit_trail'), async (req, res) => {
     const { archive_id } = req.params;
     try {
         const archiveIdNum = parseInt(archive_id);
@@ -4991,69 +4943,190 @@ app.post('/api/archives/:archive_id/restore-file', authenticateToken, requirePer
         }
 
         const archive = rows[0];
-
-        if (String(archive.entity_type).toUpperCase() !== 'PROJECT_FILE') {
-            return res.status(400).json({ error: 'This archive record is not a project file.' });
-        }
-
+        const entityType = String(archive.entity_type || '').toUpperCase();
         const payload = parseArchivePayload(archive.payload_json);
-        if (!payload || !payload.file_name) {
-            return res.status(400).json({ error: 'Archive snapshot is incomplete. Cannot restore file.' });
+
+        if (!payload || typeof payload !== 'object') {
+            return res.status(400).json({ error: 'Archive snapshot is missing or corrupt.' });
         }
 
-        // Resolve a valid uploader_id (original uploader may have been deleted)
-        const originalUploaderId = Number(payload.uploader_id) || 0;
-        const uploaderExists = originalUploaderId
-            ? await prisma.user.findUnique({ where: { user_id: originalUploaderId } }).catch(() => null)
-            : null;
-        const finalUploaderId = uploaderExists ? originalUploaderId : req.user.user_id;
+        let restoredLabel = 'Record';
 
-        // If the original file_id still exists in the table, just un-archive it
-        const existingFile = payload.file_id
-            ? await prisma.project_File.findUnique({ where: { file_id: Number(payload.file_id) } }).catch(() => null)
-            : null;
+        // ── PROJECT_FILE ──────────────────────────────────────────────
+        if (entityType === 'PROJECT_FILE') {
+            if (!payload.file_name) return res.status(400).json({ error: 'Snapshot missing file_name.' });
 
-        if (existingFile) {
-            await prisma.project_File.update({
-                where: { file_id: existingFile.file_id },
-                data: { is_archived: false }
-            });
-        } else {
-            await prisma.project_File.create({
+            const originalUploaderId = Number(payload.uploader_id) || 0;
+            const uploaderExists = originalUploaderId
+                ? await prisma.user.findUnique({ where: { user_id: originalUploaderId } }).catch(() => null)
+                : null;
+            const finalUploaderId = uploaderExists ? originalUploaderId : req.user.user_id;
+
+            const existingFile = payload.file_id
+                ? await prisma.project_File.findUnique({ where: { file_id: Number(payload.file_id) } }).catch(() => null)
+                : null;
+
+            if (existingFile) {
+                await prisma.project_File.update({ where: { file_id: existingFile.file_id }, data: { is_archived: false } });
+            } else {
+                await prisma.project_File.create({
+                    data: {
+                        file_name: payload.file_name,
+                        file_type: payload.file_type || 'application/octet-stream',
+                        file_size_mb: Number(payload.file_size_mb) || 0,
+                        storage_location: payload.storage_location || 'LOCAL_FTP',
+                        cloudinary_url: payload.cloudinary_url || null,
+                        cloudinary_public_id: payload.cloudinary_public_id || null,
+                        local_ftp_path: payload.local_ftp_path || null,
+                        uploader_id: finalUploaderId,
+                        is_archived: false
+                    }
+                });
+            }
+
+            if (payload.storage_location === 'LOCAL_FTP' && payload.local_ftp_path) {
+                const filename = path.basename(payload.local_ftp_path);
+                try {
+                    await axios.post(`https://${process.env.FTP_HOST}/retrieve`, { filename });
+                    console.log('[WEBHOOK] Physical file retrieved from Archive');
+                } catch (webhookError) {
+                    console.warn('[WEBHOOK] Retrieve webhook failed:', webhookError?.response?.data || webhookError.message);
+                }
+            }
+            restoredLabel = 'File';
+
+        // ── EQUIPMENT ────────────────────────────────────────────────
+        } else if (entityType === 'EQUIPMENT') {
+            if (!payload.name) return res.status(400).json({ error: 'Snapshot missing equipment name.' });
+
+            const existing = payload.equipment_id
+                ? await prisma.equipment_Inventory.findUnique({ where: { equipment_id: Number(payload.equipment_id) } }).catch(() => null)
+                : null;
+            if (existing) return res.json({ message: 'Equipment already exists in inventory.' });
+
+            // qr_number must be unique — suffix with timestamp if collision exists
+            let qrNumber = payload.qr_number || null;
+            if (qrNumber) {
+                const qrConflict = await prisma.equipment_Inventory.findUnique({ where: { qr_number: qrNumber } }).catch(() => null);
+                if (qrConflict) qrNumber = `${qrNumber}-R${Date.now()}`;
+            }
+
+            await prisma.equipment_Inventory.create({
                 data: {
-                    file_name: payload.file_name,
-                    file_type: payload.file_type || 'application/octet-stream',
-                    file_size_mb: Number(payload.file_size_mb) || 0,
-                    storage_location: payload.storage_location || 'LOCAL_FTP',
-                    cloudinary_url: payload.cloudinary_url || null,
-                    cloudinary_public_id: payload.cloudinary_public_id || null,
-                    local_ftp_path: payload.local_ftp_path || null,
-                    uploader_id: finalUploaderId,
-                    is_archived: false
+                    name: payload.name,
+                    quantity: Number(payload.quantity) || 0,
+                    condition: payload.condition || 'Good',
+                    status: payload.status || 'Available',
+                    current_location: payload.current_location || null,
+                    qr_code: payload.qr_code || null,
+                    qr_number: qrNumber,
+                    photo_url: payload.photo_url || null,
+                    photo_public_id: payload.photo_public_id || null
                 }
             });
-        }
+            restoredLabel = 'Equipment';
 
-        // For LOCAL_FTP files, call the retrieve webhook
-        if (payload.storage_location === 'LOCAL_FTP' && payload.local_ftp_path) {
-            const filename = path.basename(payload.local_ftp_path);
-            const webhookUrl = `https://${process.env.FTP_HOST}/retrieve`;
+        // ── CLIENT_INQUIRY ────────────────────────────────────────────
+        } else if (entityType === 'CLIENT_INQUIRY') {
+            if (!payload.client_name || !payload.message_body) return res.status(400).json({ error: 'Snapshot missing required inquiry fields.' });
 
-            console.log('[WEBHOOK] Initiating restore-retrieve for archived file...');
-            console.log('[WEBHOOK] Filename:', filename);
+            const existing = payload.inquiry_id
+                ? await prisma.client_Inquiry.findUnique({ where: { inquiry_id: Number(payload.inquiry_id) } }).catch(() => null)
+                : null;
+            if (existing) return res.json({ message: 'Inquiry already exists.' });
 
-            try {
-                await axios.post(webhookUrl, { filename });
-                console.log('[WEBHOOK] Physical file retrieved from Archive');
-            } catch (webhookError) {
-                console.warn('[WEBHOOK] Retrieve webhook failed (file may need manual recovery):', webhookError?.response?.data || webhookError.message);
+            let handledById = null;
+            if (payload.handled_by) {
+                const handler = await prisma.user.findUnique({ where: { user_id: Number(payload.handled_by) } }).catch(() => null);
+                handledById = handler ? Number(payload.handled_by) : null;
             }
+
+            await prisma.client_Inquiry.create({
+                data: {
+                    client_name: payload.client_name,
+                    client_email: payload.client_email || 'unknown@restored.local',
+                    contact_number: payload.contact_number || null,
+                    subject: payload.subject || null,
+                    message_body: payload.message_body,
+                    status: payload.status || 'Pending',
+                    handled_by: handledById
+                }
+            });
+            restoredLabel = 'Inquiry';
+
+        // ── USER ──────────────────────────────────────────────────────
+        } else if (entityType === 'USER') {
+            if (!payload.email) return res.status(400).json({ error: 'Snapshot missing user email.' });
+
+            const existing = payload.user_id
+                ? await prisma.user.findUnique({ where: { user_id: Number(payload.user_id) } }).catch(() => null)
+                : null;
+            if (existing) return res.json({ message: 'User account already exists.' });
+
+            const emailConflict = await prisma.user.findUnique({ where: { email: payload.email } }).catch(() => null);
+            if (emailConflict) return res.status(400).json({ error: 'Cannot restore: a user with this email already exists.' });
+
+            await prisma.user.create({
+                data: {
+                    full_name: payload.full_name || 'Restored User',
+                    email: payload.email,
+                    password_hash: '$2b$12$RESTOREDPLACEHOLDERXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+                    role: payload.role || 'EMPLOYEE',
+                    contact_number: payload.contact_number || null,
+                    is_active: false
+                }
+            });
+            restoredLabel = 'User account (inactive — password reset required)';
+
+        // ── ATTENDANCE_LOG ────────────────────────────────────────────
+        } else if (entityType === 'ATTENDANCE_LOG') {
+            const existing = payload.log_id
+                ? await prisma.attendance_Log.findUnique({ where: { log_id: Number(payload.log_id) } }).catch(() => null)
+                : null;
+            if (existing) return res.json({ message: 'Attendance log already exists.' });
+
+            const attUser = payload.user_id
+                ? await prisma.user.findUnique({ where: { user_id: Number(payload.user_id) } }).catch(() => null)
+                : null;
+            if (!attUser) return res.status(400).json({ error: 'Cannot restore: original user no longer exists.' });
+
+            await prisma.attendance_Log.create({
+                data: {
+                    user_id: Number(payload.user_id),
+                    action: payload.action || 'clock_in',
+                    location_lat: payload.location_lat ? Number(payload.location_lat) : null,
+                    location_lng: payload.location_lng ? Number(payload.location_lng) : null
+                }
+            });
+            restoredLabel = 'Attendance log';
+
+        // ── CONSTRUCTION_SITE ─────────────────────────────────────────
+        } else if (entityType === 'CONSTRUCTION_SITE') {
+            const existing = payload.site_id
+                ? await prisma.construction_Site.findUnique({ where: { site_id: Number(payload.site_id) } }).catch(() => null)
+                : null;
+            if (existing) return res.json({ message: 'Construction site already exists.' });
+
+            await prisma.construction_Site.create({
+                data: {
+                    site_name: payload.site_name || 'Restored Site',
+                    site_address: payload.site_address || null,
+                    center_lat: Number(payload.center_lat) || 0,
+                    center_lng: Number(payload.center_lng) || 0,
+                    geo_fence_radius_meters: Number(payload.geo_fence_radius_meters) || 100,
+                    is_active: false
+                }
+            });
+            restoredLabel = 'Construction site (restored as inactive)';
+
+        } else {
+            return res.status(400).json({ error: `Restore not supported for entity type: ${entityType}` });
         }
 
-        res.json({ message: 'File restored from archive successfully.' });
+        res.json({ message: `${restoredLabel} restored from archive successfully.` });
     } catch (error) {
-        console.error('Restore Archive File Error:', error);
-        res.status(500).json({ error: 'Failed to restore file from archive.' });
+        console.error('Restore Archive Record Error:', error);
+        res.status(500).json({ error: 'Failed to restore record from archive.' });
     }
 });
 
