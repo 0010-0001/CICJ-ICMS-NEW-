@@ -3020,10 +3020,11 @@ app.post('/api/sites/check-location', authenticateToken, async (req, res) => {
 // PROJECT FILES ROUTES (Granular Permissions + Cloudinary)
 // ==========================================
 
-// Get All Files - Requires can_view_files permission
+// Get All Files - active only (is_archived: false)
 app.get('/api/files', authenticateToken, requirePermission('can_view_files'), async (req, res) => {
     try {
         const files = await prisma.project_File.findMany({
+            where: { is_archived: false },
             include: {
                 uploader: {
                     select: { full_name: true, email: true }
@@ -3035,6 +3036,25 @@ app.get('/api/files', authenticateToken, requirePermission('can_view_files'), as
     } catch (error) {
         console.error("Fetch Files Error:", error);
         res.status(500).json({ error: "Failed to retrieve files." });
+    }
+});
+
+// Get Archived Files - Requires can_view_files permission
+app.get('/api/files/archived', authenticateToken, requirePermission('can_view_files'), async (req, res) => {
+    try {
+        const files = await prisma.project_File.findMany({
+            where: { is_archived: true },
+            include: {
+                uploader: {
+                    select: { full_name: true, email: true }
+                }
+            },
+            orderBy: { uploaded_at: 'desc' }
+        });
+        res.json({ files });
+    } catch (error) {
+        console.error("Fetch Archived Files Error:", error);
+        res.status(500).json({ error: "Failed to retrieve archived files." });
     }
 });
 
@@ -3139,6 +3159,7 @@ app.post('/api/files/sync-cloudinary', authenticateToken, requirePermission('can
 app.get('/api/files/storage-summary', authenticateToken, requirePermission('can_view_files'), async (req, res) => {
     try {
         const fileRows = await prisma.project_File.findMany({
+            where: { is_archived: false },
             select: {
                 storage_location: true,
                 file_size_mb: true
@@ -3391,51 +3412,72 @@ app.delete('/api/files/:file_id', authenticateToken, requirePermission('can_dele
         });
         if (!file) return res.status(404).json({ error: "File not found." });
 
-        // Remove from Cloudinary if applicable
-        if (file.cloudinary_public_id) {
-            await deleteFromCloudinary(file.cloudinary_public_id, 'image').catch(err =>
-                console.warn("Cloudinary delete warning:", err.message)
-            );
-        }
-
         if (file.storage_location === 'LOCAL_FTP' && file.local_ftp_path) {
             const filename = path.basename(file.local_ftp_path);
-            const webhookUrl = `https://${process.env.FTP_HOST}/delete`;
+            const webhookUrl = `https://${process.env.FTP_HOST}/archive`;
 
-            console.log('[WEBHOOK] Initiating delete for LOCAL_FTP file...');
+            console.log('[WEBHOOK] Initiating archive for LOCAL_FTP file...');
             console.log('[WEBHOOK] Filename:', filename);
             console.log('[WEBHOOK] Target URL:', webhookUrl);
 
             try {
-                await axios.delete(webhookUrl, { data: { filename } });
-                console.log('[WEBHOOK] Successfully deleted physical file.');
+                await axios.post(webhookUrl, { filename });
+                console.log('[WEBHOOK] Physical file moved to Archive');
             } catch (webhookError) {
-                console.error('[WEBHOOK] Delete failed:', webhookError?.response?.data || webhookError.message);
+                console.error('[WEBHOOK] Archive failed:', webhookError?.response?.data || webhookError.message);
                 throw webhookError;
             }
         }
 
-        const archiveActor = getArchiveActorFromRequest(req);
-        const deletedIp = getClientIp(req);
-
-        await prisma.$transaction(async (tx) => {
-            await archiveDeletedRecord(tx, {
-                entityType: 'PROJECT_FILE',
-                sourceTable: 'Project_File',
-                recordId: file.file_id,
-                ...archiveActor,
-                deletedIp,
-                deleteReason: 'Deleted from project files',
-                payload: file
-            });
-
-            await tx.project_File.delete({ where: { file_id: fileId } });
+        await prisma.project_File.update({
+            where: { file_id: fileId },
+            data: { is_archived: true }
         });
 
-        res.json({ message: 'File moved to archives successfully.' });
+        res.json({ message: 'File archived successfully.' });
     } catch (error) {
         console.error("Delete File Error:", error);
         res.status(500).json({ error: "Failed to delete file." });
+    }
+});
+
+// Retrieve File from Archive - Requires can_delete_files permission
+app.put('/api/files/:file_id/retrieve', authenticateToken, requirePermission('can_delete_files'), async (req, res) => {
+    const { file_id } = req.params;
+    try {
+        const fileId = parseInt(file_id);
+        const file = await prisma.project_File.findUnique({
+            where: { file_id: fileId }
+        });
+        if (!file) return res.status(404).json({ error: "File not found." });
+        if (!file.is_archived) return res.status(400).json({ error: "File is not archived." });
+
+        if (file.storage_location === 'LOCAL_FTP' && file.local_ftp_path) {
+            const filename = path.basename(file.local_ftp_path);
+            const webhookUrl = `https://${process.env.FTP_HOST}/retrieve`;
+
+            console.log('[WEBHOOK] Initiating retrieve for LOCAL_FTP file...');
+            console.log('[WEBHOOK] Filename:', filename);
+            console.log('[WEBHOOK] Target URL:', webhookUrl);
+
+            try {
+                await axios.post(webhookUrl, { filename });
+                console.log('[WEBHOOK] Physical file retrieved from Archive');
+            } catch (webhookError) {
+                console.error('[WEBHOOK] Retrieve failed:', webhookError?.response?.data || webhookError.message);
+                throw webhookError;
+            }
+        }
+
+        await prisma.project_File.update({
+            where: { file_id: fileId },
+            data: { is_archived: false }
+        });
+
+        res.json({ message: 'File retrieved from archive successfully.' });
+    } catch (error) {
+        console.error("Retrieve File Error:", error);
+        res.status(500).json({ error: "Failed to retrieve file from archive." });
     }
 });
 

@@ -382,11 +382,95 @@ body.theme-dark .fup-label {
 .files-actions {
     display: flex;
     gap: 8px;
+    align-items: center;
 }
 
 .files-actions .btn-small {
     min-width: unset;
     justify-content: center;
+}
+
+/* ==========================================
+   ARCHIVED FILES SECTION
+   ========================================== */
+.archived-files-section {
+    margin-top: 36px;
+    border-top: 2px dashed #e2e8f0;
+    padding-top: 24px;
+}
+
+.archived-files-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border: 1.5px solid #fde68a;
+    border-radius: 10px;
+}
+
+.archived-files-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.archived-files-title i {
+    font-size: 18px;
+    color: #d97706;
+}
+
+.archived-files-title h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #92400e;
+    margin: 0;
+    letter-spacing: 0.01em;
+}
+
+/* Archive button — amber */
+.btn-archive-file {
+    background: #f59e0b !important;
+    color: #fff !important;
+    border-color: transparent !important;
+}
+
+.btn-archive-file:hover {
+    background: #d97706 !important;
+}
+
+/* Retrieve button — green */
+.btn-retrieve-file {
+    background: #2dad50 !important;
+    color: #fff !important;
+    border-color: transparent !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.btn-retrieve-file:hover {
+    background: #22973f !important;
+}
+
+/* Dark mode adjustments */
+body.theme-dark .archived-files-section {
+    border-top-color: #374151;
+}
+
+body.theme-dark .archived-files-header {
+    background: linear-gradient(135deg, #292524 0%, #1c1917 100%);
+    border-color: #57534e;
+}
+
+body.theme-dark .archived-files-title h3 {
+    color: #fbbf24;
+}
+
+body.theme-dark .archived-files-title i {
+    color: #fbbf24;
 }
 
 /* Compact icon-only sizing for all table row action buttons */

@@ -7,7 +7,7 @@
     <title>Employee Dashboard | CICJ-SHCOMS</title>
     <link rel="stylesheet" href="css/bootstrap-icons/bootstrap-icons.min.css">
     <link rel="stylesheet" href="css/global.css?v=20260402a">
-    <link rel="stylesheet" href="css/admin.css?v=20260513a">
+    <link rel="stylesheet" href="css/admin.css?v=20260519a">
     <link rel="stylesheet" href="css/employee.css?v=20260512d">
     <link rel="stylesheet" href="css/scanner-modal.css?v=20260329b">
     <link rel="stylesheet" href="css/logout-modal.css?v=20260329a">
@@ -543,6 +543,39 @@
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
+                    </div>
+
+                    <!-- Archived Files Section -->
+                    <div id="archived-files-shell" class="table-container archived-files-section">
+                        <div class="archived-files-header">
+                            <div class="archived-files-title">
+                                <i class="bi bi-archive"></i>
+                                <h3>Archived Files</h3>
+                            </div>
+                            <button id="refresh-archived-files-btn" class="btn-small btn-outline" title="Refresh archived files">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                        <div class="table-scroll-shell files-table-scroll">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>File</th>
+                                        <th>Type</th>
+                                        <th>Size (MB)</th>
+                                        <th>Storage</th>
+                                        <th>Uploaded</th>
+                                        <th>By</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="archived-files-table-body">
+                                    <tr>
+                                        <td colspan="7" class="loading-cell muted-text">Loading archived files...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -1739,7 +1772,7 @@
     <script src="js/api-config.js"></script>
     <script src="js/modal-utils.js?v=20260402a"></script>
     <script src="js/permissions-map.js?v=20260504d"></script>
-    <script src="js/employee.js?v=20260512a"></script>
+    <script src="js/employee.js?v=20260519a"></script>
     <script src="js/scanner-modal.js?v=20260421a"></script>
 </body>
 </html>

@@ -135,6 +135,7 @@ model Project_File {
   cloudinary_url     String?
   cloudinary_public_id String?
   local_ftp_path     String?
+  is_archived        Boolean  @default(false)
   uploaded_at        DateTime @default(now())
 
   uploader           User     @relation(fields: [uploader_id], references: [user_id])
