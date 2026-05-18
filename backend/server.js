@@ -4975,6 +4975,88 @@ app.get('/api/archives', authenticateToken, requirePermission('can_view_audit_tr
     }
 });
 
+// Restore Project File from Archive Snapshot - Requires can_delete_files permission
+app.post('/api/archives/:archive_id/restore-file', authenticateToken, requirePermission('can_delete_files'), async (req, res) => {
+    const { archive_id } = req.params;
+    try {
+        const archiveIdNum = parseInt(archive_id);
+
+        const rows = await prisma.$queryRawUnsafe(
+            `SELECT archive_id, entity_type, payload_json FROM archive_records WHERE archive_id = ? LIMIT 1`,
+            archiveIdNum
+        );
+
+        if (!rows || rows.length === 0) {
+            return res.status(404).json({ error: 'Archive record not found.' });
+        }
+
+        const archive = rows[0];
+
+        if (String(archive.entity_type).toUpperCase() !== 'PROJECT_FILE') {
+            return res.status(400).json({ error: 'This archive record is not a project file.' });
+        }
+
+        const payload = parseArchivePayload(archive.payload_json);
+        if (!payload || !payload.file_name) {
+            return res.status(400).json({ error: 'Archive snapshot is incomplete. Cannot restore file.' });
+        }
+
+        // Resolve a valid uploader_id (original uploader may have been deleted)
+        const originalUploaderId = Number(payload.uploader_id) || 0;
+        const uploaderExists = originalUploaderId
+            ? await prisma.user.findUnique({ where: { user_id: originalUploaderId } }).catch(() => null)
+            : null;
+        const finalUploaderId = uploaderExists ? originalUploaderId : req.user.user_id;
+
+        // If the original file_id still exists in the table, just un-archive it
+        const existingFile = payload.file_id
+            ? await prisma.project_File.findUnique({ where: { file_id: Number(payload.file_id) } }).catch(() => null)
+            : null;
+
+        if (existingFile) {
+            await prisma.project_File.update({
+                where: { file_id: existingFile.file_id },
+                data: { is_archived: false }
+            });
+        } else {
+            await prisma.project_File.create({
+                data: {
+                    file_name: payload.file_name,
+                    file_type: payload.file_type || 'application/octet-stream',
+                    file_size_mb: Number(payload.file_size_mb) || 0,
+                    storage_location: payload.storage_location || 'LOCAL_FTP',
+                    cloudinary_url: payload.cloudinary_url || null,
+                    cloudinary_public_id: payload.cloudinary_public_id || null,
+                    local_ftp_path: payload.local_ftp_path || null,
+                    uploader_id: finalUploaderId,
+                    is_archived: false
+                }
+            });
+        }
+
+        // For LOCAL_FTP files, call the retrieve webhook
+        if (payload.storage_location === 'LOCAL_FTP' && payload.local_ftp_path) {
+            const filename = path.basename(payload.local_ftp_path);
+            const webhookUrl = `https://${process.env.FTP_HOST}/retrieve`;
+
+            console.log('[WEBHOOK] Initiating restore-retrieve for archived file...');
+            console.log('[WEBHOOK] Filename:', filename);
+
+            try {
+                await axios.post(webhookUrl, { filename });
+                console.log('[WEBHOOK] Physical file retrieved from Archive');
+            } catch (webhookError) {
+                console.warn('[WEBHOOK] Retrieve webhook failed (file may need manual recovery):', webhookError?.response?.data || webhookError.message);
+            }
+        }
+
+        res.json({ message: 'File restored from archive successfully.' });
+    } catch (error) {
+        console.error('Restore Archive File Error:', error);
+        res.status(500).json({ error: 'Failed to restore file from archive.' });
+    }
+});
+
 // Immutable Archive Guard - archive data cannot be deleted by any account.
 app.delete('/api/archives/:archive_id', authenticateToken, async (req, res) => {
     await logSiemEvent(

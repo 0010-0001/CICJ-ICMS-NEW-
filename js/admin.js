@@ -6170,7 +6170,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!items || items.length === 0) {
             archivesTableBody.innerHTML = `
                 <tr>
-                    <td colspan="8" style="text-align:center; padding:24px; color:#9ca3af;">No archived records for current filters</td>
+                    <td colspan="9" style="text-align:center; padding:24px; color:#9ca3af;">No archived records for current filters</td>
                 </tr>
             `;
             return;
@@ -6183,6 +6183,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const snapshotTitle = JSON.stringify(item.payload || {}, null, 2);
             const roleBadgeClass = actorRole === 'ADMIN' ? 'success' : (actorRole === 'EMPLOYEE' ? 'warning' : '');
 
+            const isProjectFile = String(item.entity_type || '').toUpperCase() === 'PROJECT_FILE';
+            const canRestore = hasPermission('can_delete_files');
+
             return `
                 <tr>
                     <td>${formatDateTime(item.deleted_at)}</td>
@@ -6193,6 +6196,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <td><span class="badge ${roleBadgeClass}">${escapeHtml(actorRole)}</span></td>
                     <td>${escapeHtml(item.deleted_ip || '-')}</td>
                     <td><code class="archive-json-preview" title="${escapeHtml(snapshotTitle)}">${escapeHtml(snapshot)}</code></td>
+                    <td>
+                        ${isProjectFile && canRestore ? `
+                            <button class="btn-small btn-retrieve-file btn-restore-archive-file"
+                                data-archive-id="${Number(item.archive_id || 0)}"
+                                title="Restore this file to Project Files">
+                                <i class="bi bi-arrow-up-circle"></i> Retrieve
+                            </button>
+                        ` : '<span style="color:#9ca3af;font-size:12px;">—</span>'}
+                    </td>
                 </tr>
             `;
         }).join('');
@@ -6237,7 +6249,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!hasPermission('can_view_audit_trail')) {
             archivesTableBody.innerHTML = `
                 <tr>
-                    <td colspan="8" style="text-align:center; padding:24px; color:#9ca3af;">You do not have permission to view archived records.</td>
+                    <td colspan="9" style="text-align:center; padding:24px; color:#9ca3af;">You do not have permission to view archived records.</td>
                 </tr>
             `;
             renderArchivesStats({ total_records: 0, unique_entities: 0, last_archived_at: null });
@@ -6246,7 +6258,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         archivesTableBody.innerHTML = `
             <tr>
-                <td colspan="8" style="text-align:center; padding:24px; color:#6b7280;">Loading archive records...</td>
+                <td colspan="9" style="text-align:center; padding:24px; color:#6b7280;">Loading archive records...</td>
             </tr>
         `;
 
@@ -6268,11 +6280,55 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Load archives error:', error);
             archivesTableBody.innerHTML = `
                 <tr>
-                    <td colspan="8" style="text-align:center; padding:24px; color:#ef4444;">Failed to load archives: ${escapeHtml(error.message)}</td>
+                    <td colspan="9" style="text-align:center; padding:24px; color:#ef4444;">Failed to load archives: ${escapeHtml(error.message)}</td>
                 </tr>
             `;
             renderArchivesStats({ total_records: 0, unique_entities: 0, last_archived_at: null });
         }
+    }
+
+    if (archivesTableBody) {
+        archivesTableBody.addEventListener('click', async (event) => {
+            const restoreBtn = event.target.closest('.btn-restore-archive-file');
+            if (!restoreBtn) return;
+
+            if (!hasPermission('can_delete_files')) {
+                showAlert('You do not have permission to restore files.');
+                return;
+            }
+
+            const archiveId = Number(restoreBtn.getAttribute('data-archive-id'));
+            if (!archiveId) return;
+
+            const confirmed = await showConfirm(
+                'Restore this file back to Project Files? The file record will be re-created and the physical file will be retrieved if stored on Local FTP.',
+                'Restore File',
+                'Restore',
+                'Cancel'
+            );
+            if (!confirmed) return;
+
+            restoreBtn.disabled = true;
+            restoreBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Restoring...';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/archives/${archiveId}/restore-file`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(data.error || 'Restore failed');
+
+                showAlert('File restored to Project Files successfully.');
+                await loadProjectFiles();
+                await loadArchivesTab();
+            } catch (error) {
+                console.error('Restore archive file error:', error);
+                showAlert(`Restore failed: ${error.message}`);
+                restoreBtn.disabled = false;
+                restoreBtn.innerHTML = '<i class="bi bi-arrow-up-circle"></i> Retrieve';
+            }
+        });
     }
 
     if (archivesEntityFilter) {
